@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Porter: Cold Mountain</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding-top: 20px;
+            font-size: 20px;
+            text-align: justify;
+        }
+        .choice {
+            margin-top: 10px;
+        }
+        .choice button {
+            padding: 5px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .inventory {
+            margin-top: 0px;
+        }
+        .inventory-item {
+            display: flex;
+            align-items: center;
+        }
+        .inventory-item span {
+            margin-left: 0px;
+            color: red;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 3px solid #888;
+            max-width: 720px;
+            width: 80%;
+            font-size: 20px;
+            text-align: justify;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Porter: Cold Mountain</h1>
+        <div id="story"></div>
+        <div class="inventory">
+            <h2>Inventory</h2>
+            <ul id="inventoryList"></ul>
+        </div>
+    </div>
+
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+           	<p><b>Salutations Fourtote,</b></p>
+		<p>I wish it were so that I write under better, calmer circumstances, or at least with happier news. Unfortunately, comms and logistics are still in disarray 		after the raid. DO NOT hike supplies or personnel to Waterfall camp for the time being, as the site is under state surveillance and most of us have fallen 		back to a location known only to us. With regard to food, we have made due.</p>
+        	<p>We will send a porter along with this letter. Please provide her with a replacement geolocator and any updates you deem critical. We will notify you once 		we are online.</p>
+            	<p>Regards,</p>
+            	<p>Apple</p>
+            	<p><b>Waterfall</b></p>
+            <button class="close" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let playerInventory = [];
+        let locationInventories = {
+            fallBack: ['Fourtote\'s letter'],
+            ladderClimb: [],
+            waterfallCamp: []
+        };
+        let currentLocation = 'fallBack';
+        let currentPage = 0;
+
+        const pages = {
+            fallBack: [
+                `<p>You approach a makeshift camp on the low Eastern ridge of Cold Mountain. A fellow porter told you there would be work here, but provided no details. 		You're desperate for work, and the porter mentioned that your love of the outdoors may align well with whatever mysterious job awaits you.</p>`,
+                `<p>Cold Mountain, a high elevation watershed, has become a somewhat secretive gathering place for mushroom hunters, entomologists, trappers, and woodland 		technologists looking for meaning and purpose as civilization begins to destabilize.</p>`,
+                `<p>But life on Cold Mountain is not without its challenges. The state has become wildly authoritarian, using ecological conservation as a reason for 			displacing people left behind by the collapsing economy. As a result, the human denizens of Cold Mountain have banded together to protect their way of life, 		setting up blockades to keep out any unwanted visitors...</p>`,
+                `<p>Your contact, a woman known as Apple, stands by the fire, her clothes still wet from the rain. She bids you sit and gestures at a letter sealed in a 		ziplock bag.</p>`,
+                `<p><i>"Finally,"</i> she says to you. <i>"The porter's come. Welcome to Fallback. I need you to take that letter up the ridge to Cloud camp. Give it to 		Fourtote. He'll send you back down with something. I can pay when the job's done."</i></p>`
+            ],
+            ladderClimb: [
+                `<p>You come upon a large, cool clearing surrounded by steep cliffs. On a Northern cliff, you see the waterfall... a most important landmark. To its left, 		there is a ladder. All around you are streams and overgrown trails leading off who knows where.</p>`,
+                `<p>Your mind turns to the stories of nomads, survivalists, and porters alike who wander the slopes and ridgelines of Cold Mountain. You wonder what dangers 		await you on your way to Cloud camp.</p>`,
+                `<p>Just up that ladder is Waterfall camp, which is a location known to you. It's known to many, in fact. News of the raid on Waterfall spread quickly. 		Waterfall was one of the oldest camps on Cold Mountain.</p>`,
+                `<p>The rungs of the ladder are slick with algae, but you persist. The climb leads you to a narrow ledge with enough grip to hoist yourself up from the cliff 		face and onto a large plateau: Waterfall camp</p>`
+            ],
+            waterfallCamp: [
+                `<p>You arrive at Waterfall camp, a once-bustling hub now eerily quiet after the recent raid. Makeshift shelters and equipment are scattered around, evidence 		of a hasty departure.</p>`,
+                `<p>You see a few remaining inhabitants, weary but determined, maintaining what little order they can. They eye you warily, but some nod in recognition, acknowledging your presence.</p>`
+            ]
+        };
+
+        const images = {
+            fallBack: "https://u.cubeupload.com/alternatebummer/330coldmountainlocation.gif",
+            ladderClimb: "https://u.cubeupload.com/alternatebummer/cf0coldmountainlocation.gif",
+            waterfallCamp: "https://u.cubeupload.com/alternatebummer/be9coldmountainlocation.gif" // Placeholder image, update as needed
+        };
+
+        function updateInventory() {
+            const inventoryList = document.getElementById('inventoryList');
+            inventoryList.innerHTML = playerInventory.map(item => `
+                <li class="inventory-item">
+                    <span onclick="dropItem('${item.replace(/'/g, "\\'")}')">[drop]</span> ${item} ${item === 'Fourtote\'s letter' ? '<span onclick="showNote()">[view]</span>' : ''}
+                </li>
+            `).join('');
+        }
+
+        function showNote() {
+            document.getElementById('noteModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('noteModal').style.display = "none";
+        }
+
+        function pickUpItem(item) {
+            locationInventories[currentLocation] = locationInventories[currentLocation].filter(i => i !== item);
+            playerInventory.push(item);
+            updateInventory();
+            renderPage();
+        }
+
+        function dropItem(item) {
+            playerInventory = playerInventory.filter(i => i !== item);
+            locationInventories[currentLocation].push(item);
+            updateInventory();
+            renderPage();
+        }
+
+        function renderPage() {
+            document.getElementById('story').innerHTML = `
+                <div class="location-image">
+                    <img src="${images[currentLocation]}" alt="${currentLocation} location" style="width:720px">
+                </div>
+                <div class="location-description">${pages[currentLocation][currentPage]}</div>
+                <div class="pagination">
+                    ${currentPage > 0 ? '<a href="#" onclick="changePage(-1)">Previous</a> |' : ''}
+                    ${currentPage < pages[currentLocation].length - 1 ? '<a href="#" onclick="changePage(1)">Next</a>' : ''}
+                </div>
+                <div class="choice">
+                    <b><p>Actions</p></b>
+                    ${currentLocation === 'fallBack' ? '<button onclick="location_ladderClimb()">Head North-West</button>' : ''}
+                    ${currentLocation === 'ladderClimb' ? '<button onclick="location_waterfallCamp()">Enter Waterfall camp</button> <button onclick="location_fallBack()">Return to Fallback camp</button>' : ''}
+                    ${currentLocation === 'waterfallCamp' ? '<button onclick="location_ladderClimb()">Go back down the ladder</button>' : ''}
+                    <b><p>Items</p></b>
+                    ${locationInventories[currentLocation].map(item => `<button onclick="pickUpItem('${item.replace(/'/g, "\\'")}')">${item}</button>`).join('')}
+                </div>
+            `;
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderPage();
+        }
+
+        function location_ladderClimb() {
+            currentLocation = 'ladderClimb';
+            currentPage = 0;
+            renderPage();
+        }
+
+        function location_fallBack() {
+            currentLocation = 'fallBack';
+            currentPage = 0;
+            renderPage();
+        }
+
+        function location_waterfallCamp() {
+            currentLocation = 'waterfallCamp';
+            currentPage = 0;
+            renderPage();
+        }
+
+        function restart() {
+            playerInventory = [];
+            locationInventories = {
+                fallBack: ['Fourtote\'s letter'],
+                ladderClimb: [],
+                waterfallCamp: []
+            };
+            currentLocation = 'fallBack';
+            currentPage = 0;
+            updateInventory();
+            renderPage();
+        }
+
+        document.addEventListener("DOMContentLoaded", restart);
+    </script>
+</body>
+</html>
