@@ -251,7 +251,7 @@ const starSystems = {
                     { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
                 { condition: () => artifacts >= 2, action: () => { showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
-                    { text: 'Accept', onclick: () => { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; showEvent(`You are now at ${jumps} jumps.`); updateStatus(); } },
+                    { text: 'Accept', onclick: () => { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; showEvent(`You are now ${jumps} jumps from where you started.`); updateStatus(); } },
                     { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
                 { condition: () => true, action: () => { fuel += 2; showEvent('Hey, you found an asteroid rich with valuable aggregate. You extract 2 units worth of jump fuel!'); } },
