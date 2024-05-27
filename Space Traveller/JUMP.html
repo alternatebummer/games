@@ -5,58 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Flight Simulator</title>
     <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #171717;
-        color: #fff;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-    }
-    #game {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        min-height: 100vh;
-        max-width: 550px;
-        margin: 0 auto;
-        padding: 25px 0;
-        box-sizing: border-box;
-    }
-    .button {
-        margin: 5px;
-        padding: 10px;
-        background-color: #444;
-        border: none;
-        color: #fff;
-        cursor: pointer;
-    }
-    .button:hover {
-        background-color: #666;
-    }
-    #description {
-        max-width: 500px;
-        font-size: 15px;
-        color: lightgrey;
-        text-align: justify;
-        margin-bottom: 20px;
-    }
-    #event {
-        max-width: 500px;
-        margin-top: 20px;
-        font-size: 15px;
-        color: lightgrey;
-        text-align: left;
-    }
-    #fuel {
-        color: #fff;
-    }
-    img {
-        max-width: 100%;
-        height: auto;
-    }
-</style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #171717;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 25px 0;
+            box-sizing: border-box;
+        }
+        .button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #444;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #666;
+        }
+        #description {
+            max-width: 500px;
+            font-size: 15px;
+            color: lightgrey;
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+        #event {
+            max-width: 500px;
+            margin-top: 20px;
+            font-size: 15px;
+            color: lightgrey;
+            text-align: left;
+        }
+        #fuel {
+            color: #fff;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 
 </head>
 <body>
@@ -70,6 +70,7 @@
         </div>
         <div id="main" style="display:none;">
             <h2 id="shipTitle"></h2>
+            <h3 id="starSystemTitle"></h3>
             <div id="status">
                 <p>Jump Fuel: <span id="fuel">5</span></p>
                 <p>Credits: <span id="credits">0</span></p>
@@ -85,11 +86,16 @@
     </div>
 
     <script>
+        const starSystems = [
+            'Zeballu Prime', 'Homer Nexus', 'Starburnt Reach', 'Deneb\'s Lattice', 'Poochi\'s Epsilon', 'Fourtote\'s Glorius System', 'Gamma Eridani', 'Binary Helios Spilljammers', 'Bonebaker Alpha', 'Juno\'s Loose Planetoids', 'Gerbal Expanse', 'Lyra\'s Veil', 'Old Mira\'s Celestial Teddybear', 'Nova Orionis', 'Omega Trianguli', 'Pegasus Rift', 'Quasar Delta', 'Rigel\'s Beacon', 'Sirius Ascendant', 'Tau Ceti', 'Ursa Majoris', 'Vega\'s Spire', 'Wolf 359', 'Xanthe Prime', 'Ymir\'s Crown', 'Zenith Proxima', 'Aegis Cluster', 'Borealis Field', 'Celestial Forge', 'Draco\'s Maw', 'Echo Quadrant', 'Forsaken Void', 'Galatea\'s Eye', 'Helix Nebula', 'Inferno Star', 'Janus Gate', 'Kronos Realm', 'Lumina Sector', 'Mistral Expanse', 'Nebula\'s Cradle', 'Obsidian Belt', 'Polaris Vortex', 'Quanta Stream', 'Rhea\'s Ring', 'Solstice Sector', 'Titan\'s Forge', 'Umbra Zone Sub-nebula', 'The Beach', 'Wyvern\'s Rest', 'Xylon Fields', 'Yggdrasil Reach', 'Zenith Spire', 'Aetherium Nexus', 'Boreal Reach', 'Celestial Axis', 'Draco\'s Spine', 'Elysian Drift', 'Flux Arc', 'Gaea\'s Domain', 'Helios Shard', 'Infernal Rift', 'Glottis Arc', 'Kronos Ascendant', 'Luminous Gate', 'Mirage Cluster', 'Nebula\'s Edge', 'Ophidian Stream', 'Polaris Gate', 'Quasar\'s Call', 'Rho Orionis', 'Seraphim\'s Wing', 'Tethys Field', 'Umbra Gate', 'Void Echo Bonefield', 'Wyvern\'s Reach', 'Xenon Vortex', 'Ymir\'s Shadow', 'Bobby\'s Arc', 'Aether\'s End', 'Iron Scale Trinary Pulsars', 'Kim\'s Spire', 'Nest II, Return of the Nest', 'Elysian Nebula', 'Flux Body', 'Gorgon George\'s Giant Corpse', 'The Bigtime Stream', 'Infernal Arc', 'Janus Prime', 'The Long Sun', 'Luminous Nexus', 'Mirage Vortex', 'Nebula\'s Daughter', 'Ophidian Nexus', 'Polaris Expanse', 'Quasar\'s Off Switch', 'Rhea\'s Domain', 'Seraphim\'s Gate', 'Tethys Spire', 'Umbra Cluster', 'Loyd\'s Void'
+        ];
+
         let fuel = 5;
         let credits = 0;
         let artifacts = 0;
         let jumps = 0;
         let shipName = '';
+        let currentStarSystem = '';
 
         function updateStatus() {
             document.getElementById('fuel').textContent = fuel;
@@ -123,24 +129,24 @@
         function getRandomEvent() {
             const events = [
                 { condition: () => fuel > 0, action: () => { fuel--; showEvent('A raider took 1 unit of jump fuel!'); } },
-                { condition: () => credits > 0, action: () => { showEvent('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?', [
-                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You traded 1 credit for 1 unit of jump fuel.'); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                { condition: () => credits > 0, action: () => { showEvent('A trader local to this system hails you and offers to 1 credit for 1 unit of your jump fuel. Accept?', [
+                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You transfer 1 credit to the trader and 1 unit of jump fuel materializes in your cargo hold.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
-                { condition: () => artifacts > 0, action: () => { showEvent('A trader offers to exchange 1 artifact for 1 credit. Accept?', [
-                    { text: 'Accept', onclick: () => { artifacts--; credits++; showEvent('You traded 1 artifact for 1 credit.'); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                { condition: () => artifacts > 0, action: () => { showEvent('The warp signature of a familiar trader appears on your sensors. She offers to you 1 credit in exchange for an artifact. Accept?', [
+                    { text: 'Accept', onclick: () => { artifacts--; credits++; showEvent('You place an artifact on your cargo hold\'s materializer and watch it dematerialize. A bing-bong sound from the cockpit indicates 1 credit has been added to your account.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
-                { condition: () => credits > 0, action: () => { showEvent('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?', [
-                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You traded 1 credit for 1 unit of jump fuel.'); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                { condition: () => credits > 0, action: () => { showEvent('Sub-space static forms into the looped recording of a local trader\'s standing offer. He will pay 1 credit for a unit of jump fuel. Accept?', [
+                    { text: 'Accept', onclick: () => { credits++; fuel--; showEvent('Bing-bong! 1 credit appears in your account while a unit of jump fuel dematerializes from your cargo hold.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
                 { condition: () => artifacts >= 2, action: () => { showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
                     { text: 'Accept', onclick: () => { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; showEvent(`You are now at ${jumps} jumps.`); updateStatus(); } },
                     { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
                 ]); } },
-                { condition: () => true, action: () => { fuel += 2; showEvent('You found an asteroid containing 2 units of jump fuel!'); } },
-                { condition: () => true, action: () => { artifacts++; showEvent('You found an artifact on a planet!'); } }
+                { condition: () => true, action: () => { fuel += 2; showEvent('Hey, you found an asteroid rich with valuable aggregate. You extract 2 units worth of jump fuel!'); } },
+                { condition: () => true, action: () => { artifacts++; showEvent('Sensors have detected a once-inhabited world. You beam an artifact into the cargo hold. It\'s just one artifact. Who\'s going to miss it?'); } }
             ];
             const availableEvents = events.filter(event => event.condition());
             const randomEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
@@ -152,6 +158,8 @@
             if (fuel > 0) {
                 fuel--;
                 jumps++;
+                currentStarSystem = starSystems[Math.floor(Math.random() * starSystems.length)];
+                document.getElementById('starSystemTitle').textContent = `Star System: ${currentStarSystem}`;
                 getRandomEvent();
                 updateStatus();
                 if (fuel === 0) {
@@ -170,8 +178,8 @@
         function useBeacon() {
             const outcomes = [
                 () => {
-                    showEvent('A strange looking freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
-                    fuel += 3;
+                    showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
+                    fuel += 2;
                     credits = 0;
                     artifacts = 0;
                     updateStatus();
@@ -179,13 +187,13 @@
                 () => {
                     document.getElementById('jump-button').style.display = 'none';
                     document.getElementById('beacon-button').style.display = 'none';
-                    showEvent('A raider responds to your distress beacon, takes you prisoner, and commandeers your ship. Game over.', [
+                    showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
                         { text: 'Return to Main', onclick: resetGame }
                     ]);
                 },
                 () => {
                     jumps = Math.floor(Math.random() * 40) + 1;
-                    showEvent(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 40). You are now at ${jumps} jumps.`);
+                    showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
                     updateStatus();
                 }
             ];
@@ -213,6 +221,7 @@
                 return;
             }
             document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
+            document.getElementById('starSystemTitle').textContent = '';
             document.getElementById('start').style.display = 'none';
             document.getElementById('main').style.display = 'block';
             updateStatus();
@@ -223,6 +232,7 @@
             credits = 0;
             artifacts = 0;
             jumps = 0;
+            currentStarSystem = '';
             document.getElementById('main').style.display = 'none';
             document.getElementById('start').style.display = 'block';
             document.getElementById('event').textContent = '';
