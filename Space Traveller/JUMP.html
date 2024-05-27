@@ -48,8 +48,8 @@
             font-size: 15px;
             color: lightgrey;
             text-align: justify;
-    padding-left: 5px; /* Add this line */
-    padding-right: 5px; /* Add this line */
+            padding-left: 5px;
+            padding-right: 5px;
         }
         #status p {
             font-size: 18px;
@@ -62,14 +62,19 @@
             max-width: 100%;
             height: auto;
         }
+        #options {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 10px;
+        }
     </style>
-
 </head>
 <body>
     <div id="game">
         <img src="https://raw.githubusercontent.com/alternatebummer/games/main/Space%20Traveller/deepspacelogo.png" alt="Deep Space Traveller" style="width: 500px; height: 300px;">
         <div id="start">
-            <p id="description">You are far from home, traveller. Your ship's flight computer has calculated a jump path to your planet of origin that elegantly avoids two massive ion storms and an asteroid belt. Unfortunately, it requires far more jumps than your fuel reserves will allow for. You'll have to look for fuel between jumps in order to complete the journey.</p>
+            <p id="description">You are far from home, traveller, low on supplies, but especially low on fuel. Your ship's flight computer is brilliant, but returning to the homeworld will require a mix of wits and automation. The jump path is calculated to avoid instant death as much as possible, but the trip will requires far more jumps than you've ever had to make before... How did you get out here, anyway? You'll have to find fuel between jumps in order to complete the journey. Best of luck, traveller.</p>
             <p>Enter your ship's name:</p>
             <input type="text" id="shipName" placeholder="Ship Name">
             <button class="button" onclick="startGame()">Start Game</button>
@@ -77,19 +82,19 @@
         <div id="main" style="display:none;">
             <h3 id="shipTitle"></h3>
             <b><div id="starSystemTitle"></div></b>
-	    <i><div id="starSystemDescription"></div></i>	    
+            <i><div id="starSystemDescription"></div></i>
             <div id="status">
-		<br>
+                <br>
                 <div>Jump Fuel: <span id="fuel">5</span></div>
                 <div>Credits: <span id="credits">0</span></div>
                 <div>Artifacts: <span id="artifacts">0</span></div>
                 <p>Jump Path: <span id="jumps">0</span>/40</p>
             </div>
-            <div id="options" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <button class="button" id="jump-button" onclick="jump()">Jump to New Star System</button>
+            <div id="options">
+                <button class="button" id="civ-jump-button" style="display:none;" onclick="jump('civ')">Jump to Civ-Class System</button>
+                <button class="button" id="unmapped-jump-button" style="display:none;" onclick="jump('unmapped')">Jump to Unmapped System</button>
                 <button class="button" id="beacon-button" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="updateBeaconButton()" onclick="useBeacon()">Use Distress Beacon</button>
             </div>
-	    
             <div id="event"></div>
         </div>
     </div>
@@ -198,160 +203,280 @@ const starSystems = {
     'Loyd\'s Void': 'Loyd\'s Void is shaped like Loyd... Weird.'
 };
 
+let fuel = 6;
+let credits = 1;
+let artifacts = 1;
+let jumps = 0;
+let shipName = '';
+let currentStarSystem = '';
 
-        let fuel = 5;
-        let credits = 0;
-        let artifacts = 0;
-        let jumps = 0;
-        let shipName = '';
-        let currentStarSystem = '';
+function updateStatus() {
+    document.getElementById('fuel').textContent = fuel;
+    document.getElementById('credits').textContent = credits;
+    document.getElementById('artifacts').textContent = artifacts;
+    document.getElementById('jumps').textContent = jumps;
+    if (fuel === 0) {
+        document.getElementById('fuel').style.color = 'red';
+        document.getElementById('civ-jump-button').style.display = 'none';
+        document.getElementById('unmapped-jump-button').style.display = 'none';
+        document.getElementById('beacon-button').style.display = 'block';
+    } else {
+        document.getElementById('fuel').style.color = 'white';
+        document.getElementById('beacon-button').style.display = 'none';
+        document.getElementById('civ-jump-button').style.display = 'inline-block';
+        document.getElementById('unmapped-jump-button').style.display = 'inline-block';
+    }
+    updateBeaconButton();
+}
 
-        function updateStatus() {
-            document.getElementById('fuel').textContent = fuel;
-            document.getElementById('credits').textContent = credits;
-            document.getElementById('artifacts').textContent = artifacts;
-            document.getElementById('jumps').textContent = jumps;
-            if (fuel === 0) {
-                document.getElementById('fuel').style.color = 'red';
-                document.getElementById('jump-button').style.display = 'none';
-                document.getElementById('beacon-button').style.display = 'block';
-            } else {
-                document.getElementById('fuel').style.color = 'white';
-                document.getElementById('beacon-button').style.display = 'none';
-                document.getElementById('jump-button').style.display = 'block';
+function showEvent(text, buttons = []) {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = `<p>${text}</p>`;
+    buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.className = 'button';
+        btn.textContent = button.text;
+        btn.onclick = button.onclick;
+        eventDiv.appendChild(btn);
+    });
+}
+
+function getRandomEvents() {
+    const events = [
+        { type: 'civ', action: () => { 
+            showEvent('A trader local to this system hails and offers to pay you 1 credit for 1 unit of your jump fuel. Accept?', [
+                { text: 'Accept', onclick: () => { 
+                    if (fuel > 0) { 
+                        credits++; 
+                        fuel--; 
+                        updateResourceLimits();
+                        showEvent('You transfer 1 unit of jump fuel to the trader and 1 credit materializes in your account.'); 
+                        updateStatus(); 
+                    } else { 
+                        showEvent('You do not have enough jump fuel.'); 
+                    } 
+                } },
+                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+            ]); 
+        } },
+        { type: 'civ', action: () => { 
+            showEvent('The jump signature of a familiar trader appears on your sensors. She offers to pay you 1 credit in exchange for an artifact. Sound good?', [
+                { text: 'Accept', onclick: () => { 
+                    if (artifacts > 0) { 
+                        artifacts--; 
+                        credits++; 
+                        updateResourceLimits();
+                        showEvent('You place an artifact on your cargo hold\'s materializer and watch it dematerialize. A bing-bong sound from the cockpit indicates 1 credit has been added to your account.'); 
+                        updateStatus(); 
+                    } else { 
+                        showEvent('You do not have enough artifacts.'); 
+                    } 
+                } },
+                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+            ]); 
+        } },
+        { type: 'civ', action: () => {
+            showEvent('A shiny freighter jumps into the system. It\'s broadcasting a looped recording: "ATTN all BIOLOGICS: You may purchase 1 artifact or 1 unit of jump fuel for 1 credit! Take it or leave it, helpless species!"', [
+                { text: 'Artifact', onclick: () => {
+                    if (credits > 0) {
+                        artifacts++;
+                        credits--;
+                        updateResourceLimits();
+                        showEvent('You exchange 1 credit for 1 artifact.');
+                        updateStatus();
+                    } else {
+                        showEvent('You do not have enough credits.');
+                    }
+                } },
+                { text: 'Jump Fuel', onclick: () => {
+                    if (credits > 0) {
+                        fuel++;
+                        credits--;
+                        updateResourceLimits();
+                        showEvent('You exchange 1 credit for 1 unit of jump fuel.');
+                        updateStatus();
+                    } else {
+                        showEvent('You do not have enough credits.');
+                    }
+                } },
+                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+            ]);
+        } },
+        { type: 'civ', action: () => {
+            if (credits >= 2) {
+                showEvent('A very, large, very shiny capital ship decloaks above you. It broadcasts a looped recording: "ATTN little BIOLOGIC: The Galactic Council of World Harvesting Non-Biologics are distributing SURPLUS artifacts. In exchange for Galactic Tax, please accept this pile of ancient manufactured objects from an OBLITERATED SYSTEM."', [
+                    { text: 'Accept', onclick: () => {
+                        credits = 0;
+                        artifacts += 5;
+                        updateResourceLimits();
+                        showEvent('You lose all your credits and gain 5 artifacts.');
+                        updateStatus();
+                    } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+                ]);
             }
-            updateBeaconButton();
-        }
-
-        function showEvent(text, buttons = []) {
-            const eventDiv = document.getElementById('event');
-            eventDiv.innerHTML = `<p>${text}</p>`;
-            buttons.forEach(button => {
-                const btn = document.createElement('button');
-                btn.className = 'button';
-                btn.textContent = button.text;
-                btn.onclick = button.onclick;
-                eventDiv.appendChild(btn);
-            });
-        }
-
-        function getRandomEvent() {
-            const events = [
-                { condition: () => fuel > 0, action: () => { fuel--; showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they hail you and request 1 unit of jump fuel as payment for your hazerdous jump into their territory. Urgh.'); } },
-                { condition: () => credits > 0, action: () => { showEvent('A trader local to this system hails and offers you 1 credit for 1 unit of your jump fuel. Accept?', [
-                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You transfer 1 credit to the trader and 1 unit of jump fuel materializes in your cargo hold.'); updateStatus(); } },
+        } },
+        { type: 'unmapped', action: () => { 
+            if (artifacts >= 2) {
+                showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
+                    { text: 'Accept', onclick: () => { 
+                        credits = 0; 
+                        artifacts = 0; 
+                        fuel = 1; 
+                        jumps = Math.floor(Math.random() * 40) + 1; 
+                        updateResourceLimits();
+                        showEvent(`You are now ${jumps} jumps from where you started.`); 
+                        updateStatus(); 
+                    } },
                     { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]); } },
-                { condition: () => artifacts > 0, action: () => { showEvent('The warp signature of a familiar trader appears on your sensors. She offers to you 1 credit in exchange for an artifact. Accept?', [
-                    { text: 'Accept', onclick: () => { artifacts--; credits++; showEvent('You place an artifact on your cargo hold\'s materializer and watch it dematerialize. A bing-bong sound from the cockpit indicates 1 credit has been added to your account.'); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]); } },
-                { condition: () => credits > 0, action: () => { showEvent('Sub-space static forms into the looped recording of a local trader\'s standing offer. He will pay 1 credit for a unit of jump fuel. Accept?', [
-                    { text: 'Accept', onclick: () => { credits++; fuel--; showEvent('Bing-bong! 1 credit appears in your account while a unit of jump fuel dematerializes from your cargo hold.'); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]); } },
-                { condition: () => artifacts >= 2, action: () => { showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
-                    { text: 'Accept', onclick: () => { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; showEvent(`You are now ${jumps} jumps from where you started.`); updateStatus(); } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]); } },
-                { condition: () => true, action: () => { fuel += 2; showEvent('Hey, you found an asteroid rich with valuable aggregate. You extract 2 units worth of jump fuel!'); } },
-                { condition: () => true, action: () => { artifacts++; showEvent('Sensors have detected a once-inhabited world. You beam an artifact into the cargo hold. It\'s just one artifact. Who\'s going to miss it?'); } }
-            ];
-            const availableEvents = events.filter(event => event.condition());
-            const randomEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
-            randomEvent.action();
+                ]);
+            }
+        } },
+        { type: 'unmapped', action: () => { 
+            showEvent('Sensors have detected a once-inhabited world. You beam an artifact into the cargo hold. It\'s just one artifact. Who\'s going to miss it?');
+            artifacts++;
+            updateResourceLimits();
             updateStatus();
-        }
-
-        function jump() {
-            if (fuel > 0) {
-                fuel--;
-                jumps++;
-                const starSystemsKeys = Object.keys(starSystems);
-                currentStarSystem = starSystemsKeys[Math.floor(Math.random() * starSystemsKeys.length)];
-                document.getElementById('starSystemTitle').textContent = `Star System: ${currentStarSystem}`;
-                document.getElementById('starSystemDescription').textContent = starSystems[currentStarSystem];
-                getRandomEvent();
-                updateStatus();
-                if (fuel === 0) {
-                    document.getElementById('jump-button').style.display = 'none';
-                    document.getElementById('beacon-button').style.display = 'block';
-                    document.getElementById('fuel').style.color = 'red';
-                } else if (jumps >= 40) {
-                    showEvent('Congratulations! You made it home!');
-                    resetGame();
-                }
-            } else {
-                showEvent('Not enough jump fuel!');
-            }
-        }
-
-        function useBeacon() {
-            const outcomes = [
-                () => {
-                    showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
-                    fuel += 2;
-                    credits = 0;
-                    artifacts = 0;
-                    updateStatus();
-                },
-                () => {
-                    document.getElementById('jump-button').style.display = 'none';
-                    document.getElementById('beacon-button').style.display = 'none';
-                    showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
-                        { text: 'Return to Main', onclick: resetGame }
-                    ]);
-                },
-                () => {
-                    jumps = Math.floor(Math.random() * 40) + 1;
-                    showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
-                    updateStatus();
-                }
-            ];
-            const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-            outcome();
-            if (fuel > 0) {
-                document.getElementById('beacon-button').style.display = 'none';
-                document.getElementById('jump-button').style.display = 'block';
-            }
-        }
-
-        function updateBeaconButton() {
-            const beaconButton = document.getElementById('beacon-button');
-            if (fuel === 0) {
-                beaconButton.style.backgroundColor = 'red';
-            } else {
-                beaconButton.style.backgroundColor = 'blue';
-            }
-        }
-
-        function startGame() {
-            shipName = document.getElementById('shipName').value;
-            if (shipName.trim() === '') {
-                alert('Please enter a valid ship name.');
-                return;
-            }
-            document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
-            document.getElementById('starSystemTitle').textContent = '';
-            document.getElementById('starSystemDescription').textContent = '';
-            document.getElementById('start').style.display = 'none';
-            document.getElementById('main').style.display = 'block';
+        } },
+        { type: 'unmapped', action: () => { 
+            showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they rip you off to the tune of 1 of everything you have... Urgh.');
+            artifacts--;
+            credits--;
+            fuel--;
+            updateResourceLimits();
             updateStatus();
-        }
+        } },
+        { type: 'unmapped', action: () => {
+            if (artifacts >= 4) {
+                showEvent('Scanners pick up a junky-looking frigate with no jump drive. You hail them, but the reply is unintelligibly muffled. The hull of their craft reads: ART-O-FACTORY REFINER CO. Try giving them an artifact. See what happens, I guess?', [
+                    { text: 'Give Artifact', onclick: () => {
+                        artifacts--;
+                        fuel += 3;
+                        updateResourceLimits();
+                        showEvent('You lose 1 artifact and gain 3 jump fuel.');
+                        updateStatus();
+                    } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+                ]);
+            }
+        } }
+    ];
+    const availableCivEvents = events.filter(event => event.type === 'civ' && (!event.action.toString().includes('credits >= 2') || credits >= 2));
+    const availableUnmappedEvents = events.filter(event => event.type === 'unmapped' && (!event.action.toString().includes('artifacts >= 2') || artifacts >= 2) && (!event.action.toString().includes('artifacts >= 4') || artifacts >= 4));
+    const civEvent = availableCivEvents[Math.floor(Math.random() * availableCivEvents.length)];
+    const unmappedEvent = availableUnmappedEvents[Math.floor(Math.random() * availableUnmappedEvents.length)];
+    return { civEvent, unmappedEvent };
+}
 
-        function resetGame() {
-            fuel = 5;
+function updateResourceLimits() {
+    fuel = Math.max(0, fuel);
+    credits = Math.max(0, credits);
+    artifacts = Math.max(0, artifacts);
+}
+
+function jump(type) {
+    if (fuel > 0) {
+        fuel--;
+        jumps++;
+        const { civEvent, unmappedEvent } = getRandomEvents();
+        if (type === 'civ') {
+            displayStarSystem();
+            civEvent.action();
+        } else if (type === 'unmapped') {
+            displayStarSystem();
+            unmappedEvent.action();
+        }
+        updateStatus();
+        if (fuel === 0) {
+            document.getElementById('civ-jump-button').style.display = 'none';
+            document.getElementById('unmapped-jump-button').style.display = 'none';
+            document.getElementById('beacon-button').style.display = 'block';
+            document.getElementById('fuel').style.color = 'red';
+        } else if (jumps >= 40) {
+            showEvent('Congratulations! You made it home!');
+            resetGame();
+        }
+    } else {
+        showEvent('Not enough jump fuel!');
+    }
+}
+
+function displayStarSystem() {
+    const starSystemsKeys = Object.keys(starSystems);
+    currentStarSystem = starSystemsKeys[Math.floor(Math.random() * starSystemsKeys.length)];
+    document.getElementById('starSystemTitle').textContent = `Star System: ${currentStarSystem}`;
+    document.getElementById('starSystemDescription').textContent = starSystems[currentStarSystem];
+}
+
+function useBeacon() {
+    const outcomes = [
+        () => {
+            showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
+            fuel += 2;
             credits = 0;
             artifacts = 0;
-            jumps = 0;
-            currentStarSystem = '';
-            document.getElementById('main').style.display = 'none';
-            document.getElementById('start').style.display = 'block';
-            document.getElementById('event').textContent = '';
-            document.getElementById('starSystemDescription').textContent = '';
+            updateResourceLimits();
+            updateStatus();
+        },
+        () => {
+            document.getElementById('civ-jump-button').style.display = 'none';
+            document.getElementById('unmapped-jump-button').style.display = 'none';
+            document.getElementById('beacon-button').style.display = 'none';
+            showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
+                { text: 'Return to Main', onclick: resetGame }
+            ]);
+        },
+        () => {
+            jumps = Math.floor(Math.random() * 40) + 1;
+            showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
+            updateStatus();
         }
+    ];
+    const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+    outcome();
+    if (fuel > 0) {
+        document.getElementById('beacon-button').style.display = 'none';
+        document.getElementById('civ-jump-button').style.display = 'inline-block';
+        document.getElementById('unmapped-jump-button').style.display = 'inline-block';
+    }
+}
 
-        updateStatus();
-    </script>
+function updateBeaconButton() {
+    const beaconButton = document.getElementById('beacon-button');
+    if (fuel === 0) {
+        beaconButton.style.backgroundColor = 'red';
+    } else {
+        beaconButton.style.backgroundColor = 'blue';
+    }
+}
+
+function startGame() {
+    shipName = document.getElementById('shipName').value;
+    if (shipName.trim() === '') {
+        alert('Please enter a valid ship name.');
+        return;
+    }
+    document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
+    document.getElementById('starSystemTitle').textContent = '';
+    document.getElementById('starSystemDescription').textContent = '';
+    document.getElementById('start').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    updateStatus();
+}
+
+function resetGame() {
+    fuel = 6;
+    credits = 1;
+    artifacts = 1;
+    jumps = 0;
+    currentStarSystem = '';
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('start').style.display = 'block';
+    document.getElementById('event').textContent = '';
+    document.getElementById('starSystemDescription').textContent = '';
+}
+
+updateStatus();
+</script>
 </body>
 </html>
