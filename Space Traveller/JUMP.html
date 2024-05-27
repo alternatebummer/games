@@ -40,14 +40,18 @@
             font-size: 15px;
             color: lightgrey;
             text-align: justify;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         #event {
             max-width: 500px;
-            margin-top: 20px;
+            margin-top: 15px;
             font-size: 15px;
             color: lightgrey;
-            text-align: left;
+            text-align: justify;
+        }
+        #status p {
+            font-size: 18px;
+            line-height: 1.2;
         }
         #fuel {
             color: #fff;
@@ -69,26 +73,129 @@
             <button class="button" onclick="startGame()">Start Game</button>
         </div>
         <div id="main" style="display:none;">
-            <h2 id="shipTitle"></h2>
-            <h3 id="starSystemTitle"></h3>
+            <h3 id="shipTitle"></h3>
+            <b><div id="starSystemTitle"></div></b>
+	    <i><div id="starSystemDescription"></div></i>	    
             <div id="status">
-                <p>Jump Fuel: <span id="fuel">5</span></p>
-                <p>Credits: <span id="credits">0</span></p>
-                <p>Artifacts: <span id="artifacts">0</span></p>
-                <p>Jump Path: <span id="jumps">0</span>/40</p>
+		<br>
+                <div>Jump Fuel: <span id="fuel">5</span></div>
+                <div>Credits: <span id="credits">0</span></div>
+                <div>Artifacts: <span id="artifacts">0</span></div>
+                <div>Jump Path: <span id="jumps">0</span>/40</div>
             </div>
             <div id="options" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <button class="button" id="jump-button" onclick="jump()">Jump to New Star System</button>
                 <button class="button" id="beacon-button" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="updateBeaconButton()" onclick="useBeacon()">Use Distress Beacon</button>
             </div>
+	    
             <div id="event"></div>
         </div>
     </div>
 
     <script>
-        const starSystems = [
-            'Zeballu Prime', 'Homer Nexus', 'Starburnt Reach', 'Deneb\'s Lattice', 'Poochi\'s Epsilon', 'Fourtote\'s Glorius System', 'Gamma Eridani', 'Binary Helios Spilljammers', 'Bonebaker Alpha', 'Juno\'s Loose Planetoids', 'Gerbal Expanse', 'Lyra\'s Veil', 'Old Mira\'s Celestial Teddybear', 'Nova Orionis', 'Omega Trianguli', 'Pegasus Rift', 'Quasar Delta', 'Rigel\'s Beacon', 'Sirius Ascendant', 'Tau Ceti', 'Ursa Majoris', 'Vega\'s Spire', 'Wolf 359', 'Xanthe Prime', 'Ymir\'s Crown', 'Zenith Proxima', 'Aegis Cluster', 'Borealis Field', 'Celestial Forge', 'Draco\'s Maw', 'Echo Quadrant', 'Forsaken Void', 'Galatea\'s Eye', 'Helix Nebula', 'Inferno Star', 'Janus Gate', 'Kronos Realm', 'Lumina Sector', 'Mistral Expanse', 'Nebula\'s Cradle', 'Obsidian Belt', 'Polaris Vortex', 'Quanta Stream', 'Rhea\'s Ring', 'Solstice Sector', 'Titan\'s Forge', 'Umbra Zone Sub-nebula', 'The Beach', 'Wyvern\'s Rest', 'Xylon Fields', 'Yggdrasil Reach', 'Zenith Spire', 'Aetherium Nexus', 'Boreal Reach', 'Celestial Axis', 'Draco\'s Spine', 'Elysian Drift', 'Flux Arc', 'Gaea\'s Domain', 'Helios Shard', 'Infernal Rift', 'Glottis Arc', 'Kronos Ascendant', 'Luminous Gate', 'Mirage Cluster', 'Nebula\'s Edge', 'Ophidian Stream', 'Polaris Gate', 'Quasar\'s Call', 'Rho Orionis', 'Seraphim\'s Wing', 'Tethys Field', 'Umbra Gate', 'Void Echo Bonefield', 'Wyvern\'s Reach', 'Xenon Vortex', 'Ymir\'s Shadow', 'Bobby\'s Arc', 'Aether\'s End', 'Iron Scale Trinary Pulsars', 'Kim\'s Spire', 'Nest II, Return of the Nest', 'Elysian Nebula', 'Flux Body', 'Gorgon George\'s Giant Corpse', 'The Bigtime Stream', 'Infernal Arc', 'Janus Prime', 'The Long Sun', 'Luminous Nexus', 'Mirage Vortex', 'Nebula\'s Daughter', 'Ophidian Nexus', 'Polaris Expanse', 'Quasar\'s Off Switch', 'Rhea\'s Domain', 'Seraphim\'s Gate', 'Tethys Spire', 'Umbra Cluster', 'Loyd\'s Void'
-        ];
+const starSystems = {
+    'Zeballu Prime': 'A bustling hub with vibrant markets.',
+    'Homer Nexus': 'Dense asteroid fields with hidden treasures.',
+    'Starburnt Reach': 'Bright stars that never set.',
+    'Deneb\'s Lattice': 'A web of interstellar trade routes.',
+    'Poochi\'s Epsilon': 'Peaceful colony with lush landscapes.',
+    'Fourtote\'s Glorius System': 'Known for its shimmering gas giants.',
+    'Gamma Eridani': 'A system with a binary sun.',
+    'Binary Helios Spilljammers': 'Frequent solar storms and radiation.',
+    'Bonebaker Alpha': 'Once a thriving mining colony.',
+    'Juno\'s Loose Planetoids': 'Floating islands in a void sea.',
+    'Gerbal Expanse': 'Vast, empty, and desolate.',
+    'Lyra\'s Veil': 'Mysterious nebula with hidden secrets.',
+    'Old Mira\'s Celestial Teddybear': 'A star shaped like a teddy bear.',
+    'Nova Orionis': 'Site of a recent supernova.',
+    'Omega Trianguli': 'Triangular formation of rare stars.',
+    'Pegasus Rift': 'A treacherous expanse with black holes.',
+    'Quasar Delta': 'Home to powerful and bright quasars.',
+    'Rigel\'s Beacon': 'A guidepost for lost travelers.',
+    'Sirius Ascendant': 'Brightest star system in the quadrant.',
+    'Tau Ceti': 'Rich in resources and trade.',
+    'Ursa Majoris': 'Constellation resembling a great bear.',
+    'Vega\'s Spire': 'Tall spire reaching into space.',
+    'Wolf 359': 'A system with a red dwarf star.',
+    'Xanthe Prime': 'Golden-hued planets orbit here.',
+    'Ymir\'s Crown': 'Frozen worlds with icy rings.',
+    'Zenith Proxima': 'Closest system to the galactic center.',
+    'Aegis Cluster': 'Defensive perimeter of ancient origin.',
+    'Borealis Field': 'Colorful auroras light up the sky.',
+    'Celestial Forge': 'Known for crafting the finest ships.',
+    'Draco\'s Maw': 'Dragon-shaped constellation dominates.',
+    'Echo Quadrant': 'Echoes of past battles linger here.',
+    'Forsaken Void': 'Abandoned by all known civilizations.',
+    'Galatea\'s Eye': 'A massive swirling gas giant.',
+    'Helix Nebula': 'Spiral-shaped nebula with rare gases.',
+    'Inferno Star': 'Intense heat makes it uninhabitable.',
+    'Janus Gate': 'A portal to other dimensions.',
+    'Kronos Realm': 'Time behaves oddly in this system.',
+    'Lumina Sector': 'Bright and radiant star cluster.',
+    'Mistral Expanse': 'Winds howl through hollow moons.',
+    'Nebula\'s Cradle': 'Stars are born within this nebula.',
+    'Obsidian Belt': 'Black asteroids with a metallic sheen.',
+    'Polaris Vortex': 'A swirling maelstrom of star dust.',
+    'Quanta Stream': 'Flows of charged particles.',
+    'Rhea\'s Ring': 'Ringed planet with lush moons.',
+    'Solstice Sector': 'Sunlight never fades in this sector.',
+    'Titan\'s Forge': 'Forged in the heat of giant stars.',
+    'Umbra Zone Sub-nebula': 'Dark clouds hide ancient secrets.',
+    'The Beach': 'Calm and serene with sandy planets.',
+    'Wyvern\'s Rest': 'A dragon-like constellation rests here.',
+    'Xylon Fields': 'Field of blue-green planets.',
+    'Yggdrasil Reach': 'World tree spans multiple planets.',
+    'Zenith Spire': 'Tall spires reach for the stars.',
+    'Aetherium Nexus': 'Mystical energies flow through here.',
+    'Boreal Reach': 'Cold and distant with icy landscapes.',
+    'Celestial Axis': 'Stars align in a perfect axis.',
+    'Draco\'s Spine': 'Dragon-like formation of stars.',
+    'Elysian Drift': 'Calm and peaceful drifting stars.',
+    'Flux Arc': 'Arc of unstable and shifting stars.',
+    'Gaea\'s Domain': 'Life flourishes on every planet.',
+    'Helios Shard': 'Fragments of a shattered sun.',
+    'Infernal Rift': 'Flames and lava dominate.',
+    'Glottis Arc': 'Mystical and hidden from sight.',
+    'Kronos Ascendant': 'Time slows and speeds unpredictably.',
+    'Luminous Gate': 'Gateway to brighter star clusters.',
+    'Mirage Cluster': 'Stars seem to shift and change.',
+    'Nebula\'s Edge': 'Boundary between light and dark.',
+    'Ophidian Stream': 'Snake-like path of stars.',
+    'Polaris Gate': 'Leading to the north star.',
+    'Quasar\'s Call': 'Beacon for distant travelers.',
+    'Rho Orionis': 'Hunter constellation dominates.',
+    'Seraphim\'s Wing': 'Angelic shapes among the stars.',
+    'Tethys Field': 'Oceans on every planet.',
+    'Umbra Gate': 'Gateway to shadow realms.',
+    'Void Echo Bonefield': 'Bones of ancient ships float.',
+    'Wyvern\'s Reach': 'Dragons soar in the starry sky.',
+    'Xenon Vortex': 'Gas giants with glowing clouds.',
+    'Ymir\'s Shadow': 'Ice worlds cast long shadows.',
+    'Bobby\'s Arc': 'Named after an ancient hero.',
+    'Aether\'s End': 'End point of mystical energies.',
+    'Iron Scale Trinary Pulsars': '3 crazy pulsars zoom around and irritate your eyes.',
+    'Kim\'s Spire': 'Tall and majestic space spire.',
+    'Nest II, Return of the Nest': 'A nesting ground for avian species.',
+    'Elysian Nebula': 'Paradise within a nebula.',
+    'Flux Body': 'Bodies of energy shift and change.',
+    'Gorgon George\'s Giant Corpse': 'Giant remains float in space.',
+    'The Bigtime Stream': 'Constant stream of time particles.',
+    'Infernal Arc': 'Arc of fire and brimstone.',
+    'Janus Prime': 'Twin planets orbiting a star.',
+    'The Long Sun': 'A sun that stretches infinitely.',
+    'Luminous Nexus': 'Brilliantly glowing star nexus.',
+    'Mirage Vortex': 'Illusions abound in the vortex.',
+    'Nebula\'s Daughter': 'Born from the nebula\'s heart.',
+    'Ophidian Nexus': 'Center of snake-like star paths.',
+    'Polaris Expanse': 'Expansive space near the north star.',
+    'Quasar\'s Off Switch': 'Quasar that can be turned off.',
+    'Rhea\'s Domain': 'Dominion of the moon goddess.',
+    'Seraphim\'s Gate': 'Heavenly gate among the stars.',
+    'Tethys Spire': 'Spire rising from the ocean.',
+    'Umbra Cluster': 'Cluster shrouded in shadows.',
+    'Loyd\'s Void': 'Loyd\'s Void is shaped like Loyd... Weird.'
+};
+
 
         let fuel = 5;
         let credits = 0;
@@ -158,8 +265,10 @@
             if (fuel > 0) {
                 fuel--;
                 jumps++;
-                currentStarSystem = starSystems[Math.floor(Math.random() * starSystems.length)];
+                const starSystemsKeys = Object.keys(starSystems);
+                currentStarSystem = starSystemsKeys[Math.floor(Math.random() * starSystemsKeys.length)];
                 document.getElementById('starSystemTitle').textContent = `Star System: ${currentStarSystem}`;
+                document.getElementById('starSystemDescription').textContent = starSystems[currentStarSystem];
                 getRandomEvent();
                 updateStatus();
                 if (fuel === 0) {
@@ -222,6 +331,7 @@
             }
             document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
             document.getElementById('starSystemTitle').textContent = '';
+            document.getElementById('starSystemDescription').textContent = '';
             document.getElementById('start').style.display = 'none';
             document.getElementById('main').style.display = 'block';
             updateStatus();
@@ -236,6 +346,7 @@
             document.getElementById('main').style.display = 'none';
             document.getElementById('start').style.display = 'block';
             document.getElementById('event').textContent = '';
+            document.getElementById('starSystemDescription').textContent = '';
         }
 
         updateStatus();
