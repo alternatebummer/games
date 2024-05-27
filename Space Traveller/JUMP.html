@@ -33,7 +33,7 @@
         }
         #description {
             max-width: 500px;
-            font-size: 18px;
+            font-size: 15px;
             color: lightgrey;
             text-align: justify;
             margin-bottom: 20px;
@@ -55,7 +55,7 @@
                 <p>Jump Fuel: <span id="fuel">5</span></p>
                 <p>Credits: <span id="credits">0</span></p>
                 <p>Artifacts: <span id="artifacts">0</span></p>
-                <p>Jumps Survived: <span id="jumps">0</span>/20</p>
+                <p>Jumps Path: <span id="jumps">0</span>/20</p>
             </div>
             <div id="options" style="display: flex; justify-content: center; gap: 10px;">
                 <button class="button" onclick="jump()">Jump to New Star System</button>
@@ -86,7 +86,7 @@
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
                 { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random number of jumps survived (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
+                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
                 { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
                 { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
             ];
@@ -116,7 +116,7 @@
         function useBeacon() {
             const outcomes = [
                 () => {
-                    alert('A freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
+                    alert('A strange looking freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
                     fuel += 3;
                     credits = 0;
                     artifacts = 0;
@@ -127,7 +127,7 @@
                 },
                 () => {
                     jumps = Math.floor(Math.random() * 20) + 1;
-                    alert(`A wormhole opens and takes you to a random point in your journey. You are now at ${jumps} jumps.`);
+                    alert(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 20). You are now at ${jumps} jumps.`);
                 }
             ];
             const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
