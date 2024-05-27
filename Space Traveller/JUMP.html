@@ -237,7 +237,7 @@ const starSystems = {
 
         function getRandomEvent() {
             const events = [
-                { condition: () => fuel > 0, action: () => { fuel--; showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider cruiser. As is their custom, they hail you and request 1 unit of jump fuel as payment for your hazerdous jump into their territory. Urgh.'); } },
+                { condition: () => fuel > 0, action: () => { fuel--; showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they hail you and request 1 unit of jump fuel as payment for your hazerdous jump into their territory. Urgh.'); } },
                 { condition: () => credits > 0, action: () => { showEvent('A trader local to this system hails and offers you 1 credit for 1 unit of your jump fuel. Accept?', [
                     { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You transfer 1 credit to the trader and 1 unit of jump fuel materializes in your cargo hold.'); updateStatus(); } },
                     { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
