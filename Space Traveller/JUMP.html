@@ -42,6 +42,16 @@
             text-align: justify;
             margin-bottom: 20px;
         }
+        #event {
+            max-width: 500px;
+            margin-top: 20px;
+            font-size: 15px;
+            color: lightgrey;
+            text-align: left;
+        }
+        #fuel {
+            color: #fff;
+        }
         img {
             max-width: 100%;
             height: auto;
@@ -66,10 +76,9 @@
                 <p>Jump Path: <span id="jumps">0</span>/40</p>
             </div>
             <div id="options" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <button class="button" onclick="jump()">Jump to New Star System</button>
-                <button class="button" onclick="useBeacon()" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="this.style.backgroundColor='red'">Use Distress Beacon</button>
+                <button class="button" id="jump-button" onclick="jump()">Jump to New Star System</button>
+                <button class="button" id="beacon-button" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="updateBeaconButton()" onclick="useBeacon()">Use Distress Beacon</button>
             </div>
-
             <div id="event"></div>
         </div>
     </div>
@@ -86,18 +95,51 @@
             document.getElementById('credits').textContent = credits;
             document.getElementById('artifacts').textContent = artifacts;
             document.getElementById('jumps').textContent = jumps;
-            document.querySelector('button[onclick="useBeacon()"]').style.display = fuel === 0 ? 'block' : 'none';
+            if (fuel === 0) {
+                document.getElementById('fuel').style.color = 'red';
+                document.getElementById('jump-button').style.display = 'none';
+                document.getElementById('beacon-button').style.display = 'block';
+            } else {
+                document.getElementById('fuel').style.color = 'white';
+                document.getElementById('beacon-button').style.display = 'none';
+                document.getElementById('jump-button').style.display = 'block';
+            }
+            updateBeaconButton();
+        }
+
+        function showEvent(text, buttons = []) {
+            const eventDiv = document.getElementById('event');
+            eventDiv.innerHTML = `<p>${text}</p>`;
+            buttons.forEach(button => {
+                const btn = document.createElement('button');
+                btn.className = 'button';
+                btn.textContent = button.text;
+                btn.onclick = button.onclick;
+                eventDiv.appendChild(btn);
+            });
         }
 
         function getRandomEvent() {
             const events = [
-                { condition: () => fuel > 0, action: () => { fuel--; alert('A raider took 1 unit of jump fuel!'); } },
-                { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
-                { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; alert(`You are now at ${jumps} jumps.`); } } },
-                { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
-                { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
+                { condition: () => fuel > 0, action: () => { fuel--; showEvent('A raider took 1 unit of jump fuel!'); } },
+                { condition: () => credits > 0, action: () => { showEvent('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?', [
+                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You traded 1 credit for 1 unit of jump fuel.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                ]); } },
+                { condition: () => artifacts > 0, action: () => { showEvent('A trader offers to exchange 1 artifact for 1 credit. Accept?', [
+                    { text: 'Accept', onclick: () => { artifacts--; credits++; showEvent('You traded 1 artifact for 1 credit.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                ]); } },
+                { condition: () => credits > 0, action: () => { showEvent('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?', [
+                    { text: 'Accept', onclick: () => { credits--; fuel++; showEvent('You traded 1 credit for 1 unit of jump fuel.'); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the trade.'); } }
+                ]); } },
+                { condition: () => artifacts >= 2, action: () => { showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
+                    { text: 'Accept', onclick: () => { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; showEvent(`You are now at ${jumps} jumps.`); updateStatus(); } },
+                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
+                ]); } },
+                { condition: () => true, action: () => { fuel += 2; showEvent('You found an asteroid containing 2 units of jump fuel!'); } },
+                { condition: () => true, action: () => { artifacts++; showEvent('You found an artifact on a planet!'); } }
             ];
             const availableEvents = events.filter(event => event.condition());
             const randomEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
@@ -111,37 +153,56 @@
                 jumps++;
                 getRandomEvent();
                 updateStatus();
-                if (fuel <= 0) {
-                    alert('You ran out of fuel! Use your distress beacon.');
+                if (fuel === 0) {
+                    document.getElementById('jump-button').style.display = 'none';
+                    document.getElementById('beacon-button').style.display = 'block';
+                    document.getElementById('fuel').style.color = 'red';
                 } else if (jumps >= 40) {
-                    alert('Congratulations! You made it home!');
+                    showEvent('Congratulations! You made it home!');
                     resetGame();
                 }
             } else {
-                alert('Not enough jump fuel!');
+                showEvent('Not enough jump fuel!');
             }
         }
 
         function useBeacon() {
             const outcomes = [
                 () => {
-                    alert('A strange looking freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
+                    showEvent('A strange looking freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
                     fuel += 3;
                     credits = 0;
                     artifacts = 0;
+                    updateStatus();
                 },
                 () => {
-                    alert('A raider responds to your distress beacon, takes you prisoner, and commandeers your ship. Game over.');
-                    resetGame();
+                    document.getElementById('jump-button').style.display = 'none';
+                    document.getElementById('beacon-button').style.display = 'none';
+                    showEvent('A raider responds to your distress beacon, takes you prisoner, and commandeers your ship. Game over.', [
+                        { text: 'Return to Main', onclick: resetGame }
+                    ]);
                 },
                 () => {
                     jumps = Math.floor(Math.random() * 40) + 1;
-                    alert(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 40). You are now at ${jumps} jumps.`);
+                    showEvent(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 40). You are now at ${jumps} jumps.`);
+                    updateStatus();
                 }
             ];
             const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
             outcome();
-            updateStatus();
+            if (fuel > 0) {
+                document.getElementById('beacon-button').style.display = 'none';
+                document.getElementById('jump-button').style.display = 'block';
+            }
+        }
+
+        function updateBeaconButton() {
+            const beaconButton = document.getElementById('beacon-button');
+            if (fuel === 0) {
+                beaconButton.style.backgroundColor = 'red';
+            } else {
+                beaconButton.style.backgroundColor = 'blue';
+            }
         }
 
         function startGame() {
@@ -163,6 +224,7 @@
             jumps = 0;
             document.getElementById('main').style.display = 'none';
             document.getElementById('start').style.display = 'block';
+            document.getElementById('event').textContent = '';
         }
 
         updateStatus();
