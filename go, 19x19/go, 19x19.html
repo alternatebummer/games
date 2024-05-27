@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go, 19x19</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #baae8d;
+        }
+        .container {
+            background-color: #e0e8d5; /* Very light green, like dry grass */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+        }
+        .board {
+            position: relative;
+            width: 75vmin; /* Use vmin to ensure the board remains a square */
+            height: 75vmin; /* Use vmin to ensure the board remains a square */
+            background-color: #baae8d;
+            margin: 20px 0; 
+        }
+        .vertical-line, .horizontal-line {
+            position: absolute;
+            background-color: #333;
+        }
+        .vertical-line {
+            width: 1px;
+            height: 100%;
+        }
+        .horizontal-line {
+            height: 1px;
+            width: 100%;
+        }
+        .point {
+            position: absolute;
+            width: calc(100% / 19);
+            height: calc(100% / 19);
+            transform: translate(-50%, -50%);
+        }
+        .black, .white {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        .black {
+            background-color: black;
+        }
+        .white {
+            background-color: white;
+        }
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            width: 300px;
+            margin-top: 10px;
+	    margin-bottom: 10px;
+            align-items: center;
+        }
+        .score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 20px;
+        }
+        .current-player {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .black-turn {
+            color: black;
+        }
+        .white-turn {
+            color: white;
+        }
+button {
+    margin-top: 1px;
+    padding: 2px 5px;
+    font-size: 15px;
+    background: #8c8161;
+    color: d1c6a7;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #a69c80;
+}
+    </style>
+</head>
+<body>
+    <div class="scoreboard">
+        <div class="score">
+            <div>White: <span id="white-score">0</span></div>
+            <button onclick="decrementScore('white')">-1</button>
+        </div>
+        <div class="score">
+            <div>Black: <span id="black-score">0</span></div>
+            <button onclick="decrementScore('black')">-1</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="board" id="board"></div>
+    </div>
+    <div id="current-player" class="current-player black-turn">Current Player: Black</div>
+    <script>
+        const boardElement = document.getElementById('board');
+        const blackScoreElement = document.getElementById('black-score');
+        const whiteScoreElement = document.getElementById('white-score');
+        const currentPlayerElement = document.getElementById('current-player');
+        
+        let currentPlayer = 'black';
+        let blackRemoved = 0;
+        let whiteRemoved = 0;
+
+        function createGrid() {
+            for (let i = 0; i < 19; i++) {
+                const verticalLine = document.createElement('div');
+                verticalLine.className = 'vertical-line';
+                verticalLine.style.left = `calc(${i} * 105.5% / 19)`;
+                boardElement.appendChild(verticalLine);
+
+                const horizontalLine = document.createElement('div');
+                horizontalLine.className = 'horizontal-line';
+                horizontalLine.style.top = `calc(${i} * 105.5% / 19)`;
+                boardElement.appendChild(horizontalLine);
+            }
+
+            for (let i = 0; i < 19; i++) {
+                for (let j = 0; j < 19; j++) {
+                    const point = document.createElement('div');
+                    point.className = 'point';
+                    point.style.left = `calc(${i} * 105.3% / 19)`;
+                    point.style.top = `calc(${j} * 105.3% / 19)`;
+                    point.addEventListener('click', () => toggleCircle(point));
+                    boardElement.appendChild(point);
+                }
+            }
+        }
+
+        function toggleCircle(point) {
+            if (point.hasChildNodes()) {
+                const circle = point.firstChild;
+                if (circle.className === 'black') {
+                    blackRemoved++;
+                    blackScoreElement.textContent = blackRemoved;
+                } else if (circle.className === 'white') {
+                    whiteRemoved++;
+                    whiteScoreElement.textContent = whiteRemoved;
+                }
+                point.removeChild(circle);
+            } else {
+                const circle = document.createElement('div');
+                circle.className = currentPlayer;
+                point.appendChild(circle);
+                switchPlayer();
+            }
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+            currentPlayerElement.textContent = `Current Player: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+            currentPlayerElement.className = `current-player ${currentPlayer}-turn`;
+        }
+
+        function decrementScore(player) {
+            if (player === 'black' && blackRemoved > 0) {
+                blackRemoved--;
+                blackScoreElement.textContent = blackRemoved;
+            } else if (player === 'white' && whiteRemoved > 0) {
+                whiteRemoved--;
+                whiteScoreElement.textContent = whiteRemoved;
+            }
+        }
+
+        createGrid();
+    </script>
+</body>
+</html>
