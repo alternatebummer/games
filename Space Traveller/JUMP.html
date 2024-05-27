@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000;
+            background-color: #292929;
             color: #fff;
             text-align: center;
             margin: 0;
@@ -55,12 +55,13 @@
                 <p>Jump Fuel: <span id="fuel">5</span></p>
                 <p>Credits: <span id="credits">0</span></p>
                 <p>Artifacts: <span id="artifacts">0</span></p>
-                <p>Jumps Path: <span id="jumps">0</span>/20</p>
+                <p>Jump Path: <span id="jumps">0</span>/20</p>
             </div>
-            <div id="options" style="display: flex; justify-content: center; gap: 10px;">
+            <div id="options" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <button class="button" onclick="jump()">Jump to New Star System</button>
-                <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
+                <button class="button" onclick="useBeacon()" style="display:none; background-color: #911a16;" onmouseover="this.style.backgroundColor='black'" onmouseout="this.style.backgroundColor='red'">Use Distress Beacon</button>
             </div>
+
             <div id="event"></div>
         </div>
     </div>
