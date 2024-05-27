@@ -346,6 +346,12 @@ function getRandomEvents() {
             updateResourceLimits();
             updateStatus();
         } },
+{ type: 'unmapped', action: () => { 
+            showEvent('The onboard microrefinery bleeps and bloops. Why? It\'s detected a mineral-rich asteroid!. You maneuver it into the cargo bay and the microrefinery renders it down into 2 units of jump fuel!');
+            fuel+=2;
+            updateResourceLimits();
+            updateStatus();
+        } },
         { type: 'unmapped', action: () => {
             if (artifacts >= 4) {
                 showEvent('Scanners pick up a junky-looking frigate with no jump drive. You hail them, but the reply is unintelligibly muffled. The hull of their craft reads: ART-O-FACTORY REFINER CO. Try giving them an artifact. See what happens, I guess?', [
