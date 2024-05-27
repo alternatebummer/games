@@ -51,6 +51,7 @@
             </div>
             <div id="options">
                 <button class="button" onclick="jump()">Jump to New Star System</button>
+                <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
             </div>
             <div id="event"></div>
         </div>
@@ -68,15 +69,17 @@
             document.getElementById('credits').textContent = credits;
             document.getElementById('artifacts').textContent = artifacts;
             document.getElementById('jumps').textContent = jumps;
+            document.querySelector('button[onclick="useBeacon()"]').style.display = fuel === 0 ? 'block' : 'none';
         }
 
         function getRandomEvent() {
             const events = [
                 { condition: () => fuel > 0, action: () => { fuel--; alert('A raider took 1 unit of jump fuel!'); } },
-                { condition: () => credits > 0, action: () => { if (confirm('A trader offers 1 unit of jump fuel for 1 credit. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers 1 credit for an artifact. Accept?')) { artifacts--; credits++; } } },
-                { condition: () => credits > 0, action: () => { if (confirm('A trader offers 1 unit of jump fuel for 1 credit. Accept?')) { credits--; fuel++; } } },
-                { condition: () => true, action: () => { fuel += 3; alert('You found an asteroid containing 3 units of jump fuel!'); } },
+                { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
+                { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
+                { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
+                { condition: () => artifacts > 0, action: () => { if (confirm('A space archaeologist requests 1 artifact and will remove 1 jump required to beat the game in exchange. Accept?')) { artifacts--; jumps--; } } },
+                { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
                 { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
             ];
             const availableEvents = events.filter(event => event.condition());
@@ -92,8 +95,7 @@
                 getRandomEvent();
                 updateStatus();
                 if (fuel <= 0) {
-                    alert('You ran out of fuel! Game over.');
-                    resetGame();
+                    alert('You ran out of fuel! Use your distress beacon.');
                 } else if (jumps >= 20) {
                     alert('Congratulations! You made it home!');
                     resetGame();
@@ -101,6 +103,28 @@
             } else {
                 alert('Not enough jump fuel!');
             }
+        }
+
+        function useBeacon() {
+            const outcomes = [
+                () => {
+                    alert('A freighter responds to your distress beacon. They give you 3 units of jump fuel in exchange for all your credits and artifacts.');
+                    fuel += 3;
+                    credits = 0;
+                    artifacts = 0;
+                },
+                () => {
+                    alert('A raider responds to your distress beacon, takes you prisoner, and commandeers your ship. Game over.');
+                    resetGame();
+                },
+                () => {
+                    jumps = Math.floor(Math.random() * 20) + 1;
+                    alert(`A wormhole opens and takes you to a random point in your journey. You are now at ${jumps} jumps.`);
+                }
+            ];
+            const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+            outcome();
+            updateStatus();
         }
 
         function startGame() {
