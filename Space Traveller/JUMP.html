@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Flight Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #444;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h1>Space Flight Simulator</h1>
+        <div id="start">
+            <p>Enter your ship's name:</p>
+            <input type="text" id="shipName" placeholder="Ship Name">
+            <button class="button" onclick="startGame()">Start Game</button>
+        </div>
+        <div id="main" style="display:none;">
+            <h2 id="shipTitle"></h2>
+            <div id="status">
+                <p>Jump Fuel: <span id="fuel">5</span></p>
+                <p>Credits: <span id="credits">0</span></p>
+                <p>Artifacts: <span id="artifacts">0</span></p>
+                <p>Jumps Survived: <span id="jumps">0</span>/20</p>
+            </div>
+            <div id="options">
+                <button class="button" onclick="jump()">Jump to New Star System</button>
+            </div>
+            <div id="event"></div>
+        </div>
+    </div>
+
+    <script>
+        let fuel = 5;
+        let credits = 0;
+        let artifacts = 0;
+        let jumps = 0;
+        let shipName = '';
+
+        function updateStatus() {
+            document.getElementById('fuel').textContent = fuel;
+            document.getElementById('credits').textContent = credits;
+            document.getElementById('artifacts').textContent = artifacts;
+            document.getElementById('jumps').textContent = jumps;
+        }
+
+        function getRandomEvent() {
+            const events = [
+                { condition: () => fuel > 0, action: () => { fuel--; alert('A raider took 1 unit of jump fuel!'); } },
+                { condition: () => credits > 0, action: () => { if (confirm('A trader offers 1 unit of jump fuel for 1 credit. Accept?')) { credits--; fuel++; } } },
+                { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers 1 credit for an artifact. Accept?')) { artifacts--; credits++; } } },
+                { condition: () => credits > 0, action: () => { if (confirm('A trader offers 1 unit of jump fuel for 1 credit. Accept?')) { credits--; fuel++; } } },
+                { condition: () => true, action: () => { fuel += 3; alert('You found an asteroid containing 3 units of jump fuel!'); } },
+                { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
+            ];
+            const availableEvents = events.filter(event => event.condition());
+            const randomEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+            randomEvent.action();
+            updateStatus();
+        }
+
+        function jump() {
+            if (fuel > 0) {
+                fuel--;
+                jumps++;
+                getRandomEvent();
+                updateStatus();
+                if (fuel <= 0) {
+                    alert('You ran out of fuel! Game over.');
+                    resetGame();
+                } else if (jumps >= 20) {
+                    alert('Congratulations! You made it home!');
+                    resetGame();
+                }
+            } else {
+                alert('Not enough jump fuel!');
+            }
+        }
+
+        function startGame() {
+            shipName = document.getElementById('shipName').value;
+            if (shipName.trim() === '') {
+                alert('Please enter a valid ship name.');
+                return;
+            }
+            document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('main').style.display = 'block';
+            updateStatus();
+        }
+
+        function resetGame() {
+            fuel = 5;
+            credits = 0;
+            artifacts = 0;
+            jumps = 0;
+            document.getElementById('main').style.display = 'none';
+            document.getElementById('start').style.display = 'block';
+        }
+
+        updateStatus();
+    </script>
+</body>
+</html>
