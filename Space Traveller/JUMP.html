@@ -49,10 +49,10 @@
                 <p>Artifacts: <span id="artifacts">0</span></p>
                 <p>Jumps Survived: <span id="jumps">0</span>/20</p>
             </div>
-            <div id="options">
-                <button class="button" onclick="jump()">Jump to New Star System</button>
-                <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
-            </div>
+<div id="options" style="display: flex; justify-content: center; gap: 10px;">
+    <button class="button" onclick="jump()">Jump to New Star System</button>
+    <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
+</div>
             <div id="event"></div>
         </div>
     </div>
@@ -78,7 +78,8 @@
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
                 { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0, action: () => { if (confirm('A space archaeologist requests 1 artifact and will remove 1 jump required to beat the game in exchange. Accept?')) { artifacts--; jumps--; } } },
+{ condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random number of jumps survived (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
+
                 { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
                 { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
             ];
