@@ -31,12 +31,20 @@
         .button:hover {
             background-color: #666;
         }
+        #description {
+            max-width: 500px;
+            font-size: 18px;
+            color: lightgrey;
+            text-align: justify;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="game">
-        <h1>Space Flight Simulator</h1>
+        <h1>Deep Space Traveller</h1>
         <div id="start">
+            <p id="description">You are far from home, traveller. Your ship's flight computer has calculated a jump path to your planet of origin that elegantly avoids two massive ion storms and an asteroid belt. Unfortunately, it requires far more jumps than your fuel reserves will allow for. You'll have to look for fuel between jumps in order to complete the journey.</p>
             <p>Enter your ship's name:</p>
             <input type="text" id="shipName" placeholder="Ship Name">
             <button class="button" onclick="startGame()">Start Game</button>
@@ -49,10 +57,10 @@
                 <p>Artifacts: <span id="artifacts">0</span></p>
                 <p>Jumps Survived: <span id="jumps">0</span>/20</p>
             </div>
-<div id="options" style="display: flex; justify-content: center; gap: 10px;">
-    <button class="button" onclick="jump()">Jump to New Star System</button>
-    <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
-</div>
+            <div id="options" style="display: flex; justify-content: center; gap: 10px;">
+                <button class="button" onclick="jump()">Jump to New Star System</button>
+                <button class="button" onclick="useBeacon()" style="display:none;">Use Distress Beacon</button>
+            </div>
             <div id="event"></div>
         </div>
     </div>
@@ -78,8 +86,7 @@
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
                 { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-{ condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random number of jumps survived (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
-
+                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random number of jumps survived (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
                 { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
                 { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
             ];
