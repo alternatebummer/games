@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #292929;
+            background-color: #171717;
             color: #fff;
             text-align: center;
             margin: 0;
@@ -42,7 +42,7 @@
 </head>
 <body>
     <div id="game">
-        <h1>Deep Space Traveller</h1>
+        <img src="placeholder_url.jpg" alt="Deep Space Traveller" style="width: 500px; height: 300px;">
         <div id="start">
             <p id="description">You are far from home, traveller. Your ship's flight computer has calculated a jump path to your planet of origin that elegantly avoids two massive ion storms and an asteroid belt. Unfortunately, it requires far more jumps than your fuel reserves will allow for. You'll have to look for fuel between jumps in order to complete the journey.</p>
             <p>Enter your ship's name:</p>
@@ -55,11 +55,11 @@
                 <p>Jump Fuel: <span id="fuel">5</span></p>
                 <p>Credits: <span id="credits">0</span></p>
                 <p>Artifacts: <span id="artifacts">0</span></p>
-                <p>Jump Path: <span id="jumps">0</span>/20</p>
+                <p>Jump Path: <span id="jumps">0</span>/40</p>
             </div>
             <div id="options" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <button class="button" onclick="jump()">Jump to New Star System</button>
-                <button class="button" onclick="useBeacon()" style="display:none; background-color: #911a16;" onmouseover="this.style.backgroundColor='black'" onmouseout="this.style.backgroundColor='red'">Use Distress Beacon</button>
+                <button class="button" onclick="useBeacon()" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="this.style.backgroundColor='red'">Use Distress Beacon</button>
             </div>
 
             <div id="event"></div>
@@ -87,7 +87,7 @@
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
                 { condition: () => artifacts > 0, action: () => { if (confirm('A trader offers to exchange 1 artifact for 1 credit. Accept?')) { artifacts--; credits++; } } },
                 { condition: () => credits > 0, action: () => { if (confirm('A trader offers to exchange 1 credit for 1 unit of jump fuel. Accept?')) { credits--; fuel++; } } },
-                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 20). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 20) + 1; alert(`You are now at ${jumps} jumps.`); } } },
+                { condition: () => artifacts > 0 || credits > 0 || fuel > 1, action: () => { if (confirm('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?')) { credits = 0; artifacts = 0; fuel = 1; jumps = Math.floor(Math.random() * 40) + 1; alert(`You are now at ${jumps} jumps.`); } } },
                 { condition: () => true, action: () => { fuel += 2; alert('You found an asteroid containing 2 units of jump fuel!'); } },
                 { condition: () => true, action: () => { artifacts++; alert('You found an artifact on a planet!'); } }
             ];
@@ -105,7 +105,7 @@
                 updateStatus();
                 if (fuel <= 0) {
                     alert('You ran out of fuel! Use your distress beacon.');
-                } else if (jumps >= 20) {
+                } else if (jumps >= 40) {
                     alert('Congratulations! You made it home!');
                     resetGame();
                 }
@@ -127,8 +127,8 @@
                     resetGame();
                 },
                 () => {
-                    jumps = Math.floor(Math.random() * 20) + 1;
-                    alert(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 20). You are now at ${jumps} jumps.`);
+                    jumps = Math.floor(Math.random() * 40) + 1;
+                    alert(`A rogue wormhole opens and takes you to a random location along the jump path (between 1 and 40). You are now at ${jumps} jumps.`);
                 }
             ];
             const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
