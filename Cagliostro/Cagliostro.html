@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CAGLIASTRO</title>
+    <style>
+        body {
+    display: flex;
+    justify-content: left;
+    align-items: flex-start;
+    font-family: Arial, sans-serif;
+    padding-top: 20px;
+    background: skyblue;
+    background-image: linear-gradient(to bottom, skyblue 80%, lightgreen 20%);
+    margin: 0;
+    height: 100vh;        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .side-container {
+            margin: 0 20px;
+        }
+        .card {
+            display: inline;
+            margin: 0;
+            border: 0;
+            padding: 2px;
+            cursor: pointer;
+            font-size: 6.5em; /* Reduced height by 5px */
+        }
+        .selected {
+            background-color: lightblue;
+        }
+        .card-list {
+            margin: 0;
+            font-size: 5em;
+        }
+        .deck-label, .discard-label {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .button-container {
+            margin-top: 2px;
+        }
+        button {
+            font-size: 1em;
+            padding: 0.5em;
+            margin-top: 0px;
+        }
+        .list-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+        .multiplier-info {
+            font-size: 1em;
+    text-align: justify; /* Justified text alignment */
+    max-width: 300px; /* Maximum width */
+        }
+	.multiplier-infoList {
+            font-size: 1em;
+    text-align: right; /* Justified text alignment */
+    max-width: 300px; /* Maximum width */
+        }
+        .score-info {
+            font-size: 1.2em;
+            text-align: left; /* Left justify the score info */
+        }
+        .card-row {
+            display: flex;
+            justify-content: left;
+            margin-bottom: -30px; /* Reduced line spacing */
+        }
+    </style>
+</head>
+<body>
+    <div class="side-container">
+	<div class="multiplier-info"><h1>CAGLIASTRO</h1>Welcome to Cagliastro. In this game, you aim to beat the Blind score of 650 by playing three hands of poker. You start with a deck of cards and draw eight cards for each hand. Choose the best five-card poker hand and click "Play Hand" to score it. The remaining three cards go to the discard pile. You can discard and redraw up to 3 times per game by selecting cards and clicking "Discard".<br><br> Each card is worth its rank value. 2 of hearts equals 2 points. Each hand corresponds to a points multiplier. That's the idea!</div>
+        <div class="multiplier-infoList">
+            <div>Multipliers:</div>
+            <div>One Pair: x1</div>
+            <div>Two Pair: x2</div>
+            <div>Three of a Kind: x3</div>
+            <div>Four of a Kind: x4</div>
+            <div>Straight: x3</div>
+            <div>Full House: x4</div>
+            <div>Flush: x5</div>
+            <div>Straight Flush: x6</div>
+            <div>Royal Flush: x7</div>
+        </div>
+    </div>
+    <div class="game-container">
+        
+        <div class="deck-label">Deck:</div>
+        <div class="card-list" id="deck-cards"></div>
+        <br>
+        <div class="discard-label">Discard Pile:</div>
+        <div class="card-list" id="discard-cards"></div>
+        <br>
+        <h3 id="blind">Blind: 650</h3>
+        <div id="hand"></div>
+        <div class="button-container">
+            <button onclick="playHand()">Play Hands (0/3)</button>
+            <button onclick="discardCards()">Discards Used (0/3)</button>
+        </div>
+    </div>
+    <div class="side-container">
+        <div class="score-info" id="game"></div>
+    </div>
+
+    <script>
+        const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
+        const rankValues = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'Jack': 10, 'Queen': 10, 'King': 10, 'Ace': 11};
+        const unicodeCards = {
+            '2Hearts': '🂲', '3Hearts': '🂳', '4Hearts': '🂴', '5Hearts': '🂵', '6Hearts': '🂶', '7Hearts': '🂷', '8Hearts': '🂸', '9Hearts': '🂹', '10Hearts': '🂺', 'JackHearts': '🂻', 'QueenHearts': '🂽', 'KingHearts': '🂾', 'AceHearts': '🂱',
+            '2Diamonds': '🃂', '3Diamonds': '🃃', '4Diamonds': '🃄', '5Diamonds': '🃅', '6Diamonds': '🃆', '7Diamonds': '🃇', '8Diamonds': '🃈', '9Diamonds': '🃉', '10Diamonds': '🃊', 'JackDiamonds': '🃋', 'QueenDiamonds': '🃍', 'KingDiamonds': '🃎', 'AceDiamonds': '🃁',
+            '2Clubs': '🃒', '3Clubs': '🃓', '4Clubs': '🃔', '5Clubs': '🃕', '6Clubs': '🃖', '7Clubs': '🃗', '8Clubs': '🃘', '9Clubs': '🃙', '10Clubs': '🃚', 'JackClubs': '🃛', 'QueenClubs': '🃝', 'KingClubs': '🃞', 'AceClubs': '🃑',
+            '2Spades': '🂢', '3Spades': '🂣', '4Spades': '🂤', '5Spades': '🂥', '6Spades': '🂦', '7Spades': '🂧', '8Spades': '🂨', '9Spades': '🂩', '10Spades': '🂪', 'JackSpades': '🂫', 'QueenSpades': '🂭', 'KingSpades': '🂮', 'AceSpades': '🂡'
+        };
+
+        let deck = [];
+        let discardPile = [];
+        let selectedCards = [];
+        let totalScore = 0;
+        const blind = 650;
+        let handsPlayed = 0;
+        let discardsUsed = 0;
+        let currentHand = [];
+
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let rank of ranks) {
+                    deck.push({rank: rank, suit: suit});
+                }
+            }
+            shuffle(deck);
+            updateDeckDisplay();
+        }
+
+        function shuffle(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function drawHand() {
+            return deck.splice(0, 8);
+        }
+
+        function evaluateHand(hand) {
+            let score = 0;
+            let handType = "High Card";
+            let rankCount = {};
+            let suitsCount = {};
+
+            for (let card of hand) {
+                rankCount[card.rank] = (rankCount[card.rank] || 0) + 1;
+                suitsCount[card.suit] = (suitsCount[card.suit] || 0) + 1;
+            }
+
+            let pairs = 0;
+            let threeOfAKind = false;
+            let fourOfAKind = false;
+            let fullHouse = false;
+            let flush = false;
+            let straight = false;
+            let straightFlush = false;
+            let royalFlush = false;
+
+            for (let count of Object.values(rankCount)) {
+                if (count === 2) pairs++;
+                if (count === 3) threeOfAKind = true;
+                if (count === 4) fourOfAKind = true;
+            }
+
+            if (Object.values(suitsCount).includes(5)) flush = true;
+
+            let rankIndices = hand.map(card => ranks.indexOf(card.rank)).sort((a, b) => a - b);
+            let isStraight = rankIndices.every((rank, index) => index === 0 || rank === rankIndices[index - 1] + 1);
+            if (isStraight) straight = true;
+
+            if (straight && flush) {
+                straightFlush = true;
+                if (rankIndices.includes(12)) { // Ace
+                    royalFlush = true;
+                }
+            }
+
+            if (pairs === 1) handType = "One Pair";
+            if (pairs === 2) handType = "Two Pair";
+            if (threeOfAKind) handType = "Three of a Kind";
+            if (fourOfAKind) handType = "Four of a Kind";
+            if (threeOfAKind && pairs) {
+                handType = "Full House";
+                fullHouse = true;
+            }
+            if (straight) handType = "Straight";
+            if (flush) handType = "Flush";
+            if (straightFlush) handType = "Straight Flush";
+            if (royalFlush) handType = "Royal Flush";
+
+            score = hand.reduce((sum, card) => sum + rankValues[card.rank], 0);
+
+            if (handType === "Two Pair") score *= 2;
+            if (threeOfAKind) score *= 3;
+            if (fourOfAKind) score *= 4;
+            if (straight) score *= 3;
+            if (fullHouse) score *= 4;
+            if (flush) score *= 5;
+            if (straightFlush) score *= 6;
+            if (royalFlush) score *= 7;
+
+            return { score: score, handType: handType };
+        }
+
+        function renderHand(hand) {
+            let handDiv = document.getElementById('hand');
+            handDiv.innerHTML = '';
+            hand.forEach((card) => {
+                let cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.innerHTML = unicodeCards[card.rank + card.suit];
+                cardDiv.onclick = () => selectCard(card, cardDiv);
+                handDiv.appendChild(cardDiv);
+            });
+        }
+
+        function selectCard(card, cardDiv) {
+            if (selectedCards.length < 5 || cardDiv.classList.contains('selected')) {
+                if (cardDiv.classList.contains('selected')) {
+                    cardDiv.classList.remove('selected');
+                    selectedCards = selectedCards.filter(c => c !== card);
+                } else {
+                    cardDiv.classList.add('selected');
+                    selectedCards.push(card);
+                }
+            }
+        }
+
+        function discardCards() {
+            if (discardsUsed >= 4) {
+                alert('You have used all your discards.');
+                return;
+            }
+            if (selectedCards.length === 0) {
+                alert('Please select at least one card to discard.');
+                return;
+            }
+            currentHand = currentHand.filter(card => !selectedCards.includes(card));
+            discardPile = discardPile.concat(selectedCards);
+            let newCards = deck.splice(0, selectedCards.length);
+            currentHand = currentHand.concat(newCards);
+            selectedCards = [];
+            renderHand(currentHand);
+            discardsUsed++;
+            updateButtonLabels();
+            updateDeckDisplay();
+            updateDiscardPileDisplay();
+        }
+
+        function playHand() {
+            if (selectedCards.length !== 5) {
+                alert('Please select exactly 5 cards.');
+                return;
+            }
+            let { score, handType } = evaluateHand(selectedCards);
+            totalScore += score;
+
+            let resultDiv = document.getElementById('game');
+            resultDiv.innerHTML += `<div>Hand ${handsPlayed + 1}: ${selectedCards.map(card => unicodeCards[card.rank + card.suit]).join(' ')} - ${handType} - Score: ${score}</div>`;
+            resultDiv.innerHTML += `<div>Total Score: ${totalScore}</div><br>`;
+
+            handsPlayed++;
+            selectedCards = [];
+            if (handsPlayed < 3) {
+                discardPile = discardPile.concat(currentHand.filter(card => !selectedCards.includes(card)));
+                currentHand = drawHand();
+                renderHand(currentHand);
+            } else {
+                resultDiv.innerHTML += `<p>${totalScore >= blind ? 'Player Wins!' : 'Dealer Wins!'}</p>`;
+                document.getElementById('hand').innerHTML = '';
+            }
+            updateButtonLabels();
+            updateDiscardPileDisplay();
+        }
+
+        function updateButtonLabels() {
+            document.querySelector("button[onclick='playHand()']").innerText = `Play Hands (${handsPlayed}/3)`;
+            document.querySelector("button[onclick='discardCards()']").innerText = `Discards Used (${discardsUsed}/3)`;
+        }
+
+        function updateDeckDisplay() {
+            let deckDiv = document.getElementById('deck-cards');
+            let sortedDeck = [...deck].sort((a, b) => ranks.indexOf(a.rank) - ranks.indexOf(b.rank) || suits.indexOf(a.suit) - suits.indexOf(b.suit));
+            deckDiv.innerHTML = sortedDeck.reduce((html, card, index) => {
+                if (index % 13 === 0) html += '<div class="card-row">';
+                html += unicodeCards[card.rank + card.suit];
+                if (index % 13 === 12) html += '</div>';
+                return html;
+            }, '');
+        }
+
+        function updateDiscardPileDisplay() {
+            let discardDiv = document.getElementById('discard-cards');
+            let sortedDiscardPile = [...discardPile].sort((a, b) => ranks.indexOf(a.rank) - ranks.indexOf(b.rank) || suits.indexOf(a.suit) - suits.indexOf(b.suit));
+            discardDiv.innerHTML = sortedDiscardPile.reduce((html, card, index) => {
+                if (index % 13 === 0) html += '<div class="card-row">';
+                html += unicodeCards[card.rank + card.suit];
+                if (index % 13 === 12) html += '</div>';
+                return html;
+            }, '');
+        }
+
+        function startGame() {
+            createDeck();
+            totalScore = 0;
+            handsPlayed = 0;
+            discardsUsed = 0;
+            discardPile = [];
+            document.getElementById('game').innerHTML = '';
+            currentHand = drawHand();
+            renderHand(currentHand);
+            updateButtonLabels();
+            updateDeckDisplay();
+            updateDiscardPileDisplay();
+        }
+
+        window.onload = startGame;
+    </script>
+</body>
+</html>
