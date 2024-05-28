@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Simulator</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: 23272e;
+        }
+
+        #chat-container {
+            width: 420px;
+            height: 720px;
+            border: 2px solid #000;
+            border-radius: 15px; /* Rounded corners */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+            border-bottom: 0px solid #000;
+	    background: #363a40;
+        }
+
+        #chat-content {
+            display: flex;
+            flex-direction: column-reverse;
+	    background: #363a40;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px; /* Rounded corners for messages */
+        }
+
+        .player {
+            align-self: flex-end;
+            background-color: #585e69;
+	    color: white;
+            max-width: 75%;
+            text-align: right; /* Right-align player messages */
+        }
+
+        .computer {
+            align-self: flex-start;
+            background-color: #585e69;
+            color: white;
+	    max-width: 75%;
+            text-align: left; /* Left-align computer messages */
+        }
+
+        .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+	    font-size: 12px;
+        }
+
+        #input-container {
+            display: flex;
+            border-top: 2px solid #000;
+        }
+
+        #input-field {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            border-bottom-left-radius: 15px; /* Rounded bottom-left corner */
+        }
+
+        #send-button {
+            padding: 15px 25px;
+            border: 0px;
+            background-color: #000;
+            color: #fff;
+	    font-size: 16px;
+            cursor: pointer;
+            border-bottom-right-radius: 12px; /* Rounded bottom-right corner */
+        }
+
+        #send-button:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <div id="chat-content"></div>
+        </div>
+        <div id="input-container">
+            <input type="text" id="input-field" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script>
+        const preparedStatements = [
+    "We can take a lot of abuse when we're younger, negotiating with ourselves and others vis-a-vis the frequent and sudden imperative to fuck.",
+    "There is a certain biorhythmic privilege, somewhere between the feelings of love and adrenaline, where abuse is indistinguishable from a fun game, or a game worth playing, or indeed that it is simply an ordained way of life.",
+    "Challengers is good. I like it when Patrick sleeps in his car and then later on when he's driving a 20 year old Rav4 with no spare tire.",
+    "The morning after, I'm feeling very kind and generous toward Kingdom.",
+    "It takes the franchise in more of an apocalyptic fantasy direction, with much of past films in the franchise loosely serving as ape mythology, which works quite well.",
+    "Sci-fi/fantasy is often dominated by stories of characters who fixate on history, who eventually see themselves as the only available authorities to appraise the present and manufacture the future.",
+    "It's refreshing to have a protagonist in Noa, who reacts with humility and courage when he confronts the vast scope of what he does not know.",
+    "This allows for a wonderful tension in the story and gives the characters who adorn themselves in history (Mae and Proximus) a sinister, truly dangerous aura, as if possessed.",
+    "The telescope serves as a lovely shortcut for showing us in an instant how this possession can work and reorient a character's motivation.",
+    "It shows them the future, but they don't discuss it and we don't learn what they see.",
+    "Perhaps it's only important for now to understand that whatever happens on the other end of those optics is inherently subjective.",
+    "It gives the viewer time to see how Noa and Mae separately process what they see.",
+    "The question we are left with parallels a question we ask in the real world: What would be required to account for the disorientation/parallax that comes from many points of view placed upon a singular, undefinable, distant object?",
+    "If we can't deconstruct ideology and the 'great man'/'great ape' theory of history in the Planet of the Apes franchise, what hope do we have?",
+    "It's not a great movie, it's a movie for kids, but it also has some wholesome food for thought.",
+    "How utterly disappointing that the writers of Mary Shelley had the opportunity to unfold her time at Villa Diodati and the genesis of Frankenstein but chose instead to spend an hour of screen time dwelling on her being groomed by Percy in London and Scotland.",
+    "None the less, there is some low frequency energetic storytelling throughout this movie, suggesting Mary Shelley was an indomitable storyteller and visionary literary figure.",
+    "Hard to disagree.",
+    "Elle Fanning has some gravitas, but Bel Pawley, an absolute powerhouse with unique charisma and just as much gravitas, was right there!",
+    "Not bad casting, however mismatched.",
+    "Tom Sturridge as Lord Byron was compelling.",
+    "But I can't recommend this as anything more than a generic regency period drama.",
+    "It's amazing to me that this movie comes out 2 years before Columbia releases Jason and the Argonauts.",
+    "It's lightyears ahead.",
+    "Bava's signature lighting and set design make Haunted World a joy to imbibe.",
+    "Reg Park is absolutely the Hercules to beat.",
+    "This is to say nothing of Christopher Lee's performance.",
+    "His casting alone is worth a star.",
+    "Not quite horror, but more fantasy than you'll know what to do with.",
+    "Crudely, I could place TTMR somewhere between The Dreamers and The Thomas Crown Affair.",
+    "We have this story of a proletarian man who toils endlessly on behalf of a web-of-deception.",
+    "Ripley is a bit of a Rumpelstiltskin, really.",
+    "His vision and his anger are coterminous, but is it a beautiful end or a terrible one?",
+    "From our third-person perspective, we are asked to consider the tension between Ripley's criminality and a life-of-art.",
+    "Not necessarily to draw any conclusions, but to watch and to question the conditions of a metamorphosis from labour to art, or grit to opulence, or conspicuous consumption to naked criminality, or whathaveyou.",
+    "Fake it 'til you make it.",
+    "Lifestyle built on lies.",
+    "A life-of-art.",
+    "A lie-as-work.",
+    "The lack of clear or certain boundaries in The Talented Mr. Ripley seems integral to what it is.",
+    "It's a legendary watch and I can't believe I waited so long to check it off the list!",
+    "An extremely out-of-touch offering.",
+    "Like the first film, its merits are undone by a nonsense plot and shameless franchise baiting that no one was asking for.",
+    "I had to save my 5 for the possibility that Samurai III would be even better than Samurai II, and it was.",
+    "Toshiro Mifune is a complete legend for what he brings to this role.",
+    "When Miyamoto's scared, I'm scared.",
+    "When he's unmoving, I'm unmovable.",
+    "When he cries, oh god, I cry.",
+    "Jotaro, Otsu, Akemi, Kojiro, Osho... These are some serious cinematic 'friends' to hold in your heart, rivalling Luke Skywalker and his pals (and 2 decades earlier).",
+    "The way you do anything is the way you do everything.",
+    "Cultivate the way of one thing and you will find it waiting in everything else.",
+    "Telly Savalas sucks on lollypops throughout this film as he plays the devil (or a devil).",
+    "It's a Flying Dutchman scenario, but instead of a boat, Lisa (Elke Sommer) gets drawn into a crumbling aristocrat household from which she cannot escape.",
+    "I think Mario Bava offers a wonderful alternative to Argento and Fulci.",
+    "He obviously cares a great deal about literary horror and holds firm to many of the formal elements of gothic narrative while still being exciting and cinematic.",
+    "Is there justice?",
+    "Is there someone who can do what's right?",
+    "Are there gods among us?",
+    "Can we be more than executioners?",
+    "This is pretty good.",
+    "Excellent soundtrack.",
+    "A perfect hyper-violent sister film to Drive-Away Dolls.",
+    "Sort of a thrilling, understated movie with lots of domestic drama to keep things interesting.",
+    "For Blanchett, this is another in a series of home run performances.",
+    "For Mara, this is one more opportunity for her to activate that odd, sociopathic allure that feels like home.",
+    "The most Therese ever discloses to anyone in this movie is that she likes trains.",
+    "Every other character gets so bent out of shape by how awesome they think she is that they either can't stand the sight of her or can't leave her alone.",
+    "Despite (and because of) the rampant Rooney-esque antics at play here, this is a solid, watchable Rooney-verse entry that I can rooncommend.",
+    "I began the night with Asterix and Obelix vs. Caesar, but I couldn't stand it and backed out after maybe 10 minutes.",
+    "I never bail on movies, but this was feeling too much like self-harm.",
+    "In its place, I spun up Bat Pussy.",
+    "Do you love Texas?",
+    "Do you love porn?",
+    "Bat Pussy is two gacked out Texans fucking on a bed while talking shit to each other for 50 minutes straight.",
+    "The titular Bat Pussy shows up at the 32 minute mark, which raises the stakes a bit.",
+    "This is apex shit right here - the high watermark of prestige period comedy.",
+    "Colman, Stone, and Weisz deliver awesome performances supported by an incredible screenplay from Deborah Davis and Tony McNamara.",
+    "The Great (McNamara's TV series) is good, but add to that the superior character writing from Davis, the S-tier performances, and the fine theatrical buffoonery solicited by Yorgos, and The Favourite becomes a singular achievement in genre film, perhaps equivalent to the moon landing.",
+    "The horrors of war animated Jünger's narrative imagination and deepened his connection to myth.",
+    "It seems that for him war represents a rare opportunity for humanity, one in which the veil is lifted and we are forced to confront the nature of our Being with unavoidable clarity.",
+    "I see in him a struggle with a complex and unresolvable reaction to war that is reminiscent of both Wittgenstein and Tolkien.",
+    "Wachtneister is sure to linger on b-roll of Wernher von Braun as he pursues his own narrative in 102 Years.",
+    "We draw our own conclusions - yes, about Jünger, but perhaps also about the settlement of the atomic age and the structuring and subsequent predilection of modern aesthetics, thought, and the politics of body, work, and leisure.",
+    "We escort these men to bed and note the ways their experiences in war catalyzed into a kind of universal and articulate high-madness, and hard-madness.",
+    "Still, we forget ourselves as prior generations pass, perhaps leaving us unprepared for the moment when raw truth leaves us unrecognizable to each other and to ourselves.",
+    "If you fetishize late night talk shows and/or b-movie horror, this is for you.",
+    "There were many moments when I laughed loudly at the terror and absurdity."
+        ];
+
+        const chatContent = document.getElementById('chat-content');
+        const inputField = document.getElementById('input-field');
+        const sendButton = document.getElementById('send-button');
+
+        sendButton.addEventListener('click', sendMessage);
+        inputField.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = inputField.value.trim();
+            if (message === '') return;
+
+            addMessage('player', 'FustO86', message);
+            inputField.value = '';
+            respond();
+        }
+
+        function addMessage(sender, username, message) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message', sender);
+
+            const usernameElement = document.createElement('div');
+            usernameElement.classList.add('username');
+            usernameElement.textContent = username;
+            messageContainer.appendChild(usernameElement);
+
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageContainer.appendChild(messageElement);
+
+            chatContent.prepend(messageContainer); // Add new messages at the top of chat content
+            limitMessages();
+        }
+
+        function respond() {
+            const response = preparedStatements[Math.floor(Math.random() * preparedStatements.length)];
+            const username = 'Lygolia';
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message', 'computer');
+
+            const usernameElement = document.createElement('div');
+            usernameElement.classList.add('username');
+            usernameElement.textContent = username;
+            messageContainer.appendChild(usernameElement);
+
+            const messageElement = document.createElement('div');
+            messageContainer.appendChild(messageElement);
+            chatContent.prepend(messageContainer);
+
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < response.length) {
+                    messageElement.textContent += response[index];
+                    index++;
+                    limitMessages();
+                } else {
+                    clearInterval(interval);
+                    limitMessages();
+                }
+            }, 50);
+        }
+
+        function limitMessages() {
+            const messages = chatContent.children;
+            const maxMessages = Math.floor(chatContent.clientHeight / 40); // Approximate message height
+            while (messages.length > maxMessages) {
+                chatContent.removeChild(messages[messages.length - 1]);
+            }
+        }
+    </script>
+</body>
+</html>

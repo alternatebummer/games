@@ -88,12 +88,13 @@
                 <div>Jump Fuel: <span id="fuel">5</span></div>
                 <div>Credits: <span id="credits">0</span></div>
                 <div>Artifacts: <span id="artifacts">0</span></div>
+                <div>Warheads: <span id="warheads">0</span></div>
                 <p>Jump Path: <span id="jumps">0</span>/40</p>
             </div>
             <div id="options">
                 <button class="button" id="civ-jump-button" style="display:none;" onclick="jump('civ')">Jump to Civ-Class System</button>
                 <button class="button" id="unmapped-jump-button" style="display:none;" onclick="jump('unmapped')">Jump to Unmapped System</button>
-                <button class="button" id="beacon-button" style="display:none; background-color: red;" onmouseover="this.style.backgroundColor='black'" onmouseout="updateBeaconButton()" onclick="useBeacon()">Use Distress Beacon</button>
+                <button class="button" id="beacon-button" style="display:none; background-color: red;" onclick="useBeacon()">Use Distress Beacon</button>
             </div>
             <div id="event"></div>
         </div>
@@ -206,14 +207,17 @@ const starSystems = {
 let fuel = 6;
 let credits = 1;
 let artifacts = 1;
+let warheads = 0;
 let jumps = 0;
 let shipName = '';
 let currentStarSystem = '';
+let votedCandidate = '';
 
 function updateStatus() {
     document.getElementById('fuel').textContent = fuel;
     document.getElementById('credits').textContent = credits;
     document.getElementById('artifacts').textContent = artifacts;
+    document.getElementById('warheads').textContent = warheads;
     document.getElementById('jumps').textContent = jumps;
     if (fuel === 0) {
         document.getElementById('fuel').style.color = 'red';
@@ -226,111 +230,95 @@ function updateStatus() {
         document.getElementById('civ-jump-button').style.display = 'inline-block';
         document.getElementById('unmapped-jump-button').style.display = 'inline-block';
     }
-    updateBeaconButton();
 }
 
-function showEvent(text, buttons = []) {
+function showEvent(text, customContent = '') {
     const eventDiv = document.getElementById('event');
-    eventDiv.innerHTML = `<p>${text}</p>`;
-    buttons.forEach(button => {
-        const btn = document.createElement('button');
-        btn.className = 'button';
-        btn.textContent = button.text;
-        btn.onclick = button.onclick;
-        eventDiv.appendChild(btn);
-    });
+    eventDiv.innerHTML = `<p>${text}</p>` + customContent;
 }
 
 function getRandomEvents() {
     const events = [
         { type: 'civ', action: () => { 
-            showEvent('A trader local to this system hails and offers to pay you 1 credit for 1 unit of your jump fuel. Accept?', [
-                { text: 'Accept', onclick: () => { 
-                    if (fuel > 0) { 
-                        credits++; 
-                        fuel--; 
-                        updateResourceLimits();
-                        showEvent('You transfer 1 unit of jump fuel to the trader and 1 credit materializes in your account.'); 
-                        updateStatus(); 
-                    } else { 
-                        showEvent('You do not have enough jump fuel.'); 
-                    } 
-                } },
-                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-            ]); 
+            const customContent = `
+                <div>
+                    <label for="cargoSelect">Cargo Hold:</label>
+                    <select id="cargoSelect">
+                        <option value="fuel">Jump Fuel</option>
+                        <option value="credits">Credits</option>
+                        <option value="artifacts">Artifacts</option>
+                        <option value="warheads">Warheads</option>
+                    </select>
+                    <label for="marketSelect">Market:</label>
+                    <select id="marketSelect">
+                        <option value="fuel">Jump Fuel</option>
+                        <option value="credits">Credits</option>
+                        <option value="artifacts">Artifacts</option>
+                        <option value="warheads">Warheads</option>
+                    </select>
+                    <label for="quantitySelect">Quantity:</label>
+                    <select id="quantitySelect">
+                        <option value="1">x1</option>
+                        <option value="2">x2</option>
+                        <option value="3">x3</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="button" onclick="executeTrade()">Accept</button>
+                    <button class="button" onclick="showEvent('You declined the offer.')">Decline</button>
+                </div>`;
+            showEvent('A trader local to this system hails and offers to trade any resource for any other. Please set up your transaction:', customContent);
         } },
-        { type: 'civ', action: () => { 
-            showEvent('The jump signature of a familiar trader appears on your sensors. She offers to pay you 1 credit in exchange for an artifact. Sound good?', [
-                { text: 'Accept', onclick: () => { 
-                    if (artifacts > 0) { 
-                        artifacts--; 
-                        credits++; 
-                        updateResourceLimits();
-                        showEvent('You place an artifact on your cargo hold\'s materializer and watch it dematerialize. A bing-bong sound from the cockpit indicates 1 credit has been added to your account.'); 
-                        updateStatus(); 
-                    } else { 
-                        showEvent('You do not have enough artifacts.'); 
-                    } 
-                } },
-                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-            ]); 
+        { type: 'civ', condition: jumps >= 10, action: () => {
+            const customContent = `
+                <div>
+                    <button class="button" onclick="acceptWarheads()">Accept</button>
+                    <button class="button" onclick="showEvent('The starfighter quickly reorients itself and jumps again. Who was that?')">Decline</button>
+                </div>`;
+            showEvent('Sensors detect a starfighter clear their jump right after you. Oh, look, they\'re hailing you. "If you think I\'m going back to the front lines, you\'re crazy... I\'ll never kill again." You don\'t know what to say. "Oh, you don\'t believe me? Here, I\'ll prove it!"', customContent);
         } },
-        { type: 'civ', action: () => {
-            showEvent('A shiny freighter jumps into the system. It\'s broadcasting a looped recording: "ATTN all BIOLOGICS: You may purchase 1 artifact or 1 unit of jump fuel for 1 credit! Take it or leave it, helpless species!"', [
-                { text: 'Artifact', onclick: () => {
-                    if (credits > 0) {
-                        artifacts++;
-                        credits--;
-                        updateResourceLimits();
-                        showEvent('You exchange 1 credit for 1 artifact.');
-                        updateStatus();
-                    } else {
-                        showEvent('You do not have enough credits.');
-                    }
-                } },
-                { text: 'Jump Fuel', onclick: () => {
-                    if (credits > 0) {
-                        fuel++;
-                        credits--;
-                        updateResourceLimits();
-                        showEvent('You exchange 1 credit for 1 unit of jump fuel.');
-                        updateStatus();
-                    } else {
-                        showEvent('You do not have enough credits.');
-                    }
-                } },
-                { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-            ]);
+        { type: 'civ', condition: jumps >= 8, action: () => {
+            const customContent = `
+                <div>
+                    <button class="button" onclick="searchStation()">Search</button>
+                    <button class="button" onclick="showEvent('Just as well. Time to move on.')">Decline</button>
+                </div>`;
+            showEvent('You find an abandoned station orbiting a rogue moon. There are faint lifesigns aboard, but if you\'re quick, you can search it for resources...', customContent);
         } },
-        { type: 'civ', action: () => {
-            if (credits >= 2) {
-                showEvent('A very, large, very shiny capital ship decloaks above you. It broadcasts a looped recording: "ATTN little BIOLOGIC: The Galactic Council of World Harvesting Non-Biologics are distributing SURPLUS artifacts. In exchange for Galactic Tax, please accept this pile of ancient manufactured objects from an OBLITERATED SYSTEM."', [
-                    { text: 'Accept', onclick: () => {
-                        credits = 0;
-                        artifacts += 5;
-                        updateResourceLimits();
-                        showEvent('You lose all your credits and gain 5 artifacts.');
-                        updateStatus();
-                    } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]);
+        { type: 'civ', condition: jumps >= 10, action: () => {
+            const customContent = `
+                <div>
+                    <label for="candidateSelect">Candidates:</label>
+                    <select id="candidateSelect">
+                        <option value="Crackheart">Ziddle Crackheart</option>
+                        <option value="Body">Big Body</option>
+                        <option value="Triplehead">Kim Triplehead</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="button" onclick="castVote()">Vote</button>
+                    <button class="button" onclick="showEvent('That\'s fine. It\'s not like your sacred right to vote is worth exercising, right?')">Decline</button>
+                </div>`;
+            showEvent('As soon as you clear the jump, a nearby planet sends you an automated message: "Cast your vote now in the (insert star system here) multi-world admin election! You have your pick of the litter!"', customContent);
+        } },
+        { type: 'civ', condition: votedCandidate && jumps >= 18, action: () => {
+            let message = '';
+            switch (votedCandidate) {
+                case 'Crackheart':
+                    credits += 2;
+                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Ziddle Crackheart won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 credits)';
+                    break;
+                case 'Body':
+                    fuel += 2;
+                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Big Body won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 fuel)';
+                    break;
+                case 'Triplehead':
+                    warheads += 2;
+                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Kim Triplehead won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 warheads)';
+                    break;
             }
-        } },
-        { type: 'unmapped', action: () => { 
-            if (artifacts >= 2) {
-                showEvent('An ancient traveller requests all credits, artifacts, and all but 1 unit of jump fuel in exchange for a wormhole jump to a random location along the jump path (between 1 and 40). Accept?', [
-                    { text: 'Accept', onclick: () => { 
-                        credits = 0; 
-                        artifacts = 0; 
-                        fuel = 1; 
-                        jumps = Math.floor(Math.random() * 40) + 1; 
-                        updateResourceLimits();
-                        showEvent(`You are now ${jumps} jumps from where you started.`); 
-                        updateStatus(); 
-                    } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]);
-            }
+            showEvent(message);
+            updateStatus();
         } },
         { type: 'unmapped', action: () => { 
             showEvent('Sensors have detected a once-inhabited world. You beam an artifact into the cargo hold. It\'s just one artifact. Who\'s going to miss it?');
@@ -339,14 +327,19 @@ function getRandomEvents() {
             updateStatus();
         } },
         { type: 'unmapped', action: () => { 
-            showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they rip you off to the tune of 1 of everything you have... Urgh.');
-            artifacts--;
-            credits--;
-            fuel--;
+            if (warheads > 0) {
+                warheads--;
+                showEvent('Sensors have identified the signature of a raider corvette, but the flight computer has already launched ordinance against it. 3 seconds later, a flash of light is all that\'s left. And then, of course, it fades. That was lucky.');
+            } else {
+                showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they rip you off to the tune of 1 of everything you have... Urgh.');
+                artifacts--;
+                credits--;
+                fuel--;
+            }
             updateResourceLimits();
             updateStatus();
         } },
-{ type: 'unmapped', action: () => { 
+        { type: 'unmapped', action: () => { 
             showEvent('The onboard microrefinery bleeps and bloops. Why? It\'s detected a mineral-rich asteroid!. You maneuver it into the cargo bay and the microrefinery renders it down into 2 units of jump fuel!');
             fuel+=2;
             updateResourceLimits();
@@ -354,30 +347,160 @@ function getRandomEvents() {
         } },
         { type: 'unmapped', action: () => {
             if (artifacts >= 4) {
-                showEvent('Scanners pick up a junky-looking frigate with no jump drive. You hail them, but the reply is unintelligibly muffled. The hull of their craft reads: ART-O-FACTORY REFINER CO. Try giving them an artifact. See what happens, I guess?', [
-                    { text: 'Give Artifact', onclick: () => {
-                        artifacts--;
-                        fuel += 3;
-                        updateResourceLimits();
-                        showEvent('You lose 1 artifact and gain 3 jump fuel.');
-                        updateStatus();
-                    } },
-                    { text: 'Decline', onclick: () => { showEvent('You declined the offer.'); } }
-                ]);
+                showEvent('Scanners pick up a junky-looking frigate with no jump drive. You hail them, but the reply is unintelligibly muffled. The hull of their craft reads: ART-O-FACTORY REFINER CO. Try giving them an artifact. See what happens, I guess?', `
+                    <div>
+                        <button class="button" onclick="giveArtifact()">Give Artifact</button>
+                        <button class="button" onclick="showEvent('You declined the offer.')">Decline</button>
+                    </div>
+                `);
             }
         } }
     ];
-    const availableCivEvents = events.filter(event => event.type === 'civ' && (!event.action.toString().includes('credits >= 2') || credits >= 2));
-    const availableUnmappedEvents = events.filter(event => event.type === 'unmapped' && (!event.action.toString().includes('artifacts >= 2') || artifacts >= 2) && (!event.action.toString().includes('artifacts >= 4') || artifacts >= 4));
+    const availableCivEvents = events.filter(event => event.type === 'civ' && (!event.condition || event.condition));
+    const availableUnmappedEvents = events.filter(event => event.type === 'unmapped' && (!event.action.toString().includes('artifacts >= 4') || artifacts >= 4));
     const civEvent = availableCivEvents[Math.floor(Math.random() * availableCivEvents.length)];
     const unmappedEvent = availableUnmappedEvents[Math.floor(Math.random() * availableUnmappedEvents.length)];
     return { civEvent, unmappedEvent };
+}
+
+function giveArtifact() {
+    artifacts--;
+    fuel += 3;
+    updateResourceLimits();
+    showEvent('You lose 1 artifact and gain 3 jump fuel.');
+    updateStatus();
+}
+
+function executeTrade() {
+    const cargoSelect = document.getElementById('cargoSelect').value;
+    const marketSelect = document.getElementById('marketSelect').value;
+    const quantity = parseInt(document.getElementById('quantitySelect').value);
+    let tradeValid = true;
+    let message = '';
+
+    if (cargoSelect === marketSelect) {
+        tradeValid = false;
+        message = 'Cannot trade the same type of resource.';
+    } else {
+        switch (cargoSelect) {
+            case 'fuel':
+                if (fuel < quantity) {
+                    tradeValid = false;
+                    message = 'You do not have enough jump fuel.';
+                }
+                break;
+            case 'credits':
+                if (credits < quantity) {
+                    tradeValid = false;
+                    message = 'You do not have enough credits.';
+                }
+                break;
+            case 'artifacts':
+                if (artifacts < quantity) {
+                    tradeValid = false;
+                    message = 'You do not have enough artifacts.';
+                }
+                break;
+            case 'warheads':
+                if (warheads < quantity) {
+                    tradeValid = false;
+                    message = 'You do not have enough warheads.';
+                }
+                break;
+        }
+    }
+
+    if (tradeValid) {
+        switch (cargoSelect) {
+            case 'fuel':
+                fuel -= quantity;
+                break;
+            case 'credits':
+                credits -= quantity;
+                break;
+            case 'artifacts':
+                artifacts -= quantity;
+                break;
+            case 'warheads':
+                warheads -= quantity;
+                break;
+        }
+        switch (marketSelect) {
+            case 'fuel':
+                fuel += quantity;
+                break;
+            case 'credits':
+                credits += quantity;
+                break;
+            case 'artifacts':
+                artifacts += quantity;
+                break;
+            case 'warheads':
+                warheads += quantity;
+                break;
+        }
+        updateResourceLimits();
+        updateStatus();
+        showEvent(`You successfully traded ${quantity} ${cargoSelect} for ${quantity} ${marketSelect}.`);
+    } else {
+        showEvent(message);
+    }
+}
+
+function searchStation() {
+    const outcome = Math.floor(Math.random() * 4) + 1;
+    switch (outcome) {
+        case 1:
+            artifacts++;
+            showEvent('You find an artifact to add to your collection. Very nice. (+1 artifact)');
+            break;
+        case 2:
+            warheads++;
+            showEvent('Oh, you find an armed warhead... better get it on board carefully. (+1 warhead)');
+            break;
+        case 3:
+            fuel += 2;
+            showEvent('You find 2 units of jump fuel. Every little bit counts... (+2 fuel)');
+            break;
+        case 4:
+            artifacts = 0;
+            credits = 0;
+            fuel = 0;
+            warheads = 0;
+            showEvent('The station groans under the gravitational pull of the moon and tears in half, as if made of paper. You made it back to your ship, but all your cargo was lost in the escape. Damn.');
+            break;
+    }
+    updateStatus();
+}
+
+function castVote() {
+    votedCandidate = document.getElementById('candidateSelect').value;
+    let message = '';
+    switch (votedCandidate) {
+        case 'Crackheart':
+            message = "Well, he's a man of the people... If he wins, I'm sure it's good for everyone.";
+            break;
+        case 'Body':
+            message = "Half the system hates this guy, but that's what you like about him. Time to go!";
+            break;
+        case 'Triplehead':
+            message = "Many have said that Triplehead's 'Smother the Star' platform will end life in the system, but you suppose time will tell.";
+            break;
+    }
+    showEvent(message);
+}
+
+function acceptWarheads() {
+    warheads += 3;
+    showEvent('3 nuclear warheads from the late-classical Ymir Imperium warheads materialize in your cargo hold. You suspect these can be used to counter raider attacks.');
+    updateStatus();
 }
 
 function updateResourceLimits() {
     fuel = Math.max(0, fuel);
     credits = Math.max(0, credits);
     artifacts = Math.max(0, artifacts);
+    warheads = Math.max(0, warheads);
 }
 
 function jump(type) {
@@ -415,44 +538,37 @@ function displayStarSystem() {
 }
 
 function useBeacon() {
-    const outcomes = [
-        () => {
-            showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
-            fuel += 2;
-            credits = 0;
-            artifacts = 0;
-            updateResourceLimits();
-            updateStatus();
-        },
-        () => {
-            document.getElementById('civ-jump-button').style.display = 'none';
-            document.getElementById('unmapped-jump-button').style.display = 'none';
-            document.getElementById('beacon-button').style.display = 'none';
-            showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
-                { text: 'Return to Main', onclick: resetGame }
-            ]);
-        },
-        () => {
-            jumps = Math.floor(Math.random() * 40) + 1;
-            showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
-            updateStatus();
-        }
-    ];
-    const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-    outcome();
-    if (fuel > 0) {
-        document.getElementById('beacon-button').style.display = 'none';
-        document.getElementById('civ-jump-button').style.display = 'inline-block';
-        document.getElementById('unmapped-jump-button').style.display = 'inline-block';
-    }
-}
-
-function updateBeaconButton() {
-    const beaconButton = document.getElementById('beacon-button');
-    if (fuel === 0) {
-        beaconButton.style.backgroundColor = 'red';
+    if (warheads > 0) {
+        warheads--;
+        fuel++;
+        credits++;
+        showEvent('A large raider frigate responds to your distress beacon, but before they can hail, the flight computer launches ordinance against it. The frigate takes heavy damage and retreats, leaving behind the contents of a smashed cargo hold: 1 unit of jump fuel and 1 credit.');
     } else {
-        beaconButton.style.backgroundColor = 'blue';
+        const outcomes = [
+            () => {
+                showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
+                fuel += 2;
+                credits = 0;
+                artifacts = 0;
+                updateResourceLimits();
+                updateStatus();
+            },
+            () => {
+                document.getElementById('civ-jump-button').style.display = 'none';
+                document.getElementById('unmapped-jump-button').style.display = 'none';
+                document.getElementById('beacon-button').style.display = 'none';
+                showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
+                    { text: 'Return to Main', onclick: resetGame }
+                ]);
+            },
+            () => {
+                jumps = Math.floor(Math.random() * 40) + 1;
+                showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
+                updateStatus();
+            }
+        ];
+        const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+        outcome();
     }
 }
 
@@ -474,8 +590,10 @@ function resetGame() {
     fuel = 6;
     credits = 1;
     artifacts = 1;
+    warheads = 0;
     jumps = 0;
     currentStarSystem = '';
+    votedCandidate = '';
     document.getElementById('main').style.display = 'none';
     document.getElementById('start').style.display = 'block';
     document.getElementById('event').textContent = '';
@@ -483,6 +601,7 @@ function resetGame() {
 }
 
 updateStatus();
+
 </script>
 </body>
 </html>
