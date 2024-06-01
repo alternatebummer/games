@@ -5,106 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dark Porpoise</title>
 <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden; /* Prevent scrolling */
+  body {
     font-family: 'Courier New', monospace;
+    white-space: pre; /* Use pre to prevent wrapping of ASCII art */
     background-color: black;
     color: white;
+    font-weight: none;
     display: flex;
     justify-content: center;
-    align-items: center;
-    white-space: pre; /* Use pre to prevent wrapping of ASCII art */
+    overflow: hidden;
+    align-items: start;
+    margin-top: -30px;
+    font-size: 14px;
   }
   .fish-tank {
-    height: 100%;
+    height: auto;
     width: 100%;
-    max-width: 500px;
-    display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    overflow: hidden; /* Prevent scrolling */
+    max-width: 500px;
   }
   input[type="text"] {
     background-color: black;
     color: white;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    width: 83px;
-    font-size: 18px;
+    width: 88px;
+    text-size: 18px;
     border: none;
     outline: none;
   }
 </style>
+
+
+
 </head>
 <body>
-<div class="fish-tank" id="fish-tank">
-  <div>
-    ___  ____   __ ______  ___ ______ _   __         
-    |  \/  \ \ / / |  _  \/ _ \| ___ \ | / /         
-    | .  . |\ V /  | | | / /_\ \ |_/ / |/ /          
-    | |\/| | \ /   | | | |  _  |    /|    \   ~'~    
-    | |  | | | |   | |/ /| | | | |\ \| |\  \         
-    \_|__|_/_\_/___|___/_\_| |_|_| \_\_| \_/__ _____ 
-    | ___ \  _  | ___ \ ___ \  _  |_   _/  ___|  ___|
-    | |_/ / | | | |_/ / |_/ / | | | | | \ `--.| |__ 
-    |  __/| | | |    /|  __/| | | | | |  `--. \  __|
-    | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___
-    \_|    \___/\_| \_\_|    \___/ \___/\____/\____/
-                              |     
-                             \       /
-       ^,-                   ,d8b,         
-                          -- 88888 ---   .,
-                             )98P'   ;';'  ';'.
-                            '     \ ';.,;    ,;   
-                           /   '       '.';.'
+<div id="fish-tank">
+<div>
+___  ____   __ ______  ___ ______ _   __         
+|  \/  \ \ / / |  _  \/ _ \| ___ \ | / /         
+| .  . |\ V /  | | | / /_\ \ |_/ / |/ /          
+| |\/| | \ /   | | | |  _  |    /|    \   ~'~    
+| |  | | | |   | |/ /| | | | |\ \| |\  \         
+\_|__|_/_\_/___|___/_\_| |_|_| \_\_| \_/__ _____ 
+| ___ \  _  | ___ \ ___ \  _  |_   _/  ___|  ___|
+| |_/ / | | | |_/ / |_/ / | | | | | \ `--.| |__ 
+|  __/| | | |    /|  __/| | | | | |  `--. \  __|
+| |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___
+\_|    \___/\_| \_\_|    \___/ \___/\____/\____/
+                        |     
+                       \       /
+   ^,-                   ,d8b,         
+                      -- 88888 ---   .,
+                         )98P'   ;';'  ';'.
+                        '     \ ';.,;    ,;   
+                       /   '       '.';.'
 
-                                      
-    .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
-       '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-
-    <div id="frame1">                                .
-         .                                     
-                           ;'-.       .
-               `;-._        )  '---.._
-        .        >  `-.__.-'          `'.__
-                /_.-'-._         _,   ^ ---)
-               .       `'------/_.'----```
-                               `
-           __
-        |><_'>                                   (
-                                               (  )
-    .  ..   , ,,` `` .,   ., ` , `  `  ) ,, ), ,)(.
-    </div>
-    <div id="frame2" style="display: none;">
-             .                          .
-                            ;-.       
-           .    `;-._       )  '---.._ 
-                  >  `-._.-'          `'.__ 
-                 /_.-'-.         _,   -. --)
-            .   `       `'------/_.'----```   
-            __.                 `
-         |><_'>                                   (
-                                                ( )
-    .  ..   , ,,' '' .,   ., ' , '  '  ( ,, (, ,)(.
+                                  
+.-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
+   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-
+<div id="frame1">                                .
+     .                                     
+                       ;'-.       .
+           `;-._        )  '---.._
+    .        >  `-.__.-'          `'.__
+            /_.-'-._         _,   ^ ---)
+           .       `'------/_.'----```
+                           `
+       __
+    |><_'>                                   (
+                                           (  )
+.  ..   , ,,` `` .,   ., ` , `  `  ) ,, ), ,)(.
+</div>
+<div id="frame2" style="display: none;">
+         .                          .
+                        ;-.       
+       .    `;-._       )  '---.._ 
+              >  `-._.-'          `'.__ 
+             /_.-'-.         _,   -. --)
+        .   `       `'------/_.'----```   
+        __.                 `
+     |><_'>                                   (
+                                            ( )
+.  ..   , ,,' '' .,   ., ' , '  '  ( ,, (, ,)(.
 
-    </div>===============================================
-    §  HUNGER:   <span id="hunger">*</span>  §     1. FEED        §
-    §  HAPPINESS:<span id="happiness">*</span>  §     2. PLAY        §
-    §  HEALTH:   <span id="health">*</span>  §     3. VITAMINS    §
-    §  HYGIENE:  <span id="hygiene">*</span>  §     4. SCRUB       §
-    ===============================================
-    §      OVERALL MOOD: <span id="overall-mood"></span> §
-    §     TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!        </span> §
-    §       TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">                §
-    ===============================================
-    Input the number (1-4) to administer the task.
-    Cooldown between tasks is 20 seconds.
-    Monitor its stat bars and cater to its needs.
-    This is your dark porpoise.
-  </div>
+</div>===============================================
+§  HUNGER:   <span id="hunger">*</span>  §     1. FEED        §
+§  HAPPINESS:<span id="happiness">*</span>  §     2. PLAY        §
+§  HEALTH:   <span id="health">*</span>  §     3. VITAMINS    §
+§  HYGIENE:  <span id="hygiene">*</span>  §     4. SCRUB       §
+===============================================
+§      OVERALL MOOD: <span id="overall-mood"></span> §
+§     TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!        </span> §
+§       TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">              §
+===============================================
+Input the number (1-4) to administer the task.
+Cooldown between tasks is 20 seconds.
+Monitor its stat bars and cater to its needs.
+This is your dark porpoise.
+</div>
 </div>
 <script>
   const stats = {
