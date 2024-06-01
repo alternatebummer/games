@@ -13,21 +13,22 @@
     font-weight: bold;
     display: flex;
     justify-content: left;
-    align-items: center;
-    margin: 0;
-    padding: 20px; /* Add padding to the left and right */
-    box-sizing: border-box;
+    align-items: left;
     height: 100vh;
+    width: 100vw
+    margin: 0;
+    padding: 0; /* Remove padding to ensure proper centering */
+    box-sizing: content-box;
   }
   .game-container {
+    width: 100%;
+    padding: 0px; /* Add padding to the left and right */
     display: flex;
     flex-direction: column;
-    min-width: 600px; /* Minimum width of the game */
-    max-width: 100%;
-    box-sizing: border-box;
+    box-sizing: inherit;
   }
   .game-window {
-    display: inline-block;
+    width: 100%;
   }
   .center {
     text-align: left;
@@ -40,19 +41,11 @@
     border: none;
     outline: none;
   }
-  @media (max-width: 640px) {
-    .game-container {
-      transform: scale(0.8); /* Scale down the game */
-      transform-origin: top left;
-    }
-  }
-  @media (max-width: 480px) {
-    .game-container {
-      transform: scale(0.6); /* Further scale down the game */
-      transform-origin: top left;
-    }
-  }
+
 </style>
+
+
+
 </head>
 <body>
 <div class="game-container">
