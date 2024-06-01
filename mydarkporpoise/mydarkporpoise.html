@@ -11,29 +11,9 @@
     background-color: black;
     color: white;
     font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
-    padding: 0; /* Remove padding to ensure proper centering */
-    box-sizing: border-box;
-  }
-  .game-container {
-    width: 100%;
-    max-width: 800px; /* Set a max-width to control scaling */
-    padding: 0px; /* Add padding to the left and right */
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .game-window {
-    text-align: center;
-  }
-  .center {
     text-align: left;
+    justify-content: center;
+  content {    
   }
   input[type="text"] {
     background-color: black;
@@ -43,39 +23,27 @@
     border: none;
     outline: none;
   }
-
-  @media (max-width: 640px) {
-    .game-container {
-      transform: scale(0.8); /* Scale down the game */
-    }
-  }
-  @media (max-width: 480px) {
-    .game-container {
-      transform: scale(0.6); /* Further scale down the game */
-    }
-  }
 </style>
 
 
 
 </head>
 <body>
-<div class="game-container">
-  <div class="game-window">
-    <div class="center">
-      ___  ____   __ ______  ___ ______ _   __ ______ _________________ _____ _____ _____ _____ 
-      |  \/  \ \ / / |  _  \/ _ \| ___ \ | / / | ___ \  _  | ___ \ ___ \  _  |_   _/  ___|  ___|
-      | .  . |\ V /  | | | / /_\ \ |_/ / |/ /  | |_/ / | | | |_/ / |_/ / | | | | | \ `--.| |__  
-      | |\/| | \ /   | | | |  _  |    /|    \  |  __/| | | |    /|  __/| | | | | |  `--. \  __| 
-      | |  | | | |   | |/ /| | | | |\ \| |\  \ | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___ 
-      \_|  |_/ \_/   |___/ \_| |_|_| \_\_| \_/ \_|    \___/\_| \_\_|    \___/ \___/\____/\____/                               
-      
-     .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  .-.   .-.   .-.   .-.   .-.   .-.   .-
-       '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'  '-'   '-'   '-'   '-'   '-'   '-'  
-    </div>
-    <div id="porpoise-frame" class="center">
-      <div id="frame1">
-                                                                                                
+<div id="content">
+___  ____   __ ______  ___ ______ _   __ ______ _________________ _____ _____ _____ _____ 
+|  \/  \ \ / / |  _  \/ _ \| ___ \ | / / | ___ \  _  | ___ \ ___ \  _  |_   _/  ___|  ___|
+| .  . |\ V /  | | | / /_\ \ |_/ / |/ /  | |_/ / | | | |_/ / |_/ / | | | | | \ `--.| |__  
+| |\/| | \ /   | | | |  _  |    /|    \  |  __/| | | |    /|  __/| | | | | |  `--. \  __| 
+| |  | | | |   | |/ /| | | | |\ \| |\  \ | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___ 
+\_|  |_/ \_/   |___/ \_| |_|_| \_\_| \_/ \_|    \___/\_| \_\_|    \___/ \___/\____/\____/                               
+
+.-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  .-.   .-.   .-.   .-.   .-.   .-.   .-
+   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'  '-'   '-'   '-'   '-'   '-'   '-'  
+This is your dark porpoise.
+Monitor its stat bars (which deplete over time) and cater to its needs.
+A well-served porpoise will never know the indignity of privation.
+<div id="content">
+<div id="frame1">                                                                                                
                                               ;'-.                                              
                                   `;-._        )  '---.._                                       
                                     >  `-.__.-'          `'.__                                  
@@ -83,8 +51,8 @@
                                    `       `'------/_.'----```                                  
                                                    `                                            
                                                                                                 
-      </div>
-      <div id="frame2" style="display: none;">
+</div>
+<div id="frame2">
                                                                                                 
                                                ;-.                                              
                                    `;-._       )  '---.._                                       
@@ -93,26 +61,16 @@
                                    `       `'------/_.'----```                                  
                                                    `                                            
                                                                                                 
-      </div>
-    </div>
-    <div class="center">
-      ==========================================================================================
-      ║ HUNGER:    <span id="hunger">*         </span> ║ 1. FEED             ║                                          ║
-      ║ HAPPINESS: <span id="happiness">*         </span> ║ 2. PLAY             ║    OVERALL MOOD:  <span id="overall-mood">MISERABLE!             </span> ║       
-      ║ HEALTH:    <span id="health">*         </span> ║ 3. VITAMINS         ║    TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!</span>       ║
-      ║ HYGIENE:   <span id="hygiene">*         </span> ║ 4. SCRUB            ║                                          ║ 
-      ==========================================================================================
-    </div>
-    <div class="center">
-      TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">
-    </div>
-    <div class="center">
-      This is your dark porpoise.
-      Monitor its stat bars (which deplete over time) and cater to its needs.
-      A well-served porpoise will never know the indignity of privation.
-    </div>
-  </div>
 </div>
+</div>
+==========================================================================================
+║ HUNGER:    <span id="hunger">*         </span> ║ 1. FEED             ║                                          ║
+║ HAPPINESS: <span id="happiness">*         </span> ║ 2. PLAY             ║    OVERALL MOOD:  <span id="overall-mood">MISERABLE!             </span> ║       
+║ HEALTH:    <span id="health">*         </span> ║ 3. VITAMINS         ║    TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!</span>       ║
+║ HYGIENE:   <span id="hygiene">*         </span> ║ 4. SCRUB            ║                                          ║ 
+==========================================================================================
+
+TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">
 
 <script>
   const stats = {
