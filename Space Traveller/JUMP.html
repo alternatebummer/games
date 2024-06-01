@@ -300,7 +300,7 @@ function handleComfort() {
         eventDiv.innerHTML = `<p><i>"I don\'t believe you... You're just a killer... LIKE ME."</i></p><p>Your comforting gesture is rejected and the Lydolian jumps away.</i></p><button class="button" onclick="continueGame()">Continue</button>`;
     } else {
         warheads++;
-        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><p>An alert coming from the materializer indicates that a warhead is waiting in the buffer, so you energize the buffer and claim the pilot's ordinance. No sense in letting good ordinance go to waste.</p><button class="button" onclick="continueGame()">Continue</button>`;
+        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><button class="button" onclick="continueGame()">Continue</button>`;
     }
     updateStatus();
 }
@@ -357,7 +357,7 @@ function handleComfort() {
         eventDiv.innerHTML = `<p><i>"I don\'t believe you... You're just a killer... LIKE ME."</i></p><p>Your comforting gesture is rejected and the Lydolian jumps away.</i></p><button class="button" onclick="continueGame()">Continue</button>`;
     } else {
         warheads++;
-        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><p>You gain 1 warhead.</p><button class="button" onclick="continueGame()">Continue</button>`;
+        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><p>You gain 1 warhead.</p><p>An alert coming from the materializer indicates that a warhead is waiting in the buffer, so you energize the buffer and claim the pilot's ordinance. No sense in letting good ordinance go to waste.</p><button class="button" onclick="continueGame()">Continue</button>`;
     }
     updateStatus();
 }
