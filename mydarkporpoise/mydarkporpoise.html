@@ -10,18 +10,21 @@
     white-space: pre-wrap; /* Use pre-wrap to allow wrapping of ASCII art */
     background-color: black;
     color: white;
-    box-sizing: boarder box;
+    box-sizing: border-box;
     font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin-top: -50px;
+    margin: 0;
+    padding: 0 20px; /* Add padding to the left and right */
   }
   .game-container {
     display: table;
     flex-direction: column;
-    margin-left: 150px;
+    display: flex;
+    transform: scale(1);
+    transform-origin: top left;
   }
   .center {
     text-align: left;
@@ -34,9 +37,14 @@
     border: none;
     outline: none;
   }
-  @media (min-width: 600px) {
-    body {
-      font-size: 13px; /* Reduce font size on smaller screens */
+  @media (max-width: 600px) {
+    .game-container {
+      transform: scale(0.75); /* Scale down the entire game */
+    }
+  }
+  @media (max-width: 450px) {
+    .game-container {
+      transform: scale(0.5); /* Scale down further if needed */
     }
   }
 </style>
