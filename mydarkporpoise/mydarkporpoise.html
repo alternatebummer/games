@@ -26,6 +26,11 @@
     flex-direction: column;
     max-width: 500px;
   }
+  .button {
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+  }
   input[type="text"] {
     background-color: black;
     color: white;
@@ -37,9 +42,6 @@
     outline: none;
   }
 </style>
-
-
-
 </head>
 <body>
 <div id="fish-tank">
@@ -92,20 +94,20 @@ ___  ____   __ ______  ___ ______ _   __
 .  ..   , ,,' '' .,   ., ' , '  '  ( ,, (, ,)(.
 
 </div>===============================================
-|    HUNGER:<span id="hunger">*</span> |     1. FEED          |
-| HAPPINESS:<span id="happiness">*</span> |     2. PLAY          |
-|    HEALTH:<span id="health">*</span> |     3. VITAMINS      |
-|   HYGIENE:<span id="hygiene">*</span> |     4. SCRUB         |
+|    HUNGER:<span id="hunger"></span> | Porp Report:         |
+| HAPPINESS:<span id="happiness"></span> | <span id="overall-mood">Happy!</span>
+|    HEALTH:<span id="health"></span> | Cooldown Counter:    |
+|   HYGIENE:<span id="hygiene"></span> | <span id="cooldown"> READY!              |</span>
 ===============================================
-| PORPOISE REPORT: <span id="overall-mood"></span> |
-|   TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!          </span> |
-|     TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">               |
+| --------  --------  ------------  --------- |
+| | <span class="button" onclick="executeTask('feed')">FEED</span> |  | <span class="button" onclick="executeTask('play')">PLAY</span> |  | <span class="button" onclick="executeTask('vitamins')">VITAMINS</span> |  | <span class="button" onclick="executeTask('scrub')">SCRUB</span> | |
+| --------  --------  ------------  --------- |
 ===============================================
 
-Input the number (1-4) to administer the task.
+Tap a button administer a task.
 Cooldown between tasks is 30 seconds.
-Monitor its stat bars and cater to its needs.
-This is your dark porpoise.
+Monitor this animal and cater to its needs.
+It is your dark porpoise.
 </div>
 </div>
 <script>
@@ -117,37 +119,37 @@ This is your dark porpoise.
   };
 
   const cooldownText = {
-    0: "ADMINISTER TASK!          ",
-    1: "1                         ",
-    2: "2                         ",
-    3: "3                         ",
-    4: "4                         ",
-    5: "5                         ",
-    6: "6                         ",
-    7: "7                         ",
-    8: "8                         ",
-    9: "9                         ",
-    10: "10                        ",
-    11: "11                        ",
-    12: "12                        ",
-    13: "13                        ",
-    14: "14                        ",
-    15: "15                        ",
-    16: "16                        ",
-    17: "17                        ",
-    18: "18                        ",
-    19: "19                        ",
-    20: "20                        ",
-    21: "21                        ",
-    22: "22                        ",
-    23: "23                        ",
-    24: "24                        ",
-    25: "25                        ",
-    26: "26                        ",
-    27: "27                        ",
-    28: "28                        ",
-    29: "29                        ",
-    30: "30                        ",
+    0: " READY!              |",
+    1: "••                   |",
+    2: "•••                  |",
+    3: "•••                  |",
+    4: "••••                 |",
+    5: "•••••                |",
+    6: "•••••                |",
+    7: "••••••               |",
+    8: "•••••••              |",
+    9: "•••••••              |",
+    10: "•••••••              |",
+    11: "••••••••             |",
+    12: "••••••••             |",
+    13: "•••••••••            |",
+    14: "••••••••••           |",
+    15: "••••••••••           |",
+    16: "•••••••••••          |",
+    17: "••••••••••••         |",
+    18: "••••••••••••         |",
+    19: "•••••••••••••        |",
+    20: "••••••••••••••       |",
+    21: "••••••••••••••       |",
+    22: "•••••••••••••••      |",
+    23: "••••••••••••••••     |",
+    24: "••••••••••••••••     |",
+    25: "•••••••••••••••••    |",
+    26: "••••••••••••••••••   |",
+    27: "••••••••••••••••••   |",
+    28: "•••••••••••••••••••  |",
+    29: "•••••••••••••••••••• |",
+    30: "•••••••••••••••••••• |",
   };
 
   let cooldown = 0;
@@ -155,18 +157,18 @@ This is your dark porpoise.
   let hungerTimer, happinessTimer, healthTimer, hygieneTimer;
 
   function updateStats() {
-    document.getElementById('hunger').innerText = '#'.repeat(stats.hunger).padEnd(10, ' ');
-    document.getElementById('happiness').innerText = '#'.repeat(stats.happiness).padEnd(10, ' ');
-    document.getElementById('health').innerText = '#'.repeat(stats.health).padEnd(10, ' ');
-    document.getElementById('hygiene').innerText = '#'.repeat(stats.hygiene).padEnd(10, ' ');
+    document.getElementById('hunger').innerText = '•'.repeat(stats.hunger).padEnd(10, ' ');
+    document.getElementById('happiness').innerText = '•'.repeat(stats.happiness).padEnd(10, ' ');
+    document.getElementById('health').innerText = '•'.repeat(stats.health).padEnd(10, ' ');
+    document.getElementById('hygiene').innerText = '•'.repeat(stats.hygiene).padEnd(10, ' ');
 
     const totalStats = stats.hunger + stats.happiness + stats.health + stats.hygiene;
     if (totalStats >= 31) {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is THRIVING!';
+      document.getElementById('overall-mood').innerText = ' Porpoise thrives!   |';
     } else if (totalStats >= 10) {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is fine.    ';
+      document.getElementById('overall-mood').innerText = ' Porpoise is okay.   |';
     } else {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is SAD...   ';
+      document.getElementById('overall-mood').innerText = ' Porpoise is SAD...  |';
     }
   }
 
@@ -192,23 +194,20 @@ This is your dark porpoise.
     document.getElementById('cooldown').innerText = cooldownText[cooldown];
   }
 
-  function executeTask() {
+  function executeTask(task) {
     if (cooldown > 0) return;
 
-    const task = document.getElementById('task-input').value;
-    document.getElementById('task-input').value = '';
-
     switch (task) {
-      case '1':
+      case 'feed':
         stats.hunger = Math.min(stats.hunger + 3, 10);
         break;
-      case '2':
+      case 'play':
         stats.happiness = Math.min(stats.happiness + 3, 10);
         break;
-      case '3':
+      case 'vitamins':
         stats.health = Math.min(stats.health + 3, 10);
         break;
-      case '4':
+      case 'scrub':
         stats.hygiene = Math.min(stats.hygiene + 3, 10);
         break;
       default:
@@ -218,6 +217,7 @@ This is your dark porpoise.
 
     cooldown = 30;
     updateStats();
+    updateCooldownText();
   }
 
   function animatePorpoise() {
@@ -233,8 +233,6 @@ This is your dark porpoise.
       }
     }, 2000);
   }
-
-  document.getElementById('task-input').focus();
 
   updateStats();
   startTimers();
