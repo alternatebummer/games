@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dark Porpoise</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    white-space: pre;
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .game-container {
+    display: table;
+    margin: auto;
+  }
+  .game-window {
+    border: 0px solid white;
+    padding: 0px;
+  }
+  .center {
+    text-align: left;
+  }
+  input[type="text"] {
+    background-color: black;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    border: none;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+<table class="game-container">
+  <tr>
+    <td>
+      <div class="game-window">
+        <div class="center">
+
+          ___  ____   __ ______  ___ ______ _   __ ______ _________________ _____ _____ _____ _____ 
+          |  \/  \ \ / / |  _  \/ _ \| ___ \ | / / | ___ \  _  | ___ \ ___ \  _  |_   _/  ___|  ___|
+          | .  . |\ V /  | | | / /_\ \ |_/ / |/ /  | |_/ / | | | |_/ / |_/ / | | | | | \ `--.| |__  
+          | |\/| | \ /   | | | |  _  |    /|    \  |  __/| | | |    /|  __/| | | | | |  `--. \  __| 
+          | |  | | | |   | |/ /| | | | |\ \| |\  \ | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___ 
+          \_|  |_/ \_/   |___/ \_| |_|_| \_\_| \_/ \_|    \___/\_| \_\_|    \___/ \___/\____/\____/                               
+        </div>
+        <div id="porpoise-frame" class="center">
+          <div id="frame1">
+                                                                                                    
+                                                  ;'-.                                              
+                                      `;-._        )  '---.._                                       
+                                        >  `-.__.-'          `'.__                                  
+                                       /_.-'-._         _,   ^ ---)                                 
+                                       `       `'------/_.'----```                                  
+                                                       `                                            
+                                                                                                    
+          </div>
+          <div id="frame2" style="display: none;">
+                                                                                                    
+                                                   ;-.                                              
+                                       `;-._       )  '---.._                                       
+                                         >  `-._.-'          `'.__                                  
+                                        /_.-'-.         _,   -  --)                                 
+                                       `       `'------/_.'----```                                  
+                                                       `                                            
+                                                                                                    
+          </div>
+        </div>
+        <div class="center">
+          ══════════════════════════════════════════════════════════════════════════════════════════
+          ║ HUNGER:    <span id="hunger">*         </span> ║ 1. FEED             ║                                          ║
+          ║ HAPPINESS: <span id="happiness">*         </span> ║ 2. PLAY             ║    OVERALL MOOD:  <span id="overall-mood">MISERABLE!             </span> ║       
+          ║ HEALTH:    <span id="health">*         </span> ║ 3. VITAMINS         ║    TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!</span>       ║
+          ║ HYGIENE:   <span id="hygiene">*         </span> ║ 4. SCRUB            ║                                          ║ 
+          ══════════════════════════════════════════════════════════════════════════════════════════
+        </div>
+      </div>
+      <div class="center">
+        TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">
+      </div>
+    </td>
+  </tr>
+</table>
+
+<script>
+  const stats = {
+    hunger: Math.floor(Math.random() * 8) + 3,
+    happiness: Math.floor(Math.random() * 8) + 3,
+    health: Math.floor(Math.random() * 8) + 3,
+    hygiene: Math.floor(Math.random() * 8) + 3
+  };
+
+  const cooldownText = {
+    0: "ADMINISTER TASK!",
+    1: "1               ",
+    2: "2               ",
+    3: "3               ",
+    4: "4               ",
+    5: "5               ",
+    6: "6               ",
+    7: "7               ",
+    8: "8               ",
+    9: "9               ",
+    10: "10              ",
+    11: "11              ",
+    12: "12              ",
+    13: "13              ",
+    14: "14              ",
+    15: "15              ",
+    16: "16              ",
+    17: "17              ",
+    18: "18              ",
+    19: "19              ",
+    20: "20              ",
+    21: "21              ",
+    22: "22              ",
+    23: "23              ",
+    24: "24              ",
+    25: "25              ",
+    26: "26              ",
+    27: "27              ",
+    28: "28              ",
+    29: "29              ",
+    30: "30              ",
+  };
+
+  let cooldown = 0;
+  let taskTimer;
+  let hungerTimer, happinessTimer, healthTimer, hygieneTimer;
+
+  function updateStats() {
+    document.getElementById('hunger').innerText = '|'.repeat(stats.hunger).padEnd(10, ' ');
+    document.getElementById('happiness').innerText = '|'.repeat(stats.happiness).padEnd(10, ' ');
+    document.getElementById('health').innerText = '|'.repeat(stats.health).padEnd(10, ' ');
+    document.getElementById('hygiene').innerText = '|'.repeat(stats.hygiene).padEnd(10, ' ');
+
+    const totalStats = stats.hunger + stats.happiness + stats.health + stats.hygiene;
+    if (totalStats >= 31) {
+      document.getElementById('overall-mood').innerText = 'PLEASED WITH LIFE!    ';
+    } else if (totalStats >= 10) {
+      document.getElementById('overall-mood').innerText = 'DEALING WITH IT.      ';
+    } else {
+      document.getElementById('overall-mood').innerText = 'MISERABLE!            ';
+    }
+  }
+
+  function startTimers() {
+    hungerTimer = setInterval(() => { decreaseStat('hunger') }, 45000);
+    happinessTimer = setInterval(() => { decreaseStat('happiness') }, 75000);
+    healthTimer = setInterval(() => { decreaseStat('health') }, 120000);
+    hygieneTimer = setInterval(() => { decreaseStat('hygiene') }, 90000);
+    taskTimer = setInterval(() => { decreaseCooldown() }, 1000);
+  }
+
+  function decreaseStat(stat) {
+    if (stats[stat] > 0) stats[stat]--;
+    updateStats();
+  }
+
+  function decreaseCooldown() {
+    if (cooldown > 0) cooldown--;
+    updateCooldownText();
+  }
+
+  function updateCooldownText() {
+    document.getElementById('cooldown').innerText = cooldownText[cooldown];
+  }
+
+  function executeTask() {
+    if (cooldown > 0) return;
+
+    const task = document.getElementById('task-input').value;
+    document.getElementById('task-input').value = '';
+
+    switch (task) {
+      case '1':
+        stats.hunger = Math.min(stats.hunger + 3, 10);
+        break;
+      case '2':
+        stats.happiness = Math.min(stats.happiness + 3, 10);
+        break;
+      case '3':
+        stats.health = Math.min(stats.health + 3, 10);
+        break;
+      case '4':
+        stats.hygiene = Math.min(stats.hygiene + 3, 10);
+        break;
+      default:
+        alert('Invalid task!');
+        return;
+    }
+
+    cooldown = 30;
+    updateStats();
+  }
+
+  function animatePorpoise() {
+    const frame1 = document.getElementById('frame1');
+    const frame2 = document.getElementById('frame2');
+    setInterval(() => {
+      if (frame1.style.display === 'none') {
+        frame1.style.display = 'block';
+        frame2.style.display = 'none';
+      } else {
+        frame1.style.display = 'none';
+        frame2.style.display = 'block';
+      }
+    }, 2000);
+  }
+
+  document.getElementById('task-input').focus();
+
+  updateStats();
+  startTimers();
+  animatePorpoise();
+</script>
+</body>
+</html>

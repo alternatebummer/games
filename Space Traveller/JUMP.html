@@ -35,6 +35,10 @@
         .button:hover {
             background-color: #666;
         }
+        .disabled-button {
+            background-color: red;
+            cursor: not-allowed;
+        }
         #description {
             max-width: 500px;
             font-size: 15px;
@@ -75,14 +79,9 @@
         <img src="https://raw.githubusercontent.com/alternatebummer/games/main/Space%20Traveller/deepspacelogo.png" alt="Deep Space Traveller" style="width: 500px; height: 300px;">
         <div id="start">
             <p id="description">You are far from home, traveller, low on supplies, but especially low on fuel. Your ship's flight computer is brilliant, but returning to the homeworld will require a mix of wits and automation. The jump path is calculated to avoid instant death as much as possible, but the trip will requires far more jumps than you've ever had to make before... How did you get out here, anyway? You'll have to find fuel between jumps in order to complete the journey. Best of luck, traveller.</p>
-            <p>Enter your ship's name:</p>
-            <input type="text" id="shipName" placeholder="Ship Name">
             <button class="button" onclick="startGame()">Start Game</button>
         </div>
         <div id="main" style="display:none;">
-            <h3 id="shipTitle"></h3>
-            <b><div id="starSystemTitle"></div></b>
-            <i><div id="starSystemDescription"></div></i>
             <div id="status">
                 <br>
                 <div>Jump Fuel: <span id="fuel">5</span></div>
@@ -92,126 +91,112 @@
                 <p>Jump Path: <span id="jumps">0</span>/40</p>
             </div>
             <div id="options">
-                <button class="button" id="civ-jump-button" style="display:none;" onclick="jump('civ')">Jump to Civ-Class System</button>
-                <button class="button" id="unmapped-jump-button" style="display:none;" onclick="jump('unmapped')">Jump to Unmapped System</button>
-                <button class="button" id="beacon-button" style="display:none; background-color: red;" onclick="useBeacon()">Use Distress Beacon</button>
+                <button class="button" id="civ-jump-button" onclick="jump('civ')">Jump to Civ-Class System</button>
+                <button class="button" id="unmapped-jump-button" onclick="jump('unmapped')">Jump to Unmapped System</button>
+                <button class="button" id="beacon-button" onclick="useBeacon()">Distress Beacon</button>
             </div>
             <div id="event"></div>
         </div>
     </div>
 
-    <script>
-const starSystems = {
-    'Zeballu Prime': 'A bustling hub with vibrant markets.',
-    'Homer Nexus': 'Dense asteroid fields with hidden treasures.',
-    'Starburnt Reach': 'Bright stars that never set.',
-    'Deneb\'s Lattice': 'A web of interstellar trade routes.',
-    'Poochi\'s Epsilon': 'Peaceful colony with lush landscapes.',
-    'Fourtote\'s Glorius System': 'Known for its shimmering gas giants.',
-    'Gamma Eridani': 'A system with a binary sun.',
-    'Binary Helios Spilljammers': 'Frequent solar storms and radiation.',
-    'Bonebaker Alpha': 'Once a thriving mining colony.',
-    'Juno\'s Loose Planetoids': 'Floating islands in a void sea.',
-    'Gerbal Expanse': 'Vast, empty, and desolate.',
-    'Lyra\'s Veil': 'Mysterious nebula with hidden secrets.',
-    'Old Mira\'s Celestial Teddybear': 'A star shaped like a teddy bear.',
-    'Nova Orionis': 'Site of a recent supernova.',
-    'Omega Trianguli': 'Triangular formation of rare stars.',
-    'Pegasus Rift': 'A treacherous expanse with black holes.',
-    'Quasar Delta': 'Home to powerful and bright quasars.',
-    'Rigel\'s Beacon': 'A guidepost for lost travelers.',
-    'Sirius Ascendant': 'Brightest star system in the quadrant.',
-    'Tau Ceti': 'Rich in resources and trade.',
-    'Ursa Majoris': 'Constellation resembling a great bear.',
-    'Vega\'s Spire': 'Tall spire reaching into space.',
-    'Wolf 359': 'A system with a red dwarf star.',
-    'Xanthe Prime': 'Golden-hued planets orbit here.',
-    'Ymir\'s Crown': 'Frozen worlds with icy rings.',
-    'Zenith Proxima': 'Closest system to the galactic center.',
-    'Aegis Cluster': 'Defensive perimeter of ancient origin.',
-    'Borealis Field': 'Colorful auroras light up the sky.',
-    'Celestial Forge': 'Known for crafting the finest ships.',
-    'Draco\'s Maw': 'Dragon-shaped constellation dominates.',
-    'Echo Quadrant': 'Echoes of past battles linger here.',
-    'Forsaken Void': 'Abandoned by all known civilizations.',
-    'Galatea\'s Eye': 'A massive swirling gas giant.',
-    'Helix Nebula': 'Spiral-shaped nebula with rare gases.',
-    'Inferno Star': 'Intense heat makes it uninhabitable.',
-    'Janus Gate': 'A portal to other dimensions.',
-    'Kronos Realm': 'Time behaves oddly in this system.',
-    'Lumina Sector': 'Bright and radiant star cluster.',
-    'Mistral Expanse': 'Winds howl through hollow moons.',
-    'Nebula\'s Cradle': 'Stars are born within this nebula.',
-    'Obsidian Belt': 'Black asteroids with a metallic sheen.',
-    'Polaris Vortex': 'A swirling maelstrom of star dust.',
-    'Quanta Stream': 'Flows of charged particles.',
-    'Rhea\'s Ring': 'Ringed planet with lush moons.',
-    'Solstice Sector': 'Sunlight never fades in this sector.',
-    'Titan\'s Forge': 'Forged in the heat of giant stars.',
-    'Umbra Zone Sub-nebula': 'Dark clouds hide ancient secrets.',
-    'The Beach': 'Calm and serene with sandy planets.',
-    'Wyvern\'s Rest': 'A dragon-like constellation rests here.',
-    'Xylon Fields': 'Field of blue-green planets.',
-    'Yggdrasil Reach': 'World tree spans multiple planets.',
-    'Zenith Spire': 'Tall spires reach for the stars.',
-    'Aetherium Nexus': 'Mystical energies flow through here.',
-    'Boreal Reach': 'Cold and distant with icy landscapes.',
-    'Celestial Axis': 'Stars align in a perfect axis.',
-    'Draco\'s Spine': 'Dragon-like formation of stars.',
-    'Elysian Drift': 'Calm and peaceful drifting stars.',
-    'Flux Arc': 'Arc of unstable and shifting stars.',
-    'Gaea\'s Domain': 'Life flourishes on every planet.',
-    'Helios Shard': 'Fragments of a shattered sun.',
-    'Infernal Rift': 'Flames and lava dominate.',
-    'Glottis Arc': 'Mystical and hidden from sight.',
-    'Kronos Ascendant': 'Time slows and speeds unpredictably.',
-    'Luminous Gate': 'Gateway to brighter star clusters.',
-    'Mirage Cluster': 'Stars seem to shift and change.',
-    'Nebula\'s Edge': 'Boundary between light and dark.',
-    'Ophidian Stream': 'Snake-like path of stars.',
-    'Polaris Gate': 'Leading to the north star.',
-    'Quasar\'s Call': 'Beacon for distant travelers.',
-    'Rho Orionis': 'Hunter constellation dominates.',
-    'Seraphim\'s Wing': 'Angelic shapes among the stars.',
-    'Tethys Field': 'Oceans on every planet.',
-    'Umbra Gate': 'Gateway to shadow realms.',
-    'Void Echo Bonefield': 'Bones of ancient ships float.',
-    'Wyvern\'s Reach': 'Dragons soar in the starry sky.',
-    'Xenon Vortex': 'Gas giants with glowing clouds.',
-    'Ymir\'s Shadow': 'Ice worlds cast long shadows.',
-    'Bobby\'s Arc': 'Named after an ancient hero.',
-    'Aether\'s End': 'End point of mystical energies.',
-    'Iron Scale Trinary Pulsars': '3 crazy pulsars zoom around and irritate your eyes.',
-    'Kim\'s Spire': 'Tall and majestic space spire.',
-    'Nest II, Return of the Nest': 'A nesting ground for avian species.',
-    'Elysian Nebula': 'Paradise within a nebula.',
-    'Flux Body': 'Bodies of energy shift and change.',
-    'Gorgon George\'s Giant Corpse': 'Giant remains float in space.',
-    'The Bigtime Stream': 'Constant stream of time particles.',
-    'Infernal Arc': 'Arc of fire and brimstone.',
-    'Janus Prime': 'Twin planets orbiting a star.',
-    'The Long Sun': 'A sun that stretches infinitely.',
-    'Luminous Nexus': 'Brilliantly glowing star nexus.',
-    'Mirage Vortex': 'Illusions abound in the vortex.',
-    'Nebula\'s Daughter': 'Born from the nebula\'s heart.',
-    'Ophidian Nexus': 'Center of snake-like star paths.',
-    'Polaris Expanse': 'Expansive space near the north star.',
-    'Quasar\'s Off Switch': 'Quasar that can be turned off.',
-    'Rhea\'s Domain': 'Dominion of the moon goddess.',
-    'Seraphim\'s Gate': 'Heavenly gate among the stars.',
-    'Tethys Spire': 'Spire rising from the ocean.',
-    'Umbra Cluster': 'Cluster shrouded in shadows.',
-    'Loyd\'s Void': 'Loyd\'s Void is shaped like Loyd... Weird.'
-};
-
+<script>
 let fuel = 6;
 let credits = 1;
 let artifacts = 1;
 let warheads = 0;
 let jumps = 0;
-let shipName = '';
-let currentStarSystem = '';
-let votedCandidate = '';
+let lastCivEncounter = null;
+let lastUnmappedEncounter = null;
+let lastDistressEncounter = null;
+
+const starSystems = {
+    'Lydolia Prime': 'a bustling hub system with vibrant multicultural market worlds.',
+    'Loyd\'s Void': 'a void, shaped conspicuously like Loyd...'
+};
+
+const civEncounters = [
+    {
+        description: '<p>You come out of your jump in orbit around an oblong moon. Above you is an oily looking propulsion drive rig. It\'s probably never been outside the system. The rig hails you.</p><p><i>"Hey there puddin\', look, we buy and sell jump fuel, see?"</i></p>',
+        accept: 'Trade',
+        decline: 'Ignore'
+    },
+    {
+        description: 'Sensors detect the signature of a classical period Lydolia starfighter in the system. Oh, they\'re hailing you.<p><i> "We\'re being deployed to take Loyd\'s Void... I\'m not going back there, you hear me? I\'LL NEVER KILL AGAIN."</i><p>You don\'t know what to say.</p><p><i>"Oh, you don\'t believe me?"</i></p>',
+        accept: 'Challenge',
+        decline: 'Comfort'
+    },
+    {
+        description: '<p>You find an abandoned station orbiting a rogue moon. There are faint lifesigns aboard, but if you\'re quick, you can search it for resources...</i></p>',
+        accept: 'Search',
+        decline: 'Decline'
+    },
+    {
+        description: 'Civ Encounter 4 description',
+        accept: 'Civ Encounter 4 accept text',
+        decline: 'Civ Encounter 4 decline text'
+    },
+    {
+        description: 'Civ Encounter 5 description',
+        accept: 'Civ Encounter 5 accept text',
+        decline: 'Civ Encounter 5 decline text'
+    },
+    {
+        description: 'Civ Encounter 6 description',
+        accept: 'Civ Encounter 6 accept text',
+        decline: 'Civ Encounter 6 decline text'
+    }
+];
+
+const unmappedEncounters = [
+    {
+        description: 'Unmapped Encounter 1 description',
+        accept: 'Unmapped Encounter 1 accept text',
+        decline: 'Unmapped Encounter 1 decline text'
+    },
+    {
+        description: 'Unmapped Encounter 2 description',
+        accept: 'Unmapped Encounter 2 accept text',
+        decline: 'Unmapped Encounter 2 decline text'
+    },
+    {
+        description: 'Unmapped Encounter 3 description',
+        accept: 'Unmapped Encounter 3 accept text',
+        decline: 'Unmapped Encounter 3 decline text'
+    },
+    {
+        description: 'Unmapped Encounter 4 description',
+        accept: 'Unmapped Encounter 4 accept text',
+        decline: 'Unmapped Encounter 4 decline text'
+    },
+    {
+        description: 'Unmapped Encounter 5 description',
+        accept: 'Unmapped Encounter 5 accept text',
+        decline: 'Unmapped Encounter 5 decline text'
+    },
+    {
+        description: 'Unmapped Encounter 6 description',
+        accept: 'Unmapped Encounter 6 accept text',
+        decline: 'Unmapped Encounter 6 decline text'
+    }
+];
+
+const distressEncounters = [
+    {
+        description: 'Your ship is adrift in deep space. Uh oh. Distress Encounter 1 description',
+        accept: 'Distress Encounter 1 accept text',
+        decline: 'Distress Encounter 1 decline text'
+    },
+    {
+        description: 'Your ship is adrift in deep space. Uh oh. Distress Encounter 2 description',
+        accept: 'Distress Encounter 2 accept text',
+        decline: 'Distress Encounter 2 decline text'
+    },
+    {
+        description: 'Your ship is adrift in deep space. Uh oh. Distress Encounter 3 description',
+        accept: 'Distress Encounter 3 accept text',
+        decline: 'Distress Encounter 3 decline text'
+    }
+];
 
 function updateStatus() {
     document.getElementById('fuel').textContent = fuel;
@@ -224,6 +209,8 @@ function updateStatus() {
         document.getElementById('civ-jump-button').style.display = 'none';
         document.getElementById('unmapped-jump-button').style.display = 'none';
         document.getElementById('beacon-button').style.display = 'block';
+        document.getElementById('beacon-button').classList.remove('disabled-button');
+        document.getElementById('beacon-button').disabled = false; // Ensure the beacon button is enabled
     } else {
         document.getElementById('fuel').style.color = 'white';
         document.getElementById('beacon-button').style.display = 'none';
@@ -232,267 +219,306 @@ function updateStatus() {
     }
 }
 
-function showEvent(text, customContent = '') {
+function showEvent(encounter, system, description, isDistressBeacon = false) {
     const eventDiv = document.getElementById('event');
-    eventDiv.innerHTML = `<p>${text}</p>` + customContent;
+    if (isDistressBeacon) {
+        eventDiv.innerHTML = `
+            <p>${encounter.description}</p>
+            <div>
+                <button class="button" onclick="acceptEncounter('${encounter.accept}')">Accept</button>
+                <button class="button" onclick="declineEncounter('${encounter.decline}')">Decline</button>
+            </div>`;
+    } else if (encounter === civEncounters[1]) {
+        eventDiv.innerHTML = `
+            <p>Welcome to ${system}, ${description}.</p>
+            <p>${encounter.description}</p>
+            <div>
+                <button class="button" onclick="handleChallenge()">Challenge</button>
+                <button class="button" onclick="handleComfort()">Comfort</button>
+            </div>`;
+    } else if (encounter === civEncounters[0]) {
+        eventDiv.innerHTML = `
+            <p>Welcome to ${system}, ${description}.</p>
+            <p>${encounter.description}</p>
+            <div>
+                <label for="cargo">Cargo Hold:</label>
+                <select id="cargo">
+                    <option value="credits">Credits</option>
+                    <option value="fuel">Jump Fuel</option>
+                </select>
+                <label for="rig">Oily Rig:</label>
+                <select id="rig">
+                    <option value="credits">Credits</option>
+                    <option value="fuel">Jump Fuel</option>
+                </select>
+                <label for="quantity">Quantity:</label>
+                <select id="quantity">
+                    <option value="1">x1</option>
+                    <option value="2">x2</option>
+                    <option value="3">x3</option>
+                </select>
+            </div>
+            <div>
+                <button class="button" onclick="handleTrade()">Accept</button>
+                <button class="button" onclick="declineTrade()">Decline</button>
+            </div>`;
+    } else if (encounter === civEncounters[2]) {
+        eventDiv.innerHTML = `
+            <p>Welcome to ${system}, ${description}.</p>
+            <p>${encounter.description}</p>
+            <div>
+                <button class="button" onclick="handleSearch()">Search</button>
+                <button class="button" onclick="declineSearch()">Decline</button>
+            </div>`;
+    } else {
+        eventDiv.innerHTML = `
+            <p>Welcome to ${system}, ${description}.</p>
+            <p>${encounter.description}</p>
+            <div>
+                <button class="button" onclick="acceptEncounter('${encounter.accept}')">Accept</button>
+                <button class="button" onclick="declineEncounter('${encounter.decline}')">Decline</button>
+            </div>`;
+    }
+    disableJumpButtons();
 }
 
-function getRandomEvents() {
-    const events = [
-        { type: 'civ', action: () => { 
-            const customContent = `
-                <div>
-                    <label for="cargoSelect">Cargo Hold:</label>
-                    <select id="cargoSelect">
-                        <option value="fuel">Jump Fuel</option>
-                        <option value="credits">Credits</option>
-                        <option value="artifacts">Artifacts</option>
-                        <option value="warheads">Warheads</option>
-                    </select>
-                    <label for="marketSelect">Market:</label>
-                    <select id="marketSelect">
-                        <option value="fuel">Jump Fuel</option>
-                        <option value="credits">Credits</option>
-                        <option value="artifacts">Artifacts</option>
-                        <option value="warheads">Warheads</option>
-                    </select>
-                    <label for="quantitySelect">Quantity:</label>
-                    <select id="quantitySelect">
-                        <option value="1">x1</option>
-                        <option value="2">x2</option>
-                        <option value="3">x3</option>
-                    </select>
-                </div>
-                <div>
-                    <button class="button" onclick="executeTrade()">Accept</button>
-                    <button class="button" onclick="showEvent('You declined the offer.')">Decline</button>
-                </div>`;
-            showEvent('A trader local to this system hails and offers to trade any resource for any other. Please set up your transaction:', customContent);
-        } },
-        { type: 'civ', condition: jumps >= 10, action: () => {
-            const customContent = `
-                <div>
-                    <button class="button" onclick="acceptWarheads()">Accept</button>
-                    <button class="button" onclick="showEvent('The starfighter quickly reorients itself and jumps again. Who was that?')">Decline</button>
-                </div>`;
-            showEvent('Sensors detect a starfighter clear their jump right after you. Oh, look, they\'re hailing you. "If you think I\'m going back to the front lines, you\'re crazy... I\'ll never kill again." You don\'t know what to say. "Oh, you don\'t believe me? Here, I\'ll prove it!"', customContent);
-        } },
-        { type: 'civ', condition: jumps >= 8, action: () => {
-            const customContent = `
-                <div>
-                    <button class="button" onclick="searchStation()">Search</button>
-                    <button class="button" onclick="showEvent('Just as well. Time to move on.')">Decline</button>
-                </div>`;
-            showEvent('You find an abandoned station orbiting a rogue moon. There are faint lifesigns aboard, but if you\'re quick, you can search it for resources...', customContent);
-        } },
-        { type: 'civ', condition: jumps >= 10, action: () => {
-            const customContent = `
-                <div>
-                    <label for="candidateSelect">Candidates:</label>
-                    <select id="candidateSelect">
-                        <option value="Crackheart">Ziddle Crackheart</option>
-                        <option value="Body">Big Body</option>
-                        <option value="Triplehead">Kim Triplehead</option>
-                    </select>
-                </div>
-                <div>
-                    <button class="button" onclick="castVote()">Vote</button>
-                    <button class="button" onclick="showEvent('That\'s fine. It\'s not like your sacred right to vote is worth exercising, right?')">Decline</button>
-                </div>`;
-            showEvent('As soon as you clear the jump, a nearby planet sends you an automated message: "Cast your vote now in the (insert star system here) multi-world admin election! You have your pick of the litter!"', customContent);
-        } },
-        { type: 'civ', condition: votedCandidate && jumps >= 18, action: () => {
-            let message = '';
-            switch (votedCandidate) {
-                case 'Crackheart':
-                    credits += 2;
-                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Ziddle Crackheart won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 credits)';
-                    break;
-                case 'Body':
-                    fuel += 2;
-                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Big Body won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 fuel)';
-                    break;
-                case 'Triplehead':
-                    warheads += 2;
-                    message = 'Subspace buzzing over the results of the (insert star system that held the election) admin election. Kim Triplehead won in a landslide. Wait, what? Something just materialized in the cargo hold... (+2 warheads)';
-                    break;
-            }
-            showEvent(message);
-            updateStatus();
-        } },
-        { type: 'unmapped', action: () => { 
-            showEvent('Sensors have detected a once-inhabited world. You beam an artifact into the cargo hold. It\'s just one artifact. Who\'s going to miss it?');
-            artifacts++;
-            updateResourceLimits();
-            updateStatus();
-        } },
-        { type: 'unmapped', action: () => { 
-            if (warheads > 0) {
-                warheads--;
-                showEvent('Sensors have identified the signature of a raider corvette, but the flight computer has already launched ordinance against it. 3 seconds later, a flash of light is all that\'s left. And then, of course, it fades. That was lucky.');
-            } else {
-                showEvent('Wooonk, wooonk! Sensors have identified the signature of a raider corvette. As is their custom, they rip you off to the tune of 1 of everything you have... Urgh.');
-                artifacts--;
-                credits--;
-                fuel--;
-            }
-            updateResourceLimits();
-            updateStatus();
-        } },
-        { type: 'unmapped', action: () => { 
-            showEvent('The onboard microrefinery bleeps and bloops. Why? It\'s detected a mineral-rich asteroid!. You maneuver it into the cargo bay and the microrefinery renders it down into 2 units of jump fuel!');
-            fuel+=2;
-            updateResourceLimits();
-            updateStatus();
-        } },
-        { type: 'unmapped', action: () => {
-            if (artifacts >= 4) {
-                showEvent('Scanners pick up a junky-looking frigate with no jump drive. You hail them, but the reply is unintelligibly muffled. The hull of their craft reads: ART-O-FACTORY REFINER CO. Try giving them an artifact. See what happens, I guess?', `
-                    <div>
-                        <button class="button" onclick="giveArtifact()">Give Artifact</button>
-                        <button class="button" onclick="showEvent('You declined the offer.')">Decline</button>
-                    </div>
-                `);
-            }
-        } }
-    ];
-    const availableCivEvents = events.filter(event => event.type === 'civ' && (!event.condition || event.condition));
-    const availableUnmappedEvents = events.filter(event => event.type === 'unmapped' && (!event.action.toString().includes('artifacts >= 4') || artifacts >= 4));
-    const civEvent = availableCivEvents[Math.floor(Math.random() * availableCivEvents.length)];
-    const unmappedEvent = availableUnmappedEvents[Math.floor(Math.random() * availableUnmappedEvents.length)];
-    return { civEvent, unmappedEvent };
-}
-
-function giveArtifact() {
-    artifacts--;
-    fuel += 3;
-    updateResourceLimits();
-    showEvent('You lose 1 artifact and gain 3 jump fuel.');
+function handleChallenge() {
+    const eventDiv = document.getElementById('event');
+    if (warheads > 0) {
+        warheads--;
+        fuel++;
+        eventDiv.innerHTML = `<p>For a moment, ordinance glimmers between your two craft. A moment later, the ancient starfighter lights up like a supernova. The Lydolian liquifies as his cockpit implodes around him. Among the wreckage, you find a unit of jump fuel.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else {
+        eventDiv.innerHTML = `<p>After a long pause, the ancient craft illuminates the vacuum of space. The blinding light begins to fade, revealing the wreckage of your own ship. Oh dear. Game over.</p><button class="button" onclick="returnToMainMenu()">Main Menu</button>`;
+    }
     updateStatus();
 }
 
-function executeTrade() {
-    const cargoSelect = document.getElementById('cargoSelect').value;
-    const marketSelect = document.getElementById('marketSelect').value;
-    const quantity = parseInt(document.getElementById('quantitySelect').value);
-    let tradeValid = true;
-    let message = '';
-
-    if (cargoSelect === marketSelect) {
-        tradeValid = false;
-        message = 'Cannot trade the same type of resource.';
+function handleComfort() {
+    const eventDiv = document.getElementById('event');
+    if (warheads >= 2) {
+        eventDiv.innerHTML = `<p><i>"I don\'t believe you... You're just a killer... LIKE ME."</i></p><p>Your comforting gesture is rejected and the Lydolian jumps away.</i></p><button class="button" onclick="continueGame()">Continue</button>`;
     } else {
-        switch (cargoSelect) {
-            case 'fuel':
-                if (fuel < quantity) {
-                    tradeValid = false;
-                    message = 'You do not have enough jump fuel.';
-                }
-                break;
-            case 'credits':
-                if (credits < quantity) {
-                    tradeValid = false;
-                    message = 'You do not have enough credits.';
-                }
-                break;
-            case 'artifacts':
-                if (artifacts < quantity) {
-                    tradeValid = false;
-                    message = 'You do not have enough artifacts.';
-                }
-                break;
-            case 'warheads':
-                if (warheads < quantity) {
-                    tradeValid = false;
-                    message = 'You do not have enough warheads.';
-                }
-                break;
+        warheads++;
+        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><p>An alert coming from the materializer indicates that a warhead is waiting in the buffer, so you energize the buffer and claim the pilot's ordinance. No sense in letting good ordinance go to waste.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    }
+    updateStatus();
+}
+
+function handleTrade() {
+    const cargo = document.getElementById('cargo').value;
+    const rig = document.getElementById('rig').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const eventDiv = document.getElementById('event');
+    
+    if (cargo === 'credits' && credits >= quantity) {
+        credits -= quantity;
+        if (rig === 'fuel') {
+            fuel += quantity;
         }
+                eventDiv.innerHTML = `<p>Trade successful. You now have ${credits} credits and ${fuel} jump fuel.</p>`;
+    } else {
+        eventDiv.innerHTML = `<p>Insufficient resources for the trade. Please try again.</p>`;
     }
 
-    if (tradeValid) {
-        switch (cargoSelect) {
-            case 'fuel':
-                fuel -= quantity;
-                break;
-            case 'credits':
-                credits -= quantity;
-                break;
-            case 'artifacts':
-                artifacts -= quantity;
-                break;
-            case 'warheads':
-                warheads -= quantity;
-                break;
-        }
-        switch (marketSelect) {
-            case 'fuel':
-                fuel += quantity;
-                break;
-            case 'credits':
-                credits += quantity;
-                break;
-            case 'artifacts':
-                artifacts += quantity;
-                break;
-            case 'warheads':
-                warheads += quantity;
-                break;
-        }
-        updateResourceLimits();
-        updateStatus();
-        showEvent(`You successfully traded ${quantity} ${cargoSelect} for ${quantity} ${marketSelect}.`);
+    updateStatus();
+    if (fuel === 0) {
+        document.getElementById('civ-jump-button').style.display = 'none';
+        document.getElementById('unmapped-jump-button').style.display = 'none';
+        document.getElementById('beacon-button').style.display = 'block';
+        document.getElementById('beacon-button').classList.remove('disabled-button');
+        document.getElementById('beacon-button').disabled = false; // Ensure the beacon button is enabled
     } else {
-        showEvent(message);
+        enableJumpButtons();
     }
 }
 
-function searchStation() {
+function declineTrade() {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = `<p><i>"Suit yerself sweetbean!"</i></p><p>The line goes dead as the rig continues its slow orbit, unbothered.</p>`;
+    enableJumpButtons();
+}
+
+function handleChallenge() {
+    const eventDiv = document.getElementById('event');
+    if (warheads > 0) {
+        warheads--;
+        fuel++;
+        eventDiv.innerHTML = `<p>For a moment, ordinance glimmers between your two craft. A moment later, the ancient starfighter lights up like a supernova. The Lydolian liquifies as his cockpit implodes around him. Among the wreckage, you find a unit of jump fuel.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else {
+        eventDiv.innerHTML = `<p>After a long pause, the ancient craft illuminates the vacuum of space. The blinding light begins to fade, revealing the wreckage of your own ship. Oh dear. Game over.</p><button class="button" onclick="returnToMainMenu()">Main Menu</button>`;
+    }
+    updateStatus();
+}
+
+function handleComfort() {
+    const eventDiv = document.getElementById('event');
+    if (warheads >= 2) {
+        eventDiv.innerHTML = `<p><i>"I don\'t believe you... You're just a killer... LIKE ME."</i></p><p>Your comforting gesture is rejected and the Lydolian jumps away.</i></p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else {
+        warheads++;
+        eventDiv.innerHTML = `<p><i>"I\'m done with this life of war. I\'ll prove it."</i></p><p>You gain 1 warhead.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    }
+    updateStatus();
+}
+
+function handleSearch() {
+    const eventDiv = document.getElementById('event');
     const outcome = Math.floor(Math.random() * 4) + 1;
-    switch (outcome) {
-        case 1:
-            artifacts++;
-            showEvent('You find an artifact to add to your collection. Very nice. (+1 artifact)');
-            break;
-        case 2:
-            warheads++;
-            showEvent('Oh, you find an armed warhead... better get it on board carefully. (+1 warhead)');
-            break;
-        case 3:
-            fuel += 2;
-            showEvent('You find 2 units of jump fuel. Every little bit counts... (+2 fuel)');
-            break;
-        case 4:
-            artifacts = 0;
-            credits = 0;
-            fuel = 0;
-            warheads = 0;
-            showEvent('The station groans under the gravitational pull of the moon and tears in half, as if made of paper. You made it back to your ship, but all your cargo was lost in the escape. Damn.');
-            break;
+    
+    if (outcome === 1) {
+        warheads++;
+        eventDiv.innerHTML = `<p>Oh, you find an armed warhead... better get it on board carefully.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else if (outcome === 2) {
+        artifacts++;
+        eventDiv.innerHTML = `<p>You find an artifact to add to your collection. Very nice.</p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else if (outcome === 3) {
+        fuel += 2;
+        eventDiv.innerHTML = `<p>You find 2 units of jump fuel. Every little bit counts...</p><button class="button" onclick="continueGame()">Continue</button>`;
+    } else if (outcome === 4) {
+        fuel = 0;
+        credits = 0;
+        artifacts = 0;
+        warheads = 0;
+        eventDiv.innerHTML = `<p>The station groans under the gravitational pull of the moon. In an instant, it tears itself apart. You make it back to your ship, but all your cargo is lost in the escape. Oh, damn...</p><button class="button" onclick="continueGame()">Continue</button>`;
     }
+
     updateStatus();
-}
-
-function castVote() {
-    votedCandidate = document.getElementById('candidateSelect').value;
-    let message = '';
-    switch (votedCandidate) {
-        case 'Crackheart':
-            message = "Well, he's a man of the people... If he wins, I'm sure it's good for everyone.";
-            break;
-        case 'Body':
-            message = "Half the system hates this guy, but that's what you like about him. Time to go!";
-            break;
-        case 'Triplehead':
-            message = "Many have said that Triplehead's 'Smother the Star' platform will end life in the system, but you suppose time will tell.";
-            break;
+    if (fuel === 0) {
+        document.getElementById('civ-jump-button').style.display = 'none';
+        document.getElementById('unmapped-jump-button').style.display = 'none';
+        document.getElementById('beacon-button').style.display = 'block';
+        document.getElementById('beacon-button').classList.remove('disabled-button');
+        document.getElementById('beacon-button').disabled = false; // Ensure the beacon button is enabled
+    } else {
+        enableJumpButtons();
     }
-    showEvent(message);
 }
 
-function acceptWarheads() {
-    warheads += 3;
-    showEvent('3 nuclear warheads from the late-classical Ymir Imperium warheads materialize in your cargo hold. You suspect these can be used to counter raider attacks.');
+function declineSearch() {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = `<p>"Just as well. As the station slowly rotates on the viewscreen, you can almost hear it groan. Time to move on.</p>`;
+    enableJumpButtons();
+}
+
+function continueGame() {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = '';
+    enableJumpButtons();
+}
+
+function returnToMainMenu() {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = '';
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('start').style.display = 'block';
+}
+
+function acceptEncounter(text) {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = `<p>${text}</p>`;
+    enableJumpButtons();
+}
+
+function declineEncounter(text) {
+    const eventDiv = document.getElementById('event');
+    eventDiv.innerHTML = `<p>${text}</p>`;
+    enableJumpButtons();
+}
+
+function disableJumpButtons() {
+    document.getElementById('civ-jump-button').classList.add('disabled-button');
+    document.getElementById('unmapped-jump-button').classList.add('disabled-button');
+    document.getElementById('beacon-button').classList.add('disabled-button');
+    document.getElementById('civ-jump-button').disabled = true;
+    document.getElementById('unmapped-jump-button').disabled = true;
+    document.getElementById('beacon-button').disabled = true;
+}
+
+function enableJumpButtons() {
+    document.getElementById('civ-jump-button').classList.remove('disabled-button');
+    document.getElementById('unmapped-jump-button').classList.remove('disabled-button');
+    document.getElementById('beacon-button').classList.remove('disabled-button');
+    document.getElementById('civ-jump-button').disabled = false;
+    document.getElementById('unmapped-jump-button').disabled = false;
+    document.getElementById('beacon-button').disabled = false;
+}
+
+function getRandomEncounter(encounters, lastEncounter) {
+    const availableEncounters = encounters.filter(encounter => encounter !== lastEncounter);
+    const randomIndex = Math.floor(Math.random() * availableEncounters.length);
+    return availableEncounters[randomIndex];
+}
+
+function startGame() {
+    fuel = 6;
+    credits = 1;
+    artifacts = 1;
+    warheads = 0;
+    jumps = 0;
+    lastCivEncounter = null;
+    lastUnmappedEncounter = null;
+    lastDistressEncounter = null;
+    document.getElementById('start').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    updateStatus();
+    enableJumpButtons(); // Ensure jump buttons are enabled when the game starts
+}
+
+function resetGame() {
+    fuel = 6;
+    credits = 1;
+    artifacts = 1;
+    warheads = 0;
+    jumps = 0;
+    lastCivEncounter = null;
+    lastUnmappedEncounter = null;
+    lastDistressEncounter = null;
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('start').style.display = 'block';
+    document.getElementById('event').textContent = '';
+}
+
+function displayStarSystem() {
+    const starSystemsKeys = Object.keys(starSystems);
+    const currentStarSystem = starSystemsKeys[Math.floor(Math.random() * starSystemsKeys.length)];
+    return { system: currentStarSystem, description: starSystems[currentStarSystem] };
+}
+
+function jump(type) {
+    if (fuel > 0) {
+        fuel--;
+        jumps++;
+        const { system, description } = displayStarSystem();
+        let encounter;
+        if (type === 'civ') {
+            encounter = getRandomEncounter(civEncounters, lastCivEncounter);
+            lastCivEncounter = encounter;
+        } else if (type === 'unmapped') {
+            encounter = getRandomEncounter(unmappedEncounters, lastUnmappedEncounter);
+            lastUnmappedEncounter = encounter;
+        }
+        showEvent(encounter, system, description);
+        updateStatus();
+        if (fuel === 0) {
+            document.getElementById('civ-jump-button').style.display = 'none';
+            document.getElementById('unmapped-jump-button').style.display = 'none';
+            document.getElementById('beacon-button').style.display = 'block';
+            document.getElementById('beacon-button').classList.remove('disabled-button');
+            document.getElementById('beacon-button').disabled = false; // Ensure the beacon button is enabled
+        } else if (jumps >= 40) {
+            showEvent({ description: 'Congratulations! You made it home!' });
+            resetGame();
+        }
+    } else {
+        showEvent({ description: 'Not enough jump fuel!' });
+    }
+}
+
+function useBeacon() {
+    let encounter = getRandomEncounter(distressEncounters, lastDistressEncounter);
+    lastDistressEncounter = encounter;
+    showEvent(encounter, null, null, true);
     updateStatus();
 }
 
@@ -503,105 +529,8 @@ function updateResourceLimits() {
     warheads = Math.max(0, warheads);
 }
 
-function jump(type) {
-    if (fuel > 0) {
-        fuel--;
-        jumps++;
-        const { civEvent, unmappedEvent } = getRandomEvents();
-        if (type === 'civ') {
-            displayStarSystem();
-            civEvent.action();
-        } else if (type === 'unmapped') {
-            displayStarSystem();
-            unmappedEvent.action();
-        }
-        updateStatus();
-        if (fuel === 0) {
-            document.getElementById('civ-jump-button').style.display = 'none';
-            document.getElementById('unmapped-jump-button').style.display = 'none';
-            document.getElementById('beacon-button').style.display = 'block';
-            document.getElementById('fuel').style.color = 'red';
-        } else if (jumps >= 40) {
-            showEvent('Congratulations! You made it home!');
-            resetGame();
-        }
-    } else {
-        showEvent('Not enough jump fuel!');
-    }
-}
-
-function displayStarSystem() {
-    const starSystemsKeys = Object.keys(starSystems);
-    currentStarSystem = starSystemsKeys[Math.floor(Math.random() * starSystemsKeys.length)];
-    document.getElementById('starSystemTitle').textContent = `Star System: ${currentStarSystem}`;
-    document.getElementById('starSystemDescription').textContent = starSystems[currentStarSystem];
-}
-
-function useBeacon() {
-    if (warheads > 0) {
-        warheads--;
-        fuel++;
-        credits++;
-        showEvent('A large raider frigate responds to your distress beacon, but before they can hail, the flight computer launches ordinance against it. The frigate takes heavy damage and retreats, leaving behind the contents of a smashed cargo hold: 1 unit of jump fuel and 1 credit.');
-    } else {
-        const outcomes = [
-            () => {
-                showEvent('A strange looking freighter responds to your distress beacon. They give you 2 units of jump fuel in exchange for all your credits and artifacts.');
-                fuel += 2;
-                credits = 0;
-                artifacts = 0;
-                updateResourceLimits();
-                updateStatus();
-            },
-            () => {
-                document.getElementById('civ-jump-button').style.display = 'none';
-                document.getElementById('unmapped-jump-button').style.display = 'none';
-                document.getElementById('beacon-button').style.display = 'none';
-                showEvent('A large raider frigate responds to your distress beacon. Oh no. They take you prisoner and commandeer your ship. Game over.', [
-                    { text: 'Return to Main', onclick: resetGame }
-                ]);
-            },
-            () => {
-                jumps = Math.floor(Math.random() * 40) + 1;
-                showEvent(`A rogue and unstable wormhole swallows your ship and takes you to a random location along the jump path (between 1 and 40). You are now ${jumps} jumps from where you started.`);
-                updateStatus();
-            }
-        ];
-        const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-        outcome();
-    }
-}
-
-function startGame() {
-    shipName = document.getElementById('shipName').value;
-    if (shipName.trim() === '') {
-        alert('Please enter a valid ship name.');
-        return;
-    }
-    document.getElementById('shipTitle').textContent = `Ship: ${shipName}`;
-    document.getElementById('starSystemTitle').textContent = '';
-    document.getElementById('starSystemDescription').textContent = '';
-    document.getElementById('start').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    updateStatus();
-}
-
-function resetGame() {
-    fuel = 6;
-    credits = 1;
-    artifacts = 1;
-    warheads = 0;
-    jumps = 0;
-    currentStarSystem = '';
-    votedCandidate = '';
-    document.getElementById('main').style.display = 'none';
-    document.getElementById('start').style.display = 'block';
-    document.getElementById('event').textContent = '';
-    document.getElementById('starSystemDescription').textContent = '';
-}
-
 updateStatus();
-
+enableJumpButtons(); // Ensure jump buttons are enabled when the page loads
 </script>
 </body>
 </html>
