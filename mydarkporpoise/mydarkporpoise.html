@@ -31,7 +31,7 @@
     color: white;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    width: 90px;
+    width: 91px;
     text-size: 18px;
     border: none;
     outline: none;
@@ -97,56 +97,56 @@ ___  ____   __ ______  ___ ______ _   __
 §  HEALTH:   <span id="health">*</span>  §     3. VITAMINS    §
 §  HYGIENE:  <span id="hygiene">*</span>  §     4. SCRUB       §
 ===============================================
-§      OVERALL MOOD: <span id="overall-mood"></span> §
-§     TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!        </span> §
-§       TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">             §
+§   PORPOISE MOOD: <span id="overall-mood"></span> §
+§   TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!          </span> §
+§     TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">               §
 ===============================================
 Input the number (1-4) to administer the task.
-Cooldown between tasks is 20 seconds.
+Cooldown between tasks is 30 seconds.
 Monitor its stat bars and cater to its needs.
 This is your dark porpoise.
 </div>
 </div>
 <script>
   const stats = {
-    hunger: Math.floor(Math.random() * 8) + 3,
-    happiness: Math.floor(Math.random() * 8) + 3,
-    health: Math.floor(Math.random() * 8) + 3,
-    hygiene: Math.floor(Math.random() * 8) + 3
+    hunger: Math.floor(Math.random() * 7) + 3,
+    happiness: Math.floor(Math.random() * 7) + 3,
+    health: Math.floor(Math.random() * 7) + 3,
+    hygiene: Math.floor(Math.random() * 7) + 3
   };
 
   const cooldownText = {
-    0: "ADMINISTER TASK!        ",
-    1: "1                       ",
-    2: "2                       ",
-    3: "3                       ",
-    4: "4                       ",
-    5: "5                       ",
-    6: "6                       ",
-    7: "7                       ",
-    8: "8                       ",
-    9: "9                       ",
-    10: "10                      ",
-    11: "11                      ",
-    12: "12                      ",
-    13: "13                      ",
-    14: "14                      ",
-    15: "15                      ",
-    16: "16                      ",
-    17: "17                      ",
-    18: "18                      ",
-    19: "19                      ",
-    20: "20                      ",
-    21: "21                      ",
-    22: "22                      ",
-    23: "23                      ",
-    24: "24                      ",
-    25: "25                      ",
-    26: "26                      ",
-    27: "27                      ",
-    28: "28                      ",
-    29: "29                      ",
-    30: "30                      ",
+    0: "ADMINISTER TASK!          ",
+    1: "1                         ",
+    2: "2                         ",
+    3: "3                         ",
+    4: "4                         ",
+    5: "5                         ",
+    6: "6                         ",
+    7: "7                         ",
+    8: "8                         ",
+    9: "9                         ",
+    10: "10                        ",
+    11: "11                        ",
+    12: "12                        ",
+    13: "13                        ",
+    14: "14                        ",
+    15: "15                        ",
+    16: "16                        ",
+    17: "17                        ",
+    18: "18                        ",
+    19: "19                        ",
+    20: "20                        ",
+    21: "21                        ",
+    22: "22                        ",
+    23: "23                        ",
+    24: "24                        ",
+    25: "25                        ",
+    26: "26                        ",
+    27: "27                        ",
+    28: "28                        ",
+    29: "29                        ",
+    30: "30                        ",
   };
 
   let cooldown = 0;
@@ -161,19 +161,19 @@ This is your dark porpoise.
 
     const totalStats = stats.hunger + stats.happiness + stats.health + stats.hygiene;
     if (totalStats >= 31) {
-      document.getElementById('overall-mood').innerText = 'PLEASED WITH LIFE!      ';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is HAPPY!   ';
     } else if (totalStats >= 10) {
-      document.getElementById('overall-mood').innerText = 'DEALING WITH IT.        ';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is BORED... ';
     } else {
-      document.getElementById('overall-mood').innerText = 'MISERABLE!              ';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is DEPRESSED';
     }
   }
 
   function startTimers() {
     hungerTimer = setInterval(() => { decreaseStat('hunger') }, 35000);
-    happinessTimer = setInterval(() => { decreaseStat('happiness') }, 65000);
+    happinessTimer = setInterval(() => { decreaseStat('happiness') }, 55000);
     healthTimer = setInterval(() => { decreaseStat('health') }, 80000);
-    hygieneTimer = setInterval(() => { decreaseStat('hygiene') }, 80000);
+    hygieneTimer = setInterval(() => { decreaseStat('hygiene') }, 50000);
     taskTimer = setInterval(() => { decreaseCooldown() }, 1000);
   }
 
