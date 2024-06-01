@@ -55,15 +55,15 @@ ___  ____   __ ______  ___ ______ _   __
 |  __/| | | |    /|  __/| | | | | |  `--. \  __|
 | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___
 \_|    \___/\_| \_\_|    \___/ \___/\____/\____/
-                        |     
+                           |     
                        \       /
    ^,-                   ,d8b,         
-                      -- 88888 ---   .,
+                 -    -- 88888 - -   .,     
                          )98P'   ;';'  ';'.
                         '     \ ';.,;    ,;   
                        /   '       '.';.'
 
-                                  
+                                 \
 .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
    '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-
 <div id="frame1">                                .
@@ -72,8 +72,8 @@ ___  ____   __ ______  ___ ______ _   __
            `;-._        )  '---.._
     .        >  `-.__.-'          `'.__
             /_.-'-._         _,   ^ ---)
-           .       `'------/_.'----```
-                           `
+            `        `'-----/_.'----```
+                            `
        __
     |><_'>                                   (
                                            (  )
@@ -81,10 +81,10 @@ ___  ____   __ ______  ___ ______ _   __
 </div>
 <div id="frame2" style="display: none;">
          .                          .
-                        ;-.       
-       .    `;-._       )  '---.._ 
+                       ;'-.       
+       .    ,;-._       )  '---.._ 
               >  `-._.-'          `'.__ 
-             /_.-'-.         _,   -. --)
+             /_.-'-.         _,   ~ ---)
         .   `       `'------/_.'----```   
         __.                 `
      |><_'>                                   (
@@ -92,14 +92,14 @@ ___  ____   __ ______  ___ ______ _   __
 .  ..   , ,,' '' .,   ., ' , '  '  ( ,, (, ,)(.
 
 </div>===============================================
-§  HUNGER:   <span id="hunger">*</span>  §     1. FEED        §
-§  HAPPINESS:<span id="happiness">*</span>  §     2. PLAY        §
-§  HEALTH:   <span id="health">*</span>  §     3. VITAMINS    §
-§  HYGIENE:  <span id="hygiene">*</span>  §     4. SCRUB       §
+|    HUNGER:<span id="hunger">*</span> |     1. FEED          |
+| HAPPINESS:<span id="happiness">*</span> |     2. PLAY          |
+|    HEALTH:<span id="health">*</span> |     3. VITAMINS      |
+|   HYGIENE:<span id="hygiene">*</span> |     4. SCRUB         |
 ===============================================
-§   PORPOISE MOOD: <span id="overall-mood"></span> §
-§   TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!          </span> §
-§     TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">               §
+| PORPOISE REPORT: <span id="overall-mood"></span> |
+|   TASK COOLDOWN: <span id="cooldown">ADMINISTER TASK!          </span> |
+|     TASK SELECT: <input type="text" id="task-input" maxlength="1" onkeypress="if(event.keyCode==13) executeTask()">               |
 ===============================================
 Input the number (1-4) to administer the task.
 Cooldown between tasks is 30 seconds.
@@ -109,10 +109,10 @@ This is your dark porpoise.
 </div>
 <script>
   const stats = {
-    hunger: Math.floor(Math.random() * 7) + 3,
-    happiness: Math.floor(Math.random() * 7) + 3,
-    health: Math.floor(Math.random() * 7) + 3,
-    hygiene: Math.floor(Math.random() * 7) + 3
+    hunger: Math.floor(Math.random() * 6) + 3,
+    happiness: Math.floor(Math.random() * 6) + 3,
+    health: Math.floor(Math.random() * 6) + 3,
+    hygiene: Math.floor(Math.random() * 6) + 3
   };
 
   const cooldownText = {
@@ -154,26 +154,26 @@ This is your dark porpoise.
   let hungerTimer, happinessTimer, healthTimer, hygieneTimer;
 
   function updateStats() {
-    document.getElementById('hunger').innerText = '|'.repeat(stats.hunger).padEnd(10, ' ');
-    document.getElementById('happiness').innerText = '|'.repeat(stats.happiness).padEnd(10, ' ');
-    document.getElementById('health').innerText = '|'.repeat(stats.health).padEnd(10, ' ');
-    document.getElementById('hygiene').innerText = '|'.repeat(stats.hygiene).padEnd(10, ' ');
+    document.getElementById('hunger').innerText = '#'.repeat(stats.hunger).padEnd(10, ' ');
+    document.getElementById('happiness').innerText = '#'.repeat(stats.happiness).padEnd(10, ' ');
+    document.getElementById('health').innerText = '#'.repeat(stats.health).padEnd(10, ' ');
+    document.getElementById('hygiene').innerText = '#'.repeat(stats.hygiene).padEnd(10, ' ');
 
     const totalStats = stats.hunger + stats.happiness + stats.health + stats.hygiene;
     if (totalStats >= 31) {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is HAPPY!   ';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is THRIVING!';
     } else if (totalStats >= 10) {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is BORED... ';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is fine.    ';
     } else {
-      document.getElementById('overall-mood').innerText = 'Dark porpoise is DEPRESSED';
+      document.getElementById('overall-mood').innerText = 'Dark porpoise is SAD...   ';
     }
   }
 
   function startTimers() {
     hungerTimer = setInterval(() => { decreaseStat('hunger') }, 35000);
-    happinessTimer = setInterval(() => { decreaseStat('happiness') }, 55000);
+    happinessTimer = setInterval(() => { decreaseStat('happiness') }, 60000);
     healthTimer = setInterval(() => { decreaseStat('health') }, 80000);
-    hygieneTimer = setInterval(() => { decreaseStat('hygiene') }, 50000);
+    hygieneTimer = setInterval(() => { decreaseStat('hygiene') }, 55000);
     taskTimer = setInterval(() => { decreaseCooldown() }, 1000);
   }
 
