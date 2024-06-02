@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Art Animation</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    white-space: pre;
+    background-color: black;
+    color: tan;
+    display: flex;
+    font-weight: 300;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .frame {
+    display: none;
+  }
+  .frame.active {
+    display: block;
+  }
+  .button {
+    color: red;
+    cursor: pointer;
+  }
+  .item {
+    color: red;
+    cursor: pointer;
+  }
+  .drop {
+    color: brown;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div>
+  ___       ______   _____  ___   _______ 
+ |"  |     /    " \ (\"   \|"  \ /" _   "|
+ ||  |    // ____  \|.\\   \    (: ( \___)
+ |:  |   /  /    ) :): \.   \\  |\/ \     
+  \  |__(: (____/ //|.  \    \. |//  \ ___
+ ( \_|:  \        / |    \    \ (:   _(  _|
+  \_______)"_____/__ \___|\____\)\_______)
+   / /_  (_)___ _/ /_ _      ______ ___  __
+  / __ \/ / __ `/ __ \ | /| / / __ `/ / / /
+ / / / / / /_/ / / / / |/ |/ / /_/ / /_/ / 
+/_/ /_/_/\__, /_/ /_/|__/|__/\__,_/\__, /  
+        /____/                    /____/   
+</div>
+<div id="frame1" class="frame active">
+               ___                          
+             _/XXX\
+            /XXXXXX\_                       
+      __   /X XXXX XX\                      
+     /  \_/__       \ \                     
+   _/_   \/  \_      \ \               __   
+__/   \__/   \ \__     \\__           /  \_/
+ __    \  /     \ \_   _//_\___     _/    //
+/       \        \  \ /        \_ _/     /
+</div>
+<div id="frame2" class="frame">
+             ___                        
+           _/XXX\
+          /XXXXXX\_ 
+    __   /X XXXX XX\                         
+   /  \_/__       \ \                       
+ _/_   \/  \_      \ \               __   _/
+/   \__/   \ \__     \\__           /  \_// 
+_    \  /     \ \_   _//_\___     _/    //  
+      \        \  \ /        \_ _/     /
+</div>
+<div id="frame3" class="frame">
+           ___                         
+         _/XXX\
+        /XXXXXX\_                           
+  __   /X XXXX XX\                          
+ /  \_/__       \ \                       _/
+/_   \/  \_      \ \               __   _/  
+  \__/   \ \__     \\__           /  \_//  _
+   \  /     \ \_   _//_\___     _/    //    
+    \        \  \ /        \_ _/     /      
+</div>
+<div id="frame4" class="frame">
+         ___                          
+       _/XXX\
+      /XXXXXX\_                             
+__   /X XXXX XX\                          __
+  \_/__       \ \                       _/
+   \/  \_      \ \               __   _/    
+\__/   \ \__     \\__           /  \_//  _ _
+ \  /     \ \_   _//_\___     _/    //      
+  \        \  \ /        \_ _/     /  
+</div>
+<div id="frame5" class="frame">
+       ___                          
+     _/XXX\
+    /XXXXXX\_                               
+   /X XXXX XX\                          __   
+\_/__       \ \                       _/  \_
+ \/  \_      \ \               __   _/      
+_/   \ \__     \\__           /  \_//  _ _ \
+  /     \ \_   _//_\___     _/    //        
+\        \  \ /        \_ _/     /
+</div>
+<div id="frame6" class="frame">
+     ___                          
+   _/XXX\
+  /XXXXXX\_                               
+ /X XXXX XX\                          __   /
+/__       \ \                       _/  \_/
+/  \_      \ \               __   _/      
+   \ \__     \\__           /  \_//  _ _ \
+/     \ \_   _//_\___     _/    //        
+       \  \ /        \_ _/     /          
+</div>
+<div id="frame7" class="frame">
+   ___                          
+ _/XXX\                                     
+/XXXXXX\_                                  /
+X XXXX XX\                          __    /X
+_       \ \                       _/  \__/
+ \_      \ \               __   _/      
+ \ \__     \\__           /  \_//  _ _ \
+    \ \_   _//_\___     _/    //        
+     \  \ /        \_ _/     /          
+</div>
+<div id="frame8" class="frame">
+ ___                                        
+/XXX\                                     _/
+XXXXX\_                                  /XX
+XXXX XX\                          __    /X X
+      \ \                       _/  \__/
+_      \ \               __   _/      
+ \__     \\__           /  \_//  _ _ \
+  \ \_   _//_\___     _/    //        
+   \  \ /        \_ _/     /          
+</div>
+<div id="frame9" class="frame">
+__                                        __
+XX\                                     _/XX
+XXX\_                                  /XXXX
+XX XX\                          __    /X XXX 
+    \ \                       _/  \__/
+     \ \               __   _/      
+__     \\__           /  \_//  _ _ \
+\ \_   _//_\___     _/    //        
+ \  \ /        \_ _/     /          
+</div>
+<div id="frame10" class="frame">
+                                        ___
+\                                     _/XXX\
+X\_                                  /XXXXXX
+ XX\                          __    /X XXXX 
+  \ \                       _/  \__/
+   \ \               __   _/      
+     \\__           /  \_//  _ _ \
+\_   _//_\___     _/    //        
+  \ /        \_ _/     /          
+</div>
+<div id="frame11" class="frame">
+                                      ___
+                                    _/XXX\
+_                                  /XXXXXX\_
+X\                          __    /X XXXX XX
+\ \                       _/  \__/         \
+ \ \               __   _/                  
+   \\__           /  \_//  _ _ \
+   _//_\___     _/    //        
+\ /        \_ _/     /          
+</div>
+<div id="frame12" class="frame">
+                                    ___
+                                  _/XXX\
+                                 /XXXXXX\_
+                          __    /X XXXX XX\
+\                       _/  \__/         \ \
+ \               __   _/                  \ 
+ \\__           /  \_//  _ _ \              
+ _//_\___     _/    //        
+/        \_ _/     /          
+</div>
+<div id="frame13" class="frame">
+                                 ___ 
+                               _/XXX\
+                              /XXXXXX\_ 
+                        __   /X XXXX XX\
+                      _/  \_/__       \ \
+               __   _//                __\ 
+\__           /  \_//    __           /  \\_
+//_\___     _/  \ \_   _/ _\___     _/    //
+       \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame14" class="frame">
+                               ___ 
+                             _/XXX\
+                            /XXXXXX\_ 
+                      __   /X XXXX XX\
+                    _/  \_/__       \ \
+             __   _//                __\   
+_           /  \_//    __           /  \\__
+_\___     _/  \ \_   _/ _\___     _/    // \
+     \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame15" class="frame">
+                             ___ 
+                           _/XXX\
+                          /XXXXXX\_ 
+                    __   /X XXXX XX\
+                  _/  \_/__       \ \
+           __   _//                __\   
+          /  \_//    __           /  \\__
+___     _/  \ \_   _/ _\___     _/   _//_\_
+   \_ _/     \  \ /        \_ _/    /    
+</div>
+<div id="frame16" class="frame">
+                           ___ 
+                         _/XXX\
+                        /XXXXXX\_ 
+                  __   /X XXXX XX\
+                _/  \_/__       \ \
+         __   _//                __\   
+        /  \_//    __           /  \\__
+_     _/  \ \_   _/ _\___     _/   _//_\___
+ \_ _/     \  \ /        \_ _/    /        
+</div>
+<div id="frame17" class="frame">
+                         ___ 
+                       _/XXX\
+                      /XXXXXX\_ 
+                __   /X XXXX XX\
+              _/  \_/__       \ \
+       __   _//                __\   
+      /  \_//    __           /  \\__
+    _/  \ \_   _/ _\___     _/   _//_\___
+_ _/     \  \ /        \_ _/    /        \_
+</div>
+<div id="frame18" class="frame">
+                       ___ 
+                     _/XXX\
+                    /XXXXXX\_ 
+              __   /X XXXX XX\
+            _/  \_/__       \ \
+     __   _//                __\   
+    /  \_//    __           /  \\__
+  _/  \ \_   _/ _\___     _/   _//_\___
+_/     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame19" class="frame">
+                     ___ 
+                   _/XXX\
+                  /XXXXXX\_ 
+            __   /X XXXX XX\
+          _/  \_/__       \ \
+   __   _//                __\   
+  /  \_//    __           /  \\__
+_/  \ \_   _/ _\___     _/   _//_\___     _/
+     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame20" class="frame">
+                   ___ 
+                 _/XXX\
+                /XXXXXX\_ 
+          __   /X XXXX XX\
+        _/  \_/__       \ \
+ __   _//                __\               _
+/  \_//    __           /  \\__           / 
+  \ \_   _/ _\___     _/   _//_\___     _/
+   \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame21" class="frame">
+                 ___ 
+               _/XXX\
+              /XXXXXX\_ 
+        __   /X XXXX XX\
+      _/  \_/__       \ \
+_   _//                __\               __
+ \_//    __           /  \\__           /  \
+\ \_   _/ _\___     _/   _//_\___     _/
+ \  \ /        \_ _/    /        \_ _/
+</div><div id="frame22" class="frame active">
+                 ______
+                /|_||_\`.__
+    `,         (   _    _ _\
+          ; ,  =`-(_)--(_)-' 
+----------------=-------------`~`~``~--~~^--
+</div>
+<div id="frame23" class="frame">
+                 ______
+  ;             /|_||_\`.__
+    ,          (   _    _ _\
+       ;   ; ,.=`-(_)--(_)-' 
+---=--------------`~`~``~--~~^------------&-
+</div>
+<div id="frame24" class="frame">
+                  ______
+                 /|_||_\`.__
+       ;        (   _    _ _\
+      ,    ;  , =`-(_)--(_)-' 
+------`~`~``~--~~^------------&----------=--
+</div>
+<div id="frame25" class="frame">
+                 ______
+                /|_||_\`.__
+        ,      (   _    _ _\
+  `      '; ; .=`-(_)--(_)-' 
+~``~--~~^------&------------------=---------
+</div>
+<div id="frame26" class="frame">
+                ______
+               /|_||_\`.__
+        `,    (   _    _ _\
+    ;      ;,.=`-(_)--(_)-' 
+^----&--------------------=--------------`~`
+</div>
+<div>| <i>"Map says: <span id="distance">000</span>km 'til next stop... ugh."</i> |
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+| TRIPOMETER:        GAS:<span id="gas">000</span>%  ENGINE:<span id="engine">000</span>% |
+| <span id="tripometer">000,000</span>km        BRAKES:<span id="brakes">000</span>%  WHEELS:<span id="wheels">000</span>% |
+~~~~~~~~~~~~~~~~~INVENTORY~~~~~~~~~~~~~~~~~~
+|        TRUNK:             GLOVE BOX:     |
+|   <span id="trunk1">                   </span><span id="glovebox1">                   </span> |
+|   <span id="trunk2">                   </span><span id="glovebox2">                   </span> |
+|   <span id="trunk3">                   </span><span id="glovebox3">                   </span> |
+\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
+<script>
+  // Randomly generate initial stats
+  let gas = Math.floor(Math.random() * 11) + 5; // 05% to 15%
+  let engine = Math.floor(Math.random() * 21) + 10; // 10% to 30%
+  let brakes = Math.floor(Math.random() * 21) + 10; // 10% to 30%
+  let wheels = Math.random() < 0.5 ? 50 : 75; // 50% or 75%
+  let tripometer = 0;
+  let distanceToNextStop = 0;
+  
+  // Empty inventory at the start
+  let trunk = [null, null, null];
+  let glovebox = [null, null, null];
+
+  // Available items for the trunk
+  const availableTrunkItems = [
+    { name: "Jerry Can ", value: Math.floor(Math.random() * 6) + 10, type: "gas" },
+    { name: "Car Parts ", value: Math.floor(Math.random() * 6) + 10, type: "engine" },
+    { name: "Brake Pads", value: Math.floor(Math.random() * 11) + 20, type: "brakes" },
+    { name: "Spare Tire", value: 25, type: "wheels" }
+  ];
+
+  // Function to update item elements
+  function updateInventory() {
+    trunk.forEach((item, index) => {
+      const trunkElement = document.getElementById(`trunk${index + 1}`);
+      if (item) {
+        trunkElement.innerHTML = `<span class="item" onclick="useItem(${index}, 'trunk')">${item.name}</span> [<span class="drop" onclick="dropItem(${index}, 'trunk')">drop</span>]  `;
+      } else {
+        trunkElement.innerHTML = "                   "; // Empty slot
+      }
+    });
+
+    glovebox.forEach((item, index) => {
+      const gloveboxElement = document.getElementById(`glovebox${index + 1}`);
+      if (item) {
+        gloveboxElement.innerHTML = `<span class="item" onclick="useItem(${index}, 'glovebox')">${item.name}</span> [<span class="drop" onclick="dropItem(${index}, 'glovebox')">drop</span>]`;
+      } else {
+        gloveboxElement.innerHTML = "                   "; // Empty slot
+      }
+    });
+  }
+
+  function removeItem(index, location) {
+    if (location === 'trunk') {
+      trunk[index] = null;
+    } else if (location === 'glovebox') {
+      glovebox[index] = null;
+    }
+    updateUI();
+  }
+
+  function useItem(index, location) {
+    let item;
+    if (location === 'trunk') {
+      item = trunk[index];
+    } else if (location === 'glovebox') {
+      item = glovebox[index];
+    }
+
+    if (item) {
+      if (item.type === "gas") {
+        gas = Math.min(100, gas + item.value);
+      } else if (item.type === "engine") {
+        engine = Math.min(100, engine + item.value);
+      } else if (item.type === "brakes") {
+        brakes = Math.min(100, brakes + item.value);
+      } else if (item.type === "wheels") {
+        wheels = Math.min(100, wheels + item.value);
+      }
+
+      removeItem(index, location);
+    }
+  }
+
+  function dropItem(index, location) {
+    removeItem(index, location);
+  }
+
+  function updateUI() {
+    document.getElementById('gas').innerText = Math.round(gas).toString().padStart(3, '0');
+    document.getElementById('engine').innerText = Math.round(engine).toString().padStart(3, '0');
+    document.getElementById('brakes').innerText = Math.round(brakes).toString().padStart(3, '0');
+    document.getElementById('wheels').innerText = Math.round(wheels).toString().padStart(3, '0');
+    document.getElementById('tripometer').innerText = tripometer.toString().padStart(6, '0');
+    document.getElementById('distance').innerText = distanceToNextStop.toString().padStart(3, '0');
+
+    updateInventory();
+  }
+
+  function startGame() {
+    // Add a random item to the trunk
+    const randomItem = availableTrunkItems[Math.floor(Math.random() * availableTrunkItems.length)];
+    trunk[0] = randomItem; // Add to the first slot
+
+    updateUI();
+  }
+
+
+  // Function to randomly generate the next location distance
+  function generateNextLocation() {
+    const randomMinutes = Math.floor(Math.random() * 10) + 1;
+    distanceToNextStop = randomMinutes * 10;
+  }
+
+  // Function to decrease stats over time
+  let gasDepletionCounter = 0;
+  let engineDepletionCounter = 0;
+  let brakesDepletionCounter = 0;
+  let wheelsDepletionCounter = 0;
+
+  function decreaseStats() {
+    gasDepletionCounter += 3;
+    engineDepletionCounter += 6;
+    brakesDepletionCounter += 6;
+    wheelsDepletionCounter += 6;
+
+    if (gasDepletionCounter >= 60) {
+      gas -= 1;
+      gasDepletionCounter = 0;
+    }
+    if (engineDepletionCounter >= 110) {
+      engine -= 1;
+      engineDepletionCounter = 0;
+    }
+    if (brakesDepletionCounter >= 130) {
+      brakes -= 1;
+      brakesDepletionCounter = 0;
+    }
+    if (wheelsDepletionCounter >= 82) {
+      wheels -= 1;
+      wheelsDepletionCounter = 0;
+    }
+
+    // Ensure stats don't drop below 0
+    gas = Math.max(gas, 0);
+    engine = Math.max(engine, 0);
+    brakes = Math.max(brakes, 0);
+    wheels = Math.max(wheels, 0);
+
+    if (gas <= 0) {
+      // Game over condition
+      alert('Game Over! You ran out of gas.');
+      clearInterval(gameInterval);
+    }
+  }
+
+  // Animation control
+  const frames1 = [
+    'frame1', 'frame2', 'frame3', 'frame4', 'frame5',
+    'frame6', 'frame7', 'frame8', 'frame9', 'frame10',
+    'frame11', 'frame12', 'frame13', 'frame14', 'frame15',
+    'frame16', 'frame17', 'frame18', 'frame19', 'frame20',
+    'frame21'
+  ];
+  const frames2 = [
+    'frame22', 'frame23', 'frame24', 'frame25', 'frame26'
+  ];
+  let currentFrame1 = 0;
+  let currentFrame2 = 0;
+
+  function animate1() {
+    document.getElementById(frames1[currentFrame1]).classList.remove('active');
+    currentFrame1 = (currentFrame1 + 1) % frames1.length;
+    document.getElementById(frames1[currentFrame1]).classList.add('active');
+  }
+
+  function animate2() {
+    document.getElementById(frames2[currentFrame2]).classList.remove('active');
+    currentFrame2 = (currentFrame2 + 1) % frames2.length;
+    document.getElementById(frames2[currentFrame2]).classList.add('active');
+  }
+
+  // Main game loop
+  const gameInterval = setInterval(() => {
+    tripometer += 1;
+    distanceToNextStop -= 1;
+    decreaseStats();
+    if (distanceToNextStop <= 0) {
+      generateNextLocation();
+      // Handle encounter here
+      // Example: alert('Encounter!');
+    }
+    updateUI();
+  }, 1000); // 1 seconds interval in real-time
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    setInterval(animate1, 1000);
+    setInterval(animate2, 500);
+    startGame(); // Start the game and add a random item to the trunk
+    generateNextLocation();
+    updateUI();
+  });
+</script>
+</body>
+</html>

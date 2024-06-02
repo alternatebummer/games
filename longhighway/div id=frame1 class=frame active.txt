@@ -1,0 +1,332 @@
+<div id="frame1" class="frame active">
+               ___                          
+             _/XXX\
+            /XXXXXX\_                       
+      __   /X XXXX XX\                      
+     /  \_/__       \ \                     
+   _/_   \/  \_      \ \               __   
+__/   \__/   \ \__     \\__           /  \_/
+ __    \  /     \ \_   _//_\___     _/    //
+/       \        \  \ /        \_ _/     /
+</div>
+<div id="frame2" class="frame">
+             ___                        
+           _/XXX\
+          /XXXXXX\_ 
+    __   /X XXXX XX\                         
+   /  \_/__       \ \                       
+ _/_   \/  \_      \ \               __   _/
+/   \__/   \ \__     \\__           /  \_// 
+_    \  /     \ \_   _//_\___     _/    //  
+      \        \  \ /        \_ _/     /
+</div>
+<div id="frame3" class="frame">
+           ___                         
+         _/XXX\
+        /XXXXXX\_                           
+  __   /X XXXX XX\                          
+ /  \_/__       \ \                       _/
+/_   \/  \_      \ \               __   _/  
+  \__/   \ \__     \\__           /  \_//  _
+   \  /     \ \_   _//_\___     _/    //    
+    \        \  \ /        \_ _/     /      
+</div>
+<div id="frame4" class="frame">
+         ___                          
+       _/XXX\
+      /XXXXXX\_                             
+__   /X XXXX XX\                          __
+  \_/__       \ \                       _/
+   \/  \_      \ \               __   _/    
+\__/   \ \__     \\__           /  \_//  _ _
+ \  /     \ \_   _//_\___     _/    //      
+  \        \  \ /        \_ _/     /  
+</div>
+<div id="frame5" class="frame">
+       ___                          
+     _/XXX\
+    /XXXXXX\_                               
+   /X XXXX XX\                          __   
+\_/__       \ \                       _/  \_
+ \/  \_      \ \               __   _/      
+_/   \ \__     \\__           /  \_//  _ _ \
+  /     \ \_   _//_\___     _/    //        
+\        \  \ /        \_ _/     /
+</div>
+<div id="frame6" class="frame">
+     ___                          
+   _/XXX\
+  /XXXXXX\_                               
+ /X XXXX XX\                          __   /
+/__       \ \                       _/  \_/
+/  \_      \ \               __   _/      
+   \ \__     \\__           /  \_//  _ _ \
+/     \ \_   _//_\___     _/    //        
+       \  \ /        \_ _/     /          
+</div>
+<div id="frame7" class="frame">
+   ___                          
+ _/XXX\                                     
+/XXXXXX\_                                  /
+X XXXX XX\                          __    /X
+_       \ \                       _/  \__/
+ \_      \ \               __   _/      
+ \ \__     \\__           /  \_//  _ _ \
+    \ \_   _//_\___     _/    //        
+     \  \ /        \_ _/     /          
+</div>
+<div id="frame8" class="frame">
+ ___                                        
+/XXX\                                     _/
+XXXXX\_                                  /XX
+XXXX XX\                          __    /X X
+      \ \                       _/  \__/
+_      \ \               __   _/      
+ \__     \\__           /  \_//  _ _ \
+  \ \_   _//_\___     _/    //        
+   \  \ /        \_ _/     /          
+</div>
+<div id="frame9" class="frame">
+__                                        __
+XX\                                     _/XX
+XXX\_                                  /XXXX
+XX XX\                          __    /X XXX 
+    \ \                       _/  \__/
+     \ \               __   _/      
+__     \\__           /  \_//  _ _ \
+\ \_   _//_\___     _/    //        
+ \  \ /        \_ _/     /          
+</div>
+<div id="frame10" class="frame">
+                                        ___
+\                                     _/XXX\
+X\_                                  /XXXXXX
+ XX\                          __    /X XXXX 
+  \ \                       _/  \__/
+   \ \               __   _/      
+     \\__           /  \_//  _ _ \
+\_   _//_\___     _/    //        
+  \ /        \_ _/     /          
+</div>
+<div id="frame11" class="frame">
+                                      ___
+                                    _/XXX\
+_                                  /XXXXXX\_
+X\                          __    /X XXXX XX
+\ \                       _/  \__/         \
+ \ \               __   _/                  
+   \\__           /  \_//  _ _ \
+   _//_\___     _/    //        
+\ /        \_ _/     /          
+</div>
+<div id="frame12" class="frame">
+                                    ___
+                                  _/XXX\
+                                 /XXXXXX\_
+                          __    /X XXXX XX\
+\                       _/  \__/         \ \
+ \               __   _/                  \ 
+ \\__           /  \_//  _ _ \              
+ _//_\___     _/    //        
+/        \_ _/     /          
+</div>
+<div id="frame13" class="frame">
+                                 ___ 
+                               _/XXX\
+                              /XXXXXX\_ 
+                        __   /X XXXX XX\
+                      _/  \_/__       \ \
+               __   _//                __\ 
+\__           /  \_//    __           /  \\_
+//_\___     _/  \ \_   _/ _\___     _/    //
+       \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame14" class="frame">
+                               ___ 
+                             _/XXX\
+                            /XXXXXX\_ 
+                      __   /X XXXX XX\
+                    _/  \_/__       \ \
+             __   _//                __\   
+_           /  \_//    __           /  \\__
+_\___     _/  \ \_   _/ _\___     _/    // \
+     \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame15" class="frame">
+                             ___ 
+                           _/XXX\
+                          /XXXXXX\_ 
+                    __   /X XXXX XX\
+                  _/  \_/__       \ \
+           __   _//                __\   
+          /  \_//    __           /  \\__
+___     _/  \ \_   _/ _\___     _/   _//_\_
+   \_ _/     \  \ /        \_ _/    /    
+</div>
+<div id="frame16" class="frame">
+                           ___ 
+                         _/XXX\
+                        /XXXXXX\_ 
+                  __   /X XXXX XX\
+                _/  \_/__       \ \
+         __   _//                __\   
+        /  \_//    __           /  \\__
+_     _/  \ \_   _/ _\___     _/   _//_\___
+ \_ _/     \  \ /        \_ _/    /        
+</div>
+<div id="frame17" class="frame">
+                         ___ 
+                       _/XXX\
+                      /XXXXXX\_ 
+                __   /X XXXX XX\
+              _/  \_/__       \ \
+       __   _//                __\   
+      /  \_//    __           /  \\__
+    _/  \ \_   _/ _\___     _/   _//_\___
+_ _/     \  \ /        \_ _/    /        \_
+</div>
+<div id="frame18" class="frame">
+                       ___ 
+                     _/XXX\
+                    /XXXXXX\_ 
+              __   /X XXXX XX\
+            _/  \_/__       \ \
+     __   _//                __\   
+    /  \_//    __           /  \\__
+  _/  \ \_   _/ _\___     _/   _//_\___
+_/     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame19" class="frame">
+                     ___ 
+                   _/XXX\
+                  /XXXXXX\_ 
+            __   /X XXXX XX\
+          _/  \_/__       \ \
+   __   _//                __\   
+  /  \_//    __           /  \\__
+_/  \ \_   _/ _\___     _/   _//_\___     _/
+     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame20" class="frame">
+                   ___ 
+                 _/XXX\
+                /XXXXXX\_ 
+          __   /X XXXX XX\
+        _/  \_/__       \ \
+ __   _//                __\               _
+/  \_//    __           /  \\__           / 
+  \ \_   _/ _\___     _/   _//_\___     _/
+   \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame21" class="frame">
+                 ___ 
+               _/XXX\
+              /XXXXXX\_ 
+        __   /X XXXX XX\
+      _/  \_/__       \ \
+_   _//                __\               __
+ \_//    __           /  \\__           /  \
+\ \_   _/ _\___     _/   _//_\___     _/
+ \  \ /        \_ _/    /        \_ _/
+</div><div id="frame22" class="frame active">
+                 ______
+                /|_||_\`.__
+    `,         (   _    _ _\
+          ; ,  =`-(_)--(_)-' 
+------------------------------`~`~``~--~~---
+////////////////////////////////////////////
+</div>
+<div id="frame23" class="frame">
+                 ______
+  ;             /|_||_\`.__
+    ,          (   _    _ _\
+       ;   ; ,.=`-(_)--(_)-' 
+------------------`~`~``~--~~---------------
+////////////////////////////////////////////
+</div>
+<div id="frame24" class="frame">
+                  ______
+                 /|_||_\`.__
+       ;        (   _    _ _\
+      ,    ;  , =`-(_)--(_)-' 
+------`~`~``~--~~---------------------------
+////////////////////////////////////////////
+</div>
+<div id="frame25" class="frame">
+                 ______
+                /|_||_\`.__
+        ,      (   _    _ _\
+  `      '; ; .=`-(_)--(_)-' 
+~``~--~~------------------------------------
+////////////////////////////////////////////
+</div>
+<div id="frame26" class="frame">
+                ______
+               /|_||_\`.__
+        `,    (   _    _ _\
+    ;      ;,.=`-(_)--(_)-' 
+-----------------------------------------`~`
+////////////////////////////////////////////
+</div>
+
+
+
+
+
+
+--------------------------------------------
+|        TRUNK:             GLOVE BOX:     |
+|[                   ][                   ]|
+|[                   ][                   ]|
+|[                   ][                   ]|
+
+I will show it to you again, using "*" to mark where trunk items will go and "$" to mark where glove box items will go.
+
+With the inventory, we always want to make sure that the ascii's formatting is maintained. the items will be inserted into their respective spaces, but they won't take up horizontal character space. Does that make sense?
+
+--------------------------------------------
+|        TRUNK:             GLOVE BOX:     |
+|[*                  ][$                  ]|
+|[*                  ][$                  ]|
+|[*                  ][$                  ]|
+
+So you can see that items will be displayed from left to right, within these "[""]" sections.
+
+Now, items that fit in the trunk section of the inventory include:
+"Jerry Can" (adds between 10%-15% gas when clicked)
+"Car Parts" (adds between 10%-15% engine when clicked)
+"Brake Pads" (adds between 20$-30% brakes when clicked)
+"Spare Tire" (adds 25% wheels when clicked)
+
+Items also include a "drop" feature, which is brown, whereas the item text itself is red, indicating it can be clicked to use.
+
+When an item is clicked/used, it disappears from the inventory.
+
+When an item is dropped, it disappears from the inventory.
+
+
+Let's now turn our attention to the CB radio. We need to make sure the button works. Remember, it's only a button in name. It should be clickable ascii. The clickable part will be: "|"10-2!"|"
+
+Remember that this is only clickable when "Do you read me?" appears.
+
+"Do you read me?" will appear based on a randomly generated timer when the game loads. It will select a time between 1 and 2 minutes. At the selected time, "Do you read me?" will appear for 10 seconds. For that 10 second window, the previously mentioned ascii button becomes clickable. When clicked, a second message appears, replacing "Do you read me?" It says, "There's a closer location!"
+This second piece of text coincides with between 5km-20km removed from the 'til next stop km counter. After 10 seconds, the second message disappears.
+
+Please note that when the FIRST message disappears, the randomizer selects a new future time at which the message will re-appear. 
+
+~~~CB~RADIO~\/\~~~~/~~~~~/\/~/\~~~~/\/~~~~~~
+| "Do you read me?"              --------- |
+|                                |"10-2!"| |
+|                                --------- |
+--------------------------------------------
+
+
+
+~~~CB~RADIO~\/\~~~~/~~~~~/\/~/\~~~~/\/~~~~~~
+| <span id="cb-message">"Do you read me?"</span>              --------- |
+|                                |<span id="cb-button">"10-2!"</span>| |
+|                                --------- |
+--------------------------------------------
+
+
+
