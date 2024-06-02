@@ -9,7 +9,7 @@
     font-family: 'Courier New', monospace;
     white-space: pre;
     background-color: black;
-    color: tan;
+    color: #D9CAA0;
     display: flex;
     font-weight: 100;
     font-size: 14px;
@@ -18,22 +18,43 @@
     align-items: center;
     margin: 0;
   }
+  .div-1 {
+    background-color: #0D0E11;
+  }
+  .div-2 {
+    color: #FFC300;
+  }
+  .div-3 {
+    color: #ffe5cc;
+  }
   .frame {
     display: none;
+    color: #756A4A;
   }
+  .frame2 {
+    display: none;
+  }
+
   .frame.active {
-    display: block;
+    display: flex;
+    color: #756A4A;
+  }
+  .frame.drive {
+    display: flex;
+    color: #C4D284;
   }
   .button {
     color: red;
     cursor: pointer;
   }
   .item {
-    color: red;
+    color: #ec9274;
     cursor: pointer;
+    font-weight: bold;
+
   }
   .drop {
-    color: brown;
+    color: #ec9274;
     cursor: pointer;
   }
 </style>
@@ -283,7 +304,7 @@ _   _//                __\               __
  \_//    __           /  \\__           /  \
 \ \_   _/ _\___     _/   _//_\___     _/
  \  \ /        \_ _/    /        \_ _/
-</div><div id="frame22" class="frame active">
+</div><div id="frame22" class="frame drive">
                  ______
                 /|_||_\`.__
     `,         (   _    _ _\
@@ -318,7 +339,7 @@ _   _//                __\               __
     ;      ;,.=`-(_)--(_)-' 
 ^----&--------------------=--------------`~`
 </div>
-<div>| <i>"Map says: <span id="distance">000</span>km 'til next stop... ugh."</i> |
+<div class="div-1">| <i>"Map says: <span id="distance">000</span>km 'til next stop... ugh."</i> |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 | TRIPOMETER:        GAS:<span id="gas">000</span>%  ENGINE:<span id="engine">000</span>% |
 | <span id="tripometer">000,000</span>km        BRAKES:<span id="brakes">000</span>%  WHEELS:<span id="wheels">000</span>% |
@@ -328,6 +349,7 @@ _   _//                __\               __
 |   <span id="trunk2">                   </span><span id="glovebox2">                   </span> |
 |   <span id="trunk3">                   </span><span id="glovebox3">                   </span> |
 \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
+</div>
 <script>
   // Randomly generate initial stats
   let gas = Math.floor(Math.random() * 11) + 5; // 05% to 15%
@@ -495,9 +517,9 @@ _   _//                __\               __
   }
 
   function animate2() {
-    document.getElementById(frames2[currentFrame2]).classList.remove('active');
+    document.getElementById(frames2[currentFrame2]).classList.remove('drive');
     currentFrame2 = (currentFrame2 + 1) % frames2.length;
-    document.getElementById(frames2[currentFrame2]).classList.add('active');
+    document.getElementById(frames2[currentFrame2]).classList.add('drive');
   }
 
   // Main game loop

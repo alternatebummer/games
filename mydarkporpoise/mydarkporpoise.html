@@ -10,30 +10,39 @@
     white-space: pre; /* Use pre to prevent  wrapping of ASCII art */
     background-color: black;
     color: lightblue;
-    font-weight: 200;
+    font-weight: thin;
     display: flex;
     justify-content: center;
     overflow: hidden;
     align-items: start;
     margin-top: -20px;
     font-size: 12px;
+    cursor: pointer;
   }
-  p {
-    color: white;
-  }
+  .div-3 {
+    color: lightgrey;
+   }
+  .div-1 {
+    color: #8A8EB1;
+   }
+  .div-2 {
+    color: lightgrey;
+   {
   .fish-tank {
     height: auto;
     width: 100%;
     content-align: center;
     flex-direction: column; 
-  }
-  .aquarium {
-    color: lightblue;
+    color: lightgray;
+  {
+  aquarium {
+    color: blue;
   }
   .button {
-    display: inline-block;
+    display: flex;
     cursor: pointer;
     user-select: none;
+    color: blue;
   }
   input[type="text"] {
     background-color: black;
@@ -48,7 +57,7 @@
 </style>
 </head>
 <body>
-<div id="fish-tank"><p>
+<div id="fish-tank"><div class="div-3">
 ___  ____   __ ______  ___ ______ _   __         
 |  \/  \ \ / / |  _  \/ _ \| ___ \ | / /         
 | .  . |\ V /  | | | / /_\ \ |_/ / |/ /          
@@ -60,17 +69,11 @@ ___  ____   __ ______  ___ ______ _   __
 |  __/| | | |    /|  __/| | | | | |  `--. \  __|
 | |   \ \_/ / |\ \| |   \ \_/ /_| |_/\__/ / |___
 \_|    \___/\_| \_\_|    \___/ \___/\____/\____/
-            ___.                     _   
-           (    ).              .:(`  )`.
- ^,-     _(       '`.          :(   .    )
-     .=(`(      .   )     .--  `.  (    ) )
-    ((    (..__.:'-'   .+(   )   ` _`  ) )
-    `(       ) )       (   .  )     (   )
-      ` __.:'   )     (   (   ))     `-'
-             --'       `- __.'         </p>
-.-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
-   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-
-<div id="frame1" class="frame active">                                .
+                      ~,^
+ ^,-</div>                  
+
+<div id="frame1" class="frame active">-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
+  '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'
      .                                     
                         -..       .
            `;-._        )  '---.._
@@ -78,29 +81,29 @@ ___  ____   __ ______  ___ ______ _   __
             /_.-'-._         _,   ^ ---)
             `        `'-----/_.'----```
                             `
-       __
+       ,
     |><_'>                                   (
                                            (  )
 .  ..   , ,,` `` .,   ., ` , `  `  ) ,, ), ,)(.
-</div>
-<div id="frame2" style="display: none;">
+</div><div id="frame2" style="display: none;">.-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  
+   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-
+
          .                          .
                         -..      
        .    ,;-._       )  '---.._ 
               >  `-._.-'          `'.__ 
              /_.-'-.        _,    ~ ---)
         .   `       `'-----/_.'-----```   
-        __.                `
+        ,                  `
      |><_'>                                   (
                                             ( )
 .  ..   , ,,' '' .,   ., ' , '  '  ( ,, (, ,)(.
-
-</div><p>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</div><div class="div-1">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 |    HUNGER:<span id="hunger"></span> | Porp Report:         |
 | HAPPINESS:<span id="happiness"></span> | <span id="overall-mood">Happy!</span>
 |    HEALTH:<span id="health"></span> | Cooldown Counter:    |
 |   HYGIENE:<span id="hygiene"></span> | <span id="cooldown"> READY!              |</span>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</div><div class="div-2">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 | ========  ========  ============  ========= |
 | | <span class="button" onclick="executeTask('feed')">FEED</span> |  | <span class="button" onclick="executeTask('play')">PLAY</span> |  | <span class="button" onclick="executeTask('vitamins')">VITAMINS</span> |  | <span class="button" onclick="executeTask('scrub')">SCRUB</span> | |
 | ========  ========  ============  ========= |
@@ -108,9 +111,8 @@ ___  ____   __ ______  ___ ______ _   __
  Tap a button to perform a task.
  Cooldown between tasks is 30 seconds.
  Monitor this animal and cater to its needs.
- It is your dark porpoise.
-</div>
-</div></p>
+ It is your dark porpoise.</div>
+
 <script>
   const stats = {
     hunger: Math.floor(Math.random() * 6) + 3,
