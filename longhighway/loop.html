@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Art Animation</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    white-space: pre;
+    background-color: black;
+    color: #D9CAA0;
+    display: flex;
+    font-weight: 100;
+    font-size: 14px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+  .div-1 {
+    background-color: #0D0E11;
+  }
+  .div-2 {
+    color: #FFC300;
+  }
+  .div-3 {
+    color: #ffe5cc;
+  }
+  .frame {
+    display: none;
+    color: #756A4A;
+  }
+  .frame2 {
+    display: none;
+  }
+
+  .frame.active {
+    display: flex;
+    color: #756A4A;
+  }
+  .frame.drive {
+    display: flex;
+    color: #C4D284;
+  }
+  .button {
+    color: red;
+    cursor: pointer;
+  }
+  .item {
+    color: #ec9274;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .drop {
+    color: #ec9274;
+    cursor: pointer;
+  }
+  .modal {
+    width: 100%;
+    height: 100%;
+    overflow: none;
+    margin-top: -185px;
+    background-color: black;
+    display: flex;
+    opacity: 0.85;
+  }
+  .modal-content {
+    margin: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+    border: 0px dotted #D9CAA0;
+    width: 350px;
+    height: 600px;
+    text-align: left;
+    color: ##D9CAA0;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .close:hover,
+  .close:focus {
+    color: black (0.3);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .pause-button {
+    cursor: pointer;
+    color: #ec9274;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="div-1">| <i>"Map says: <span id="distance">000</span>km 'til next stop... ugh."</i> |
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+| TRIPOMETER:        GAS:<span id="gas">000</span>%  ENGINE:<span id="engine">000</span>% |
+| <span id="tripometer">000,000</span>km        BRAKES:<span id="brakes">000</span>%  WHEELS:<span id="wheels">000</span>% |
+~~~~~~~~~~~~~~~~~INVENTORY~~~~~~~~~~~~~~~~~~
+|        TRUNK:             GLOVE BOX:     |
+|   <span id="trunk1">                   </span><span id="glovebox1">                   </span> |
+|   <span id="trunk2">                   </span><span id="glovebox2">                   </span> |
+|   <span id="trunk3">                   </span><span id="glovebox3">                   </span> |
+\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
+                   <span id="pause-button" class="pause-button" onclick="togglePause()">UNPAUSE</span>
+</div>
+
+<div id="myModal" class="modal"><div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <p id="modal-message"></p>
+    <button id="modal-button" onclick="closeModal()">START</button>
+  </div>
+</div>
+
+<script>
+  // Randomly generate initial stats
+  let gas = Math.floor(Math.random() * 11) + 5; // 05% to 15%
+  let engine = Math.floor(Math.random() * 21) + 10; // 10% to 30%
+  let brakes = Math.floor(Math.random() * 21) + 10; // 10% to 30%
+  let wheels = Math.random() < 0.5 ? 50 : 75; // 50% or 75%
+  let tripometer = 0;
+  let distanceToNextStop = 0;
+  let isPaused = true;
+  let gameInterval;
+  let isFirstModal = true;
+
+  // Empty inventory at the start
+  let trunk = [null, null, null];
+  let glovebox = [null, null, null];
+
+  // Available items for the trunk
+  const availableTrunkItems = [
+    { name: "Jerry Can ", value: Math.floor(Math.random() * 6) + 10, type: "gas" },
+    { name: "Car Parts ", value: Math.floor(Math.random() * 6) + 10, type: "engine" },
+    { name: "Brake Pads", value: Math.floor(Math.random() * 11) + 20, type: "brakes" },
+    { name: "Spare Tire", value: 25, type: "wheels" }
+  ];
+
+  // Function to update item elements
+  function updateInventory() {
+    trunk.forEach((item, index) => {
+      const trunkElement = document.getElementById(`trunk${index + 1}`);
+      if (item) {
+        trunkElement.innerHTML = `<span class="item" onclick="useItem(${index}, 'trunk')">${item.name}</span> [<span class="drop" onclick="dropItem(${index}, 'trunk')">drop</span>]  `;
+      } else {
+        trunkElement.innerHTML = "                   "; // Empty slot
+      }
+    });
+
+    glovebox.forEach((item, index) => {
+      const gloveboxElement = document.getElementById(`glovebox${index + 1}`);
+      if (item) {
+        gloveboxElement.innerHTML = `<span class="item" onclick="useItem(${index}, 'glovebox')">${item.name}</span> [<span class="drop" onclick="dropItem(${index}, 'glovebox')">drop</span>]`;
+      } else {
+        gloveboxElement.innerHTML = "                   "; // Empty slot
+      }
+    });
+  }
+
+  function removeItem(index, location) {
+    if (location === 'trunk') {
+      trunk[index] = null;
+    } else if (location === 'glovebox') {
+      glovebox[index] = null;
+    }
+    updateUI();
+  }
+
+  function useItem(index, location) {
+    let item;
+    if (location === 'trunk') {
+      item = trunk[index];
+    } else if (location === 'glovebox') {
+      item = glovebox[index];
+    }
+
+    if (item) {
+      if (item.type === "gas") {
+        gas = Math.min(100, gas + item.value);
+      } else if (item.type === "engine") {
+        engine = Math.min(100, engine + item.value);
+      } else if (item.type === "brakes") {
+        brakes = Math.min(100, brakes + item.value);
+      } else if (item.type === "wheels") {
+        wheels = Math.min(100, wheels + item.value);
+      }
+
+      removeItem(index, location);
+    }
+  }
+
+  function dropItem(index, location) {
+    removeItem(index, location);
+  }
+
+  function updateUI() {
+    document.getElementById('gas').innerText = Math.round(gas).toString().padStart(3, '0');
+    document.getElementById('engine').innerText = Math.round(engine).toString().padStart(3, '0');
+    document.getElementById('brakes').innerText = Math.round(brakes).toString().padStart(3, '0');
+    document.getElementById('wheels').innerText = Math.round(wheels).toString().padStart(3, '0');
+    document.getElementById('tripometer').innerText = tripometer.toString().padStart(6, '0');
+    document.getElementById('distance').innerText = distanceToNextStop.toString().padStart(3, '0');
+
+    updateInventory();
+  }
+
+  function startGame() {
+    // Add a random item to the trunk
+    const randomItem = availableTrunkItems[Math.floor(Math.random() * availableTrunkItems.length)];
+    trunk[0] = randomItem; // Add to the first slot
+
+    updateUI();
+    generateNextLocation(); // Generate the first location without checking for zero
+  }
+
+  // Function to randomly generate the next location distance
+  function generateNextLocation() {
+    const randomMinutes = Math.floor(Math.random() * 10) + 1;
+    distanceToNextStop = randomMinutes * 10;
+  }
+
+  function startCountdown() {
+    const countdownInterval = setInterval(() => {
+      if (isPaused) return;
+
+      tripometer += 1;
+      distanceToNextStop -= 1;
+      decreaseStats();
+
+      if (distanceToNextStop === 0) {
+        clearInterval(countdownInterval);
+        showScenarioModal();
+        return;
+      }
+
+      if (distanceToNextStop <= 0) {
+        clearInterval(countdownInterval);
+        generateNextLocation();
+        startCountdown();
+        return;
+      }
+
+      updateUI();
+    }, 1000); // 1 second interval in real-time
+  }
+
+  // Function to decrease stats over time
+  let gasDepletionCounter = 0;
+  let engineDepletionCounter = 0;
+  let brakesDepletionCounter = 0;
+  let wheelsDepletionCounter = 0;
+
+  function decreaseStats() {
+    gasDepletionCounter += 3;
+    engineDepletionCounter += 6;
+    brakesDepletionCounter += 6;
+    wheelsDepletionCounter += 6;
+
+    if (gasDepletionCounter >= 60) {
+      gas -= 1;
+      gasDepletionCounter = 0;
+    }
+    if (engineDepletionCounter >= 110) {
+      engine -= 1;
+      engineDepletionCounter = 0;
+    }
+    if (brakesDepletionCounter >= 130) {
+      brakes -= 1;
+      brakesDepletionCounter = 0;
+    }
+    if (wheelsDepletionCounter >= 82) {
+      wheels -= 1;
+      wheelsDepletionCounter = 0;
+    }
+
+    // Ensure stats don't drop below 0
+    gas = Math.max(gas, 0);
+    engine = Math.max(engine, 0);
+    brakes = Math.max(brakes, 0);
+    wheels = Math.max(wheels, 0);
+
+    if (gas <= 0) {
+      // Game over condition
+      alert('Game Over! You ran out of gas.');
+      clearInterval(gameInterval);
+    }
+  }
+
+  function showStartModal() {
+    const modal = document.getElementById('myModal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalButton = document.getElementById('modal-button');
+
+    modalMessage.innerText = "Welcome to the game! Click START to begin.";
+    modalButton.innerText = "START";
+
+    modal.style.display = "block";
+    modalButton.onclick = closeStartModal;
+    togglePause();
+  }
+
+  function closeStartModal() {
+    const modal = document.getElementById('myModal');
+    modal.style.display = "none";
+    generateNextLocation();
+    updateUI();
+    togglePause(); // Unpause the game when modal is closed
+    startCountdown(); // Start the countdown after closing the start modal
+  }
+
+  function showScenarioModal() {
+    const modal = document.getElementById('myModal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalButton = document.getElementById('modal-button');
+
+    const scenarios = [
+      "You encounter a merchant willing to trade.",
+      "You come across an abandoned vehicle with some supplies.",
+      "You face a raider ambush. Prepare to defend yourself."
+    ];
+    const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+    modalMessage.innerText = randomScenario;
+    modalButton.innerText = "CLOSE";
+
+    modal.style.display = "block";
+    modalButton.onclick = closeScenarioModal;
+    togglePause();
+  }
+
+  function closeScenarioModal() {
+    const modal = document.getElementById('myModal');
+    modal.style.display = "none";
+    generateNextLocation();
+    updateUI();
+    togglePause(); // Unpause the game when modal is closed
+    startCountdown(); // Start the countdown after closing the scenario modal
+  }
+
+  // Animation control
+  const frames1 = [
+    'frame1', 'frame2', 'frame3', 'frame4', 'frame5',
+    'frame6', 'frame7', 'frame8', 'frame9', 'frame10',
+    'frame11', 'frame12', 'frame13', 'frame14', 'frame15',
+    'frame16', 'frame17', 'frame18', 'frame19', 'frame20',
+    'frame21'
+  ];
+  const frames2 = [
+    'frame22', 'frame23', 'frame24', 'frame25', 'frame26'
+  ];
+  let currentFrame1 = 0;
+  let currentFrame2 = 0;
+
+  function animate1() {
+    document.getElementById(frames1[currentFrame1]).classList.remove('active');
+    currentFrame1 = (currentFrame1 + 1) % frames1.length;
+    document.getElementById(frames1[currentFrame1]).classList.add('active');
+  }
+
+  function animate2() {
+    document.getElementById(frames2[currentFrame2]).classList.remove('drive');
+    currentFrame2 = (currentFrame2 + 1) % frames2.length;
+    document.getElementById(frames2[currentFrame2]).classList.add('drive');
+  }
+
+  function togglePause() {
+    if (isPaused) {
+      isPaused = false;
+      document.getElementById('pause-button').innerText = 'PAUSE';
+      gameInterval = setInterval(() => {
+        if (!isPaused) {
+          tripometer += 1;
+          distanceToNextStop -= 1;
+          decreaseStats();
+          if (distanceToNextStop === 0) {
+            clearInterval(gameInterval);
+            showScenarioModal();
+            return;
+          }
+          if (distanceToNextStop <= 0) {
+            clearInterval(gameInterval);
+            generateNextLocation();
+            startCountdown();
+            return;
+          }
+          updateUI();
+        }
+      }, 1000); // 1 second interval in real-time
+    } else {
+      isPaused = true;
+      document.getElementById('pause-button').innerText = 'UNPAUSE';
+      clearInterval(gameInterval);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    setInterval(animate1, 1000);
+    setInterval(animate2, 500);
+    startGame(); // Start the game and add a random item to the trunk
+    updateUI();
+    showStartModal(); // Show the start modal on game load
+  });
+</script>
+</body>
+</html>

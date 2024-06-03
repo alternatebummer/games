@@ -1,0 +1,354 @@
+Here's the development version of the program:
+
+
+
+Stops/Locations:
+
+So,in this game we have a counter called distanceToNextStop, which decreases to zero. The value of the variable is produced through random generation between 1 and 10. When it reaches zero, generateNextLocation kicks in and starts the process from the beginning. Thus, it is a loop.
+
+Here is the addition we need:
+- When distanceToNextStop reaches zero, but before generateNextLocation produces a new random number, the game will pause and open a modal. The content of the modal will be the "stop" or the location. When the player closes the modal, the game unpauses and generatenextlocation produces the next random number, and thus the time to next location. FOr now, let's generate what I've described.
+
+
+
+<div>
+  ___       ______   _____  ___   _______ 
+ |"  |     /    " \ (\"   \|"  \ /" _   "|
+ ||  |    // ____  \|.\\   \    (: ( \___)
+ |:  |   /  /    ) :): \.   \\  |\/ \     
+  \  |__(: (____/ //|.  \    \. |//  \ ___
+ ( \_|:  \        / |    \    \ (:   _(  _|
+  \_______)"_____/__ \___|\____\)\_______)
+   / /_  (_)___ _/ /_ _      ______ ___  __
+  / __ \/ / __ `/ __ \ | /| / / __ `/ / / /
+ / / / / / /_/ / / / / |/ |/ / /_/ / /_/ / 
+/_/ /_/_/\__, /_/ /_/|__/|__/\__,_/\__, /  
+        /____/                    /____/   
+</div>
+
+
+<div id="frame1" class="frame active">
+               ___                          
+             _/XXX\
+            /XXXXXX\_                       
+      __   /X XXXX XX\                      
+     /  \_/__       \ \                     
+   _/_   \/  \_      \ \               __   
+__/   \__/   \ \__     \\__           /  \_/
+ __    \  /     \ \_   _//_\___     _/    //
+/       \        \  \ /        \_ _/     /
+</div>
+<div id="frame2" class="frame">
+             ___                        
+           _/XXX\
+          /XXXXXX\_ 
+    __   /X XXXX XX\                         
+   /  \_/__       \ \                       
+ _/_   \/  \_      \ \               __   _/
+/   \__/   \ \__     \\__           /  \_// 
+_    \  /     \ \_   _//_\___     _/    //  
+      \        \  \ /        \_ _/     /
+</div>
+<div id="frame3" class="frame">
+           ___                         
+         _/XXX\
+        /XXXXXX\_                           
+  __   /X XXXX XX\                          
+ /  \_/__       \ \                       _/
+/_   \/  \_      \ \               __   _/  
+  \__/   \ \__     \\__           /  \_//  _
+   \  /     \ \_   _//_\___     _/    //    
+    \        \  \ /        \_ _/     /      
+</div>
+<div id="frame4" class="frame">
+         ___                          
+       _/XXX\
+      /XXXXXX\_                             
+__   /X XXXX XX\                          __
+  \_/__       \ \                       _/
+   \/  \_      \ \               __   _/    
+\__/   \ \__     \\__           /  \_//  _ _
+ \  /     \ \_   _//_\___     _/    //      
+  \        \  \ /        \_ _/     /  
+</div>
+<div id="frame5" class="frame">
+       ___                          
+     _/XXX\
+    /XXXXXX\_                               
+   /X XXXX XX\                          __   
+\_/__       \ \                       _/  \_
+ \/  \_      \ \               __   _/      
+_/   \ \__     \\__           /  \_//  _ _ \
+  /     \ \_   _//_\___     _/    //        
+\        \  \ /        \_ _/     /
+</div>
+<div id="frame6" class="frame">
+     ___                          
+   _/XXX\
+  /XXXXXX\_                               
+ /X XXXX XX\                          __   /
+/__       \ \                       _/  \_/
+/  \_      \ \               __   _/      
+   \ \__     \\__           /  \_//  _ _ \
+/     \ \_   _//_\___     _/    //        
+       \  \ /        \_ _/     /          
+</div>
+<div id="frame7" class="frame">
+   ___                          
+ _/XXX\                                     
+/XXXXXX\_                                  /
+X XXXX XX\                          __    /X
+_       \ \                       _/  \__/
+ \_      \ \               __   _/      
+ \ \__     \\__           /  \_//  _ _ \
+    \ \_   _//_\___     _/    //        
+     \  \ /        \_ _/     /          
+</div>
+<div id="frame8" class="frame">
+ ___                                        
+/XXX\                                     _/
+XXXXX\_                                  /XX
+XXXX XX\                          __    /X X
+      \ \                       _/  \__/
+_      \ \               __   _/      
+ \__     \\__           /  \_//  _ _ \
+  \ \_   _//_\___     _/    //        
+   \  \ /        \_ _/     /          
+</div>
+<div id="frame9" class="frame">
+__                                        __
+XX\                                     _/XX
+XXX\_                                  /XXXX
+XX XX\                          __    /X XXX 
+    \ \                       _/  \__/
+     \ \               __   _/      
+__     \\__           /  \_//  _ _ \
+\ \_   _//_\___     _/    //        
+ \  \ /        \_ _/     /          
+</div>
+<div id="frame10" class="frame">
+                                        ___
+\                                     _/XXX\
+X\_                                  /XXXXXX
+ XX\                          __    /X XXXX 
+  \ \                       _/  \__/
+   \ \               __   _/      
+     \\__           /  \_//  _ _ \
+\_   _//_\___     _/    //        
+  \ /        \_ _/     /          
+</div>
+<div id="frame11" class="frame">
+                                      ___
+                                    _/XXX\
+_                                  /XXXXXX\_
+X\                          __    /X XXXX XX
+\ \                       _/  \__/         \
+ \ \               __   _/                  
+   \\__           /  \_//  _ _ \
+   _//_\___     _/    //        
+\ /        \_ _/     /          
+</div>
+<div id="frame12" class="frame">
+                                    ___
+                                  _/XXX\
+                                 /XXXXXX\_
+                          __    /X XXXX XX\
+\                       _/  \__/         \ \
+ \               __   _/                  \ 
+ \\__           /  \_//  _ _ \              
+ _//_\___     _/    //        
+/        \_ _/     /          
+</div>
+<div id="frame13" class="frame">
+                                 ___ 
+                               _/XXX\
+                              /XXXXXX\_ 
+                        __   /X XXXX XX\
+                      _/  \_/__       \ \
+               __   _//                __\ 
+\__           /  \_//    __           /  \\_
+//_\___     _/  \ \_   _/ _\___     _/    //
+       \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame14" class="frame">
+                               ___ 
+                             _/XXX\
+                            /XXXXXX\_ 
+                      __   /X XXXX XX\
+                    _/  \_/__       \ \
+             __   _//                __\   
+_           /  \_//    __           /  \\__
+_\___     _/  \ \_   _/ _\___     _/    // \
+     \_ _/     \  \ /        \_ _/     /
+</div>
+<div id="frame15" class="frame">
+                             ___ 
+                           _/XXX\
+                          /XXXXXX\_ 
+                    __   /X XXXX XX\
+                  _/  \_/__       \ \
+           __   _//                __\   
+          /  \_//    __           /  \\__
+___     _/  \ \_   _/ _\___     _/   _//_\_
+   \_ _/     \  \ /        \_ _/    /    
+</div>
+<div id="frame16" class="frame">
+                           ___ 
+                         _/XXX\
+                        /XXXXXX\_ 
+                  __   /X XXXX XX\
+                _/  \_/__       \ \
+         __   _//                __\   
+        /  \_//    __           /  \\__
+_     _/  \ \_   _/ _\___     _/   _//_\___
+ \_ _/     \  \ /        \_ _/    /        
+</div>
+<div id="frame17" class="frame">
+                         ___ 
+                       _/XXX\
+                      /XXXXXX\_ 
+                __   /X XXXX XX\
+              _/  \_/__       \ \
+       __   _//                __\   
+      /  \_//    __           /  \\__
+    _/  \ \_   _/ _\___     _/   _//_\___
+_ _/     \  \ /        \_ _/    /        \_
+</div>
+<div id="frame18" class="frame">
+                       ___ 
+                     _/XXX\
+                    /XXXXXX\_ 
+              __   /X XXXX XX\
+            _/  \_/__       \ \
+     __   _//                __\   
+    /  \_//    __           /  \\__
+  _/  \ \_   _/ _\___     _/   _//_\___
+_/     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame19" class="frame">
+                     ___ 
+                   _/XXX\
+                  /XXXXXX\_ 
+            __   /X XXXX XX\
+          _/  \_/__       \ \
+   __   _//                __\   
+  /  \_//    __           /  \\__
+_/  \ \_   _/ _\___     _/   _//_\___     _/
+     \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame20" class="frame">
+                   ___ 
+                 _/XXX\
+                /XXXXXX\_ 
+          __   /X XXXX XX\
+        _/  \_/__       \ \
+ __   _//                __\               _
+/  \_//    __           /  \\__           / 
+  \ \_   _/ _\___     _/   _//_\___     _/
+   \  \ /        \_ _/    /        \_ _/
+</div>
+<div id="frame21" class="frame">
+                 ___ 
+               _/XXX\
+              /XXXXXX\_ 
+        __   /X XXXX XX\
+      _/  \_/__       \ \
+_   _//                __\               __
+ \_//    __           /  \\__           /  \
+\ \_   _/ _\___     _/   _//_\___     _/
+ \  \ /        \_ _/    /        \_ _/
+</div><div id="frame22" class="frame drive">
+                 ______
+                /|_||_\`.__
+    `,         (   _    _ _\
+          ; ,  =`-(_)--(_)-' 
+----------------=-------------`~`~``~--~~^--
+</div>
+<div id="frame23" class="frame">
+                 ______
+  ;             /|_||_\`.__
+    ,          (   _    _ _\
+       ;   ; ,.=`-(_)--(_)-' 
+---=--------------`~`~``~--~~^------------&-
+</div>
+<div id="frame24" class="frame">
+                  ______
+                 /|_||_\`.__
+       ;        (   _    _ _\
+      ,    ;  , =`-(_)--(_)-' 
+------`~`~``~--~~^------------&----------=--
+</div>
+<div id="frame25" class="frame">
+                 ______
+                /|_||_\`.__
+        ,      (   _    _ _\
+  `      '; ; .=`-(_)--(_)-' 
+~``~--~~^------&------------------=---------
+</div>
+<div id="frame26" class="frame">
+                ______
+               /|_||_\`.__
+        `,    (   _    _ _\
+    ;      ;,.=`-(_)--(_)-' 
+^----&--------------------=--------------`~`
+</div>
+
+
+
+GAS, ENGINE, BRAKES, WHEELS are vital stats that correspond with Jerry Cans (GAS), car parts (engine, brakes), and tires. You will see the location and the format for how these stats are represented in the user interface:
+
+
+| "Map says: 000km 'til next stop... ugh." |
+--------------------------------------------
+| TRIPOMETER:          GAS:00%  ENGINE:00% |
+| 000,000km         BRAKES:00%  WHEELS:00% |
+--------------------------------------------
+|        TRUNK:             GLOVE BOX:     |
+|[1. Jerry Can (10%) ][1. Hand Gun (6/6)  ]|
+|[2. Car Parts (20%) ][2.                 ]|
+|[3.                 ][3.                 ]|
+~~~CB~RADIO~\/\~~~~/~~~~~/\/~/\~~~~/\/~~~~~~
+|                                --------- |
+| "Do you read me?"               |"10-2!"| |
+|                                --------- |
+--------------------------------------------
+
+there are several elements to this user interface that require a bit of explanation, so let's get into that.
+
+for startles, you'll notice a quote that says "map says: 000km till next stop". "000km" is just a placeholder that you will replace with something more interesting. this sentence informs the player. how many kilometers it will take them to get to the next location, so let's first talk about locations.
+
+this is a game about driving down a long road, so stopping at locations is important for survival. The player can find interesting items at locations but there's also danger as well. 
+
+In this game kilometers are measured in time not distance. the base kilometer per unit of fuel ratio in this game is 50km per unit. to travel that distance at base speed will take 5 minutes, so the player travels 10k per minute.
+
+The frequency of locations will be calculated by a randomizer. when a player leaves a location, the randomizer is activated and the next location is selected. The randomizer chooses a time between 1 and 10 minutes, And the chosen time represents the distance in kilometers to the next location. when the player reaches the next location, an encounter occurs. when the encounter is resolved, The randomizer is reactivated and a new location is selected, thus refreshing the "000km" placeholder in the sentence. let's have an example.
+
+let's say the randomizer chooses between 1 and 10 minutes, choosing 6 minutes. given base statistics 6 minutes translates to 60 km, so the sentence would read as follows:
+
+"Map says: 60km 'til next stop...ugh."
+
+now let's talk about the tripometer. like the distance to location sentence, The tripometer reads for the player a distance. to be specific, total distance traveled. that should be simple enough. when the game begins the counter starts at 0 km. if the player travels, 560 km, The tripometer will reflect this. 
+
+As I mentioned, gas, engine, brakes and wheels also  stand next to placeholders ("00%"). normally, these percentages would range, because the player picks up items that can be used to replenish those percentages. additionally, those percentages automatically decrease as a primary function of the game.
+
+- gas depletes by 1 unit, or 1 %, every minute.
+- engine depletes by 1 unit, or 1%, every 3.2 minutes.
+- brakes deplete by 1 unit, or 1%, every 3.6 minutes
+- wheels deplete by 25% every 10 minutes.
+
+next is inventory.
+You can see I've included a few more placeholders in the item slots. It's important to understand that some items are meant for the trunk and some items are meant for the glove box as indicated. Jerry cans and car parts are meant for the trunk. when the player selects them, they go there automatically. they're selected from a location's inventory. each location will have an inventory with two randomly generated items. the available items are jerry cans, which, when used, add 10% gas to the total. car parts, which, when used on either the engine or the brakes, Will increase that corresponding total by 20%. And then the final item for the trunk, The wheel, increases the wheel percentage by 25%. items cannot be used. if the addition of their percentage would exceed 100%. instead, the player must hold on to the item and wait for the percentage to drop low enough that they can use the item and top up the total. 
+
+alternatively, the player can take items from their inventory and put them in location inventories. basically, a player can leave items behind in inventories in order to proceed with the combination of items they want.
+
+You will also notice the handgun in the glove box. The handgun reads six of six. those represent bullets. sometimes a location generates a dangerous event, like a raider ambush. if the player does not have a handgun, the raiders take 5% of the players gasoline. if the player's gasoline drops to zero, the game is over. however, if the player has a handgun, they will successfully defend against the raiders and their total number of bullets will decrease by two. when the number of bullets in the handgun drops zero, It disappears from the glove box. 
+
+The final section of the interface is the CB radio section, which has a button ("10-2!").
+
+like locations, transmissions appear on the CB radio based on a randomizer. the transmission will initially display "Do you read me?" when activated. I have included that placeholder dialogue in the CB radio section so you know where to put it. The transmission stays there for 10 seconds, disappears. while the transmission is there, the "10-2!" button is active and red in colour. when the transmission is gone, the button goes dormant. 
+
+if the player hits the button well the transmission is there, The distance to the next stop will be reduced by 20 km and a new transmission will replace the last one, reading "I got another location for you!". The second transmission will stay on the screen for 10 seconds. The second transmission does not require the button to be active. The button is only active when the first transmission is on the screen so that the player can respond to the first transmission 
+
+okay, thank you for analyzing everything I've told you and now I would like you to please implement my instructions upon the user interface to the best of your ability. 
+
+for the sake of expediency, I have removed the animation frames from the program. please do not try to replace them. they have only been removed to speed up the process of generating code. I will reinsert the animation frames once the code is functional.

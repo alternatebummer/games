@@ -18,30 +18,8 @@
     align-items: center;
     margin: 0;
   }
-  .title {
-    color: #EC9974;
-    font-family: 'courier new', monospace;
-    font-size: 40px;
-    font-weight: bold;
-    line-height: 30%;
-  }
-  .titlesm {
-    color: #EC9974;
-    font-family: 'courier new', monospace;
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 100%;
-  }
-
-  .letter {
-    color: #D9CAA0;
-    font-family: 'courier new', monospace;
-    font-size: 14px;
-    font-weight: thin;
-    line-height: 115%;
-  }
   .div-1 {
-    
+    background-color: #0D0E11;
   }
   .div-2 {
     color: #FFC300;
@@ -81,7 +59,7 @@
     width: 100%;
     height: 100%;
     overflow: none;
-    margin-top: -28%;
+    margin-top: -450px;
     background-color: black;
     display: flex;
     opacity: 0.85;
@@ -90,7 +68,7 @@
     margin: auto;
     padding-left: 15px;
     padding-right: 15px;
-    border: 50px solid black;
+    border: 1px dotted #D9CAA0;
     width: 350px;
     height: 600px;
     text-align: left;
@@ -112,13 +90,13 @@
   .pause-button {
     cursor: pointer;
     color: #ec9274;
-    font-size: 20px;
+    font-size: 13px;
     font-weight: bold;
     margin-top: 14px;
   }
 </style>
 </head>
-<body><p></p><p></p><div class="titlesm">             LONG HIGHWAY</div>
+<body>
 <div id="frame1" class="frame active">
                ___                          
              _/XXX\
@@ -384,7 +362,6 @@ _   _//                __\               __
     ;      ;,.=`-(_)--(_)-' 
 ^----&--------------------=--------------`~`
 </div>
-
 <div class="div-1">| <i>"Map says: <span id="distance">000</span>km 'til next stop... ugh."</i> |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 | TRIPOMETER:        GAS:<span id="gas">000</span>%  ENGINE:<span id="engine">000</span>% |
@@ -395,42 +372,21 @@ _   _//                __\               __
 |   <span id="trunk2">                   </span><span id="glovebox2">                   </span> |
 |   <span id="trunk3">                   </span><span id="glovebox3">                   </span> |
 \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
-           <span id="pause-button" class="pause-button" onclick="togglePause()">DISENGAGE THE E-BRAKE</span>
-</div><div id="encounterModal" class="modal"><div class="modal-content"><span id="modal-welcome" style="display: none;">
-          Welcome to:<div class="title">
-   LONG HIGHWAY</div>             ___                          
-           _/XXX\
-          /XXXXXX\_                       
-    __   /X XXXX XX\                      
-   /  \_/__       \ \                     
- _/_   \/  \_      \ \               __   
-/   \__/   \ \__     \\__           /  \_/
-_    \  /     \ \_   _//_\___     _/    //
-      \        \  \ /        \_ _/     /
-__________________________________________
-       ,              _  _-/   \
-     - |_               _-/ ____\
-              ``.   -  _-/ /____\\   __
-        &           _ _-/ |==__==|\ [90]
-      -    ,`        _-/  ~||~~||~ \  |<div class="letter">
-Long Highway is a game of patience, plans,
-and  dumb  luck. There's a lot of driving
-invloved. You'll find items along the way
-that you can use  to repair your  car and
-defend yourself.
+                   <span id="pause-button" class="pause-button" onclick="togglePause()">UNPAUSE</span>
+</div>
 
-|  <i>I've decided to go for a quick drive. |
-| I couldn't find my sunglasses. You can |
-| keep them. Not sure when I'll          |
-| be home.                               |
-|                                        |
-| Yours,                                 |
-|                                        |
-| Onion</i>                                  |
-
-            <span id="startButton" class="pause-button" onclick="closeModal()">START THE CAR</span>
-
-  </div></div>
+<div id="encounterModal" class="modal">
+  <div class="modal-content">
+    <span id="modal-welcome" style="display: none;">
+      <p>Welcome to the game! Click START to begin.</p>
+      <button onclick="closeModal()">START</button>
+    </span>
+    <span id="modal-encounter" style="display: none;">
+      <p id="modal-message"></p>
+      <button onclick="closeModal()">CLOSE</button>
+    </span>
+  </div>
+</div>
 
 <script>
   // Randomly generate initial stats
@@ -669,7 +625,7 @@ defend yourself.
   function togglePause() {
     if (isPaused) {
       isPaused = false;
-      document.getElementById('pause-button').innerText = '     ENGAGE THE E-BRAKE';
+      document.getElementById('pause-button').innerText = 'PAUSE';
       gameInterval = setInterval(() => {
         if (!isPaused) {
           tripometer += 1;
@@ -689,7 +645,7 @@ defend yourself.
       }, 1000); // 1 second interval in real-time
     } else {
       isPaused = true;
-      document.getElementById('pause-button').innerText = '  DISENGAGE THE E-BRAKE';
+      document.getElementById('pause-button').innerText = 'UNPAUSE';
       clearInterval(gameInterval);
     }
   }
