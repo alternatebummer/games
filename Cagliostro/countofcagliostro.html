@@ -7,10 +7,11 @@
     <style>
         body {
             display: flex;
+	    position: absolute;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+	    padding: 50px;
             margin: 0;
             background-color: lightblue;
         }
@@ -41,6 +42,35 @@
         .selected {
             background-color: #e2b66a !important;
         }
+	.disc-button {
+	    position: absolute;
+            width: 70px;
+            height: 108px;
+	    display: flex;
+            font-size: 120px;
+            background-color: #e2825b;
+            border: 1px solid #ccc;
+            line-height: 1px;
+            justify-content: center;
+            align-items: center;
+	    right: 55px;
+	    bottom: 162px;
+	}
+	.hand-button {
+	    position: absolute;
+            width: 70px;
+            height: 108px;
+	    display: flex;
+            font-size: 120px;
+            background-color: #e2825b;
+            border: 1px solid #ccc;
+            line-height: 1px;
+            justify-content: center;
+            align-items: center;
+	    right: 131px;
+	    bottom: 162px;
+	}
+
         #controls {
             margin-top: 20px;
             display: flex;
@@ -83,11 +113,12 @@
         <div>Blind: <span id="blind">300</span></div>
         <div>Hands Remaining: <span id="hands-remaining">3</span></div>
         <div>Discards Remaining: <span id="discards-remaining">3</span></div>
+        <button id="discard-button" class="disc-button">🃲</button>
+        <button id="play-hand-button" class="hand-button">🃴</button>
     </div>
     <div id="board"></div>
     <div id="controls">
-        <button id="discard-button">Discard</button>
-        <button id="play-hand-button">Play Hand</button>
+
         <div id="score">Score: 0</div>
         <div id="hand-type">Hand Type: </div>
     </div>
