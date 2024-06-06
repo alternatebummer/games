@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Count of Cagliostro</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: lightblue;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 75px);
+            grid-template-rows: repeat(3, 114px);
+            gap: 1px;
+            margin-top: 10px;
+        }
+        .cell {
+            width: 68px;
+            height: 108px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 120px;
+            background-color: #e2825b;
+            border: 1px solid #ccc;
+            line-height: 1px;
+        }
+        .piece {
+            cursor: grab;
+        }
+        .grabbing {
+            cursor: grabbing;
+        }
+        .selected {
+            background-color: #e2b66a !important;
+        }
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        #hand-type {
+            font-size: 18px;
+            margin-top: 0px;
+        }
+        #header, #footer {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #deck, #discard-pile {
+            border: 2px solid black;
+            width: 60px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 5px;
+        }
+        #game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">Count of Cagliostro</div>
+    <div id="game-info">
+        <div>Blind: <span id="blind">300</span></div>
+        <div>Hands Remaining: <span id="hands-remaining">3</span></div>
+        <div>Discards Remaining: <span id="discards-remaining">3</span></div>
+    </div>
+    <div id="board"></div>
+    <div id="controls">
+        <button id="discard-button">Discard</button>
+        <button id="play-hand-button">Play Hand</button>
+        <div id="score">Score: 0</div>
+        <div id="hand-type">Hand Type: </div>
+    </div>
+    <div id="footer">Points and multipliers associated with each poker hand...</div>
+    <script>
+        const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
+        const rankValues = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'Jack': 10, 'Queen': 10, 'King': 10, 'Ace': 11};
+        const unicodeCards = {
+            '2Hearts': '🂲', '3Hearts': '🂳', '4Hearts': '🂴', '5Hearts': '🂵', '6Hearts': '🂶', '7Hearts': '🂷', '8Hearts': '🂸', '9Hearts': '🂹', '10Hearts': '🂺', 'JackHearts': '🂻', 'QueenHearts': '🂽', 'KingHearts': '🂾', 'AceHearts': '🂱',
+            '2Diamonds': '🃂', '3Diamonds': '🃃', '4Diamonds': '🃄', '5Diamonds': '🃅', '6Diamonds': '🃆', '7Diamonds': '🃇', '8Diamonds': '🃈', '9Diamonds': '🃉', '10Diamonds': '🃊', 'JackDiamonds': '🃋', 'QueenDiamonds': '🃍', 'KingDiamonds': '🃎', 'AceDiamonds': '🃁',
+            '2Clubs': '🃒', '3Clubs': '🃓', '4Clubs': '🃔', '5Clubs': '🃕', '6Clubs': '🃖', '7Clubs': '🃗', '8Clubs': '🃘', '9Clubs': '🃙', '10Clubs': '🃚', 'JackClubs': '🃛', 'QueenClubs': '🃝', 'KingClubs': '🃞', 'AceClubs': '🃑',
+            '2Spades': '🂢', '3Spades': '🂣', '4Spades': '🂤', '5Spades': '🂥', '6Spades': '🂦', '7Spades': '🂧', '8Spades': '🂨', '9Spades': '🂩', '10Spades': '🂪', 'JackSpades': '🂫', 'QueenSpades': '🂭', 'KingSpades': '🂮', 'AceSpades': '🂡'
+        };
+
+        let deck = [];
+        let discardPile = [];
+        let selectedCards = [];
+        let totalScore = 0;
+        let currentHand = [];
+        let currentBlind = 300;
+        let handsRemaining = 3;
+        let discardsRemaining = 3;
+
+        const board = document.getElementById('board');
+        const discardButton = document.getElementById('discard-button');
+        const playHandButton = document.getElementById('play-hand-button');
+        const scoreElement = document.getElementById('score');
+        const handTypeElement = document.getElementById('hand-type');
+        const blindElement = document.getElementById('blind');
+        const handsRemainingElement = document.getElementById('hands-remaining');
+        const discardsRemainingElement = document.getElementById('discards-remaining');
+
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let rank of ranks) {
+                    deck.push({rank: rank, suit: suit});
+                }
+            }
+            shuffle(deck);
+        }
+
+        function shuffle(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function drawHand() {
+            return deck.splice(0, 10);
+        }
+
+        function evaluateHand(hand) {
+            let score = 0;
+            let handType = "High Card";
+            let rankCount = {};
+            let suitsCount = {};
+
+            for (let card of hand) {
+                rankCount[card.rank] = (rankCount[card.rank] || 0) + 1;
+                suitsCount[card.suit] = (suitsCount[card.suit] || 0) + 1;
+            }
+
+            let pairs = 0;
+            let threeOfAKind = false;
+            let fourOfAKind = false;
+            let fullHouse = false;
+            let flush = false;
+            let straight = false;
+            let straightFlush = false;
+            let royalFlush = false;
+
+            for (let count of Object.values(rankCount)) {
+                if (count === 2) pairs++;
+                if (count === 3) threeOfAKind = true;
+                if (count === 4) fourOfAKind = true;
+            }
+
+            if (Object.values(suitsCount).includes(5)) flush = true;
+
+            let rankIndices = hand.map(card => ranks.indexOf(card.rank)).sort((a, b) => a - b);
+            let isStraight = rankIndices.every((rank, index) => index === 0 || rank === rankIndices[index - 1] + 1);
+            if (isStraight) straight = true;
+
+            if (straight && flush) {
+                straightFlush = true;
+                if (rankIndices.includes(12)) { // Ace
+                    royalFlush = true;
+                }
+            }
+
+            if (pairs === 1) handType = "Pair";
+            if (pairs === 2) handType = "Two Pair";
+            if (threeOfAKind) handType = "Three of a Kind";
+            if (fourOfAKind) handType = "Four of a Kind";
+            if (threeOfAKind && pairs) {
+                handType = "Full House";
+                fullHouse = true;
+            }
+            if (straight) handType = "Straight";
+            if (flush) handType = "Flush";
+            if (straightFlush) handType = "Straight Flush";
+            if (royalFlush) handType = "Royal Flush";
+
+            score = hand.reduce((sum, card) => sum + rankValues[card.rank], 0);
+
+            if (handType === "Two Pair") score *= 2;
+            if (threeOfAKind) score *= 3;
+            if (fourOfAKind) score *= 5;
+            if (straight) score *= 3;
+            if (fullHouse) score *= 4;
+            if (flush) score *= 3;
+            if (straightFlush) score *= 5;
+            if (royalFlush) score *= 6;
+
+            return { score: score, handType: handType };
+        }
+
+        function createBoard() {
+            for (let i = 0; i < 30; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCardSelection);
+                board.appendChild(cell);
+            }
+        }
+
+        function dealCards() {
+            const cells = document.querySelectorAll('.cell');
+            const bottomRowCells = Array.from(cells).slice(-10);
+            currentHand = drawHand();
+            for (let i = 0; i < 8; i++) {
+                const card = currentHand[i];
+                const cardKey = card.rank + card.suit;
+                bottomRowCells[i].innerHTML = `<span class="piece">${unicodeCards[cardKey]}</span>`;
+                bottomRowCells[i].querySelector('.piece').addEventListener('mousedown', () => {
+                    document.body.style.cursor = 'grabbing';
+                });
+                bottomRowCells[i].querySelector('.piece').addEventListener('mouseup', () => {
+                    document.body.style.cursor = 'default';
+                });
+            }
+        }
+
+        function drawCard() {
+            if (deck.length === 0) {
+                createDeck();
+                shuffle(deck);
+            }
+            return deck.pop();
+        }
+
+        function handleCardSelection(event) {
+            const cell = event.currentTarget;
+            if (cell.querySelector('.piece')) {
+                if (cell.classList.contains('selected')) {
+                    cell.classList.remove('selected');
+                    selectedCards = selectedCards.filter(index => index !== cell.dataset.index);
+                } else if (selectedCards.length < 5) {
+                    cell.classList.add('selected');
+                    selectedCards.push(cell.dataset.index);
+                }
+            }
+        }
+
+        discardButton.addEventListener('click', () => {
+            if (discardsRemaining <= 0) {
+                alert("No discards remaining for this blind.");
+                return;
+            }
+            if (selectedCards.length === 0 || selectedCards.length > 5) {
+                alert("You must select between 1 and 5 cards to discard.");
+                return;
+            }
+            selectedCards.forEach(index => {
+                const cell = document.querySelector(`[data-index='${index}']`);
+                cell.innerHTML = '';
+                cell.classList.remove('selected');
+                const newCard = drawCard();
+                const cardKey = newCard.rank + newCard.suit;
+                cell.innerHTML = `<span class="piece">${unicodeCards[cardKey]}</span>`;
+                cell.querySelector('.piece').addEventListener('mousedown', () => {
+                    document.body.style.cursor = 'grabbing';
+                });
+                cell.querySelector('.piece').addEventListener('mouseup', () => {
+                    document.body.style.cursor = 'default';
+                });
+                currentHand[parseInt(index) - 20] = newCard; // Update current hand
+            });
+            selectedCards = [];
+            discardsRemaining--;
+            discardsRemainingElement.textContent = discardsRemaining;
+        });
+
+        playHandButton.addEventListener('click', () => {
+            if (handsRemaining <= 0) {
+                alert("No hands remaining for this blind.");
+                return;
+            }
+            if (selectedCards.length === 0 || selectedCards.length > 5) {
+                alert("You must select exactly 5 cards to play a hand.");
+                return;
+            }
+            const playedHand = selectedCards.map(index => currentHand[parseInt(index) - 20]);
+            const result = evaluateHand(playedHand);
+            totalScore += result.score;
+            scoreElement.textContent = `Score: ${totalScore}`;
+            handTypeElement.textContent = `Hand Type: ${result.handType}`;
+
+            selectedCards.forEach(index => {
+                const cell = document.querySelector(`[data-index='${index}']`);
+                cell.innerHTML = '';
+                cell.classList.remove('selected');
+                const newCard = drawCard();
+                const cardKey = newCard.rank + newCard.suit;
+                cell.innerHTML = `<span class="piece">${unicodeCards[cardKey]}</span>`;
+                cell.querySelector('.piece').addEventListener('mousedown', () => {
+                    document.body.style.cursor = 'grabbing';
+                });
+                cell.querySelector('.piece').addEventListener('mouseup', () => {
+                    document.body.style.cursor = 'default';
+                });
+                currentHand[parseInt(index) - 20] = newCard; // Update current hand
+            });
+            selectedCards = [];
+            handsRemaining--;
+            handsRemainingElement.textContent = handsRemaining;
+
+            if (totalScore >= currentBlind) {
+                alert("You have defeated the blind!");
+                currentBlind += 100;
+                blindElement.textContent = currentBlind;
+                totalScore = 0;
+                handsRemaining = 3;
+                discardsRemaining = 3;
+                scoreElement.textContent = `Score: ${totalScore}`;
+                handsRemainingElement.textContent = handsRemaining;
+                discardsRemainingElement.textContent = discardsRemaining;
+                createDeck();
+                dealCards();
+            } else if (handsRemaining <= 0) {
+                alert("You have no hands remaining. Resetting for next blind.");
+                totalScore = 0;
+                handsRemaining = 3;
+                discardsRemaining = 3;
+                scoreElement.textContent = `Score: ${totalScore}`;
+                handsRemainingElement.textContent = handsRemaining;
+                discardsRemainingElement.textContent = discardsRemaining;
+                createDeck();
+                dealCards();
+            }
+        });
+
+        // Initial setup
+        createDeck();
+        createBoard();
+        dealCards();
+    </script>
+</body>
+</html>

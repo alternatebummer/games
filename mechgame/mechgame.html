@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Chess</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            cursor: default;
+            position: relative;
+        }
+        #game-container {
+            display: flex;
+        }
+        #chess-board {
+    display: grid;
+    grid-template-columns: repeat(10, 100px);
+    grid-template-rows: repeat(3, 120px);
+    gap: 2px;
+        }
+        .square {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .black {
+            background-color: grey;
+        }
+        .white {
+            background-color: white;
+        }
+        .piece {
+            font-size: 60px;
+            cursor: grab;
+        }
+        .grabbing {
+            cursor: grabbing;
+        }
+        #controls {
+            margin-left: 20px;
+        }
+        #turn-indicator {
+            margin-top: 10px;
+            font-size: 20px;
+        }
+        #selected-piece {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px;
+            border: 1px solid black;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            width: 204px;
+            height: 400px;
+            display: none;
+        }
+        #selected-piece.active {
+            display: block;
+        }
+        .hp-bar {
+            width: 100%;
+            background-color: grey;
+        }
+        .hp-bar-inner {
+            height: 20px;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <div id="selected-piece">
+        <div id="selected-piece-display"></div>
+        <div id="selected-piece-bio"></div>
+        <div class="hp-bar">
+            <div id="selected-piece-hp" class="hp-bar-inner"></div>
+        </div>
+        <button id="attack-button">Attack</button>
+    </div>
+    <div id="game-container">
+        <div id="chess-board"></div>
+        <div id="controls">
+            <button id="end-turn" disabled>End Turn</button>
+            <button id="undo-move" disabled>Undo Move</button>
+            <div id="turn-indicator">Turn: White</div>
+            <h3>Captured Pieces</h3>
+            <div id="captured-pieces"></div>
+        </div>
+    </div>
+    <script>
+        const pieces = {
+            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+        };
+        const pieceBios = {
+            'r': 'Rook: Moves horizontally or vertically any number of squares.',
+            'n': 'Knight: Moves in an L-shape: two squares in one direction and then one square perpendicular.',
+            'b': 'Bishop: Moves diagonally any number of squares.',
+            'q': 'Queen: Moves horizontally, vertically, or diagonally any number of squares.',
+            'k': 'King: Moves one square in any direction.',
+            'p': 'Pawn: Moves forward one square, with the option to move two squares if they have not yet moved.',
+            'R': 'Rook: Moves horizontally or vertically any number of squares.',
+            'N': 'Knight: Moves in an L-shape: two squares in one direction and then one square perpendicular.',
+            'B': 'Bishop: Moves diagonally any number of squares.',
+            'Q': 'Queen: Moves horizontally, vertically, or diagonally any number of squares.',
+            'K': 'King: Moves one square in any direction.',
+            'P': 'Pawn: Moves forward one square, with the option to move two squares if they have not yet moved.'
+        };
+        const initialBoard = [
+            ['', '', { piece: 'k', hp: 10 }, '', ''],
+            ['', '', '', '', ''],
+            ['', '', '', '', ''],
+            ['', '', '', '', ''],
+            ['', '', { piece: 'K', hp: 10 }, '', ''],
+        ];
+        let board = initialBoard.map(row => row.slice());
+        let selected = null;
+        let turn = 'w';
+        let capturedPieces = { 'w': [], 'b': [] };
+        let hasMoved = false;
+        let hasAttacked = false;
+        let lastMove = null;
+
+        const boardElement = document.getElementById('chess-board');
+        const capturedPiecesElement = document.getElementById('captured-pieces');
+        const endTurnButton = document.getElementById('end-turn');
+        const undoMoveButton = document.getElementById('undo-move');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const selectedPieceDisplay = document.getElementById('selected-piece-display');
+        const selectedPieceBio = document.getElementById('selected-piece-bio');
+        const selectedPieceHp = document.getElementById('selected-piece-hp');
+        const selectedPieceContainer = document.getElementById('selected-piece');
+        const attackButton = document.getElementById('attack-button');
+
+        const rows = ['1', '2', '3', '4', '5'];
+        const cols = ['a', 'b', 'c', 'd', 'e'];
+
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            for (let y = 0; y < 5; y++) {
+                for (let x = 0; x < 5; x++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square', (x + y) % 2 == 0 ? 'white' : 'black');
+                    square.dataset.x = x;
+                    square.dataset.y = y;
+                    square.dataset.position = `${cols[x]}${rows[y]}`;
+                    square.onclick = () => handleSquareClick(x, y);
+                    if (board[y][x]) {
+                        const pieceData = board[y][x];
+                        const piece = document.createElement('div');
+                        piece.classList.add('piece');
+                        piece.textContent = pieces[pieceData.piece];
+                        piece.onmousedown = () => piece.classList.add('grabbing');
+                        piece.onmouseup = () => piece.classList.remove('grabbing');
+                        square.appendChild(piece);
+                    }
+                    boardElement.appendChild(square);
+                }
+            }
+        }
+
+        function handleSquareClick(x, y) {
+            if (hasMoved && hasAttacked) return;
+            if (selected) {
+                if (selected.x === x && selected.y === y) {
+                    selected = null;
+                    document.body.style.cursor = 'default';
+                    selectedPieceDisplay.innerHTML = '';
+                    selectedPieceBio.innerHTML = '';
+                    selectedPieceHp.style.width = '0%';
+                    selectedPieceContainer.classList.remove('active');
+                } else {
+                    if (!hasMoved && isValidMove(selected.x, selected.y, x, y) && !board[y][x]) {
+                        const piece = board[selected.y][selected.x];
+                        lastMove = { fromX: selected.x, fromY: selected.y, toX: x, toY: y, piece, target: null };
+                        board[y][x] = piece;
+                        board[selected.y][selected.x] = '';
+                        selected = null;
+                        document.body.style.cursor = 'default';
+                        hasMoved = true;
+                        endTurnButton.disabled = hasAttacked;
+                        undoMoveButton.disabled = false;
+                        selectedPieceDisplay.innerHTML = '';
+                        selectedPieceBio.innerHTML = '';
+                        selectedPieceHp.style.width = '0%';
+                        selectedPieceContainer.classList.remove('active');
+                        renderBoard();
+                    }
+                }
+            } else if (board[y][x] && ((board[y][x].piece.toLowerCase() !== board[y][x].piece) === (turn === 'w'))) {
+                selected = { x, y };
+                document.body.style.cursor = 'grabbing';
+                selectedPieceDisplay.innerHTML = pieces[board[y][x].piece];
+                selectedPieceBio.innerHTML = pieceBios[board[y][x].piece];
+                selectedPieceHp.style.width = `${(board[y][x].hp / 10) * 100}%`;
+                selectedPieceContainer.classList.add('active');
+            }
+        }
+
+        function isValidMove(fromX, fromY, toX, toY) {
+            const dx = Math.abs(toX - fromX);
+            const dy = Math.abs(toY - fromY);
+            return dx <= 1 && dy <= 1;
+        }
+
+        function updateCapturedPieces() {
+            capturedPiecesElement.innerHTML = '';
+            for (const color in capturedPieces) {
+                const section = document.createElement('div');
+                section.textContent = color === 'w' ? 'White: ' : 'Black: ';
+                section.textContent += capturedPieces[color].join(' ');
+                capturedPiecesElement.appendChild(section);
+            }
+        }
+
+        function updateTurnIndicator() {
+            turnIndicator.textContent = `Turn: ${turn === 'w' ? 'White' : 'Black'}`;
+        }
+
+        endTurnButton.onclick = () => {
+            turn = turn === 'w' ? 'b' : 'w';
+            updateTurnIndicator();
+            document.body.style.cursor = 'default';
+            selected = null;
+            hasMoved = false;
+            hasAttacked = false;
+            endTurnButton.disabled = true;
+            undoMoveButton.disabled = true;
+            selectedPieceDisplay.innerHTML = '';
+            selectedPieceBio.innerHTML = '';
+            selectedPieceHp.style.width = '0%';
+            selectedPieceContainer.classList.remove('active');
+        };
+
+        undoMoveButton.onclick = () => {
+            if (lastMove) {
+                board[lastMove.fromY][lastMove.fromX] = lastMove.piece;
+                board[lastMove.toY][lastMove.toX] = lastMove.target;
+                selected = null;
+                hasMoved = false;
+                endTurnButton.disabled = true;
+                undoMoveButton.disabled = true;
+                renderBoard();
+            }
+        };
+
+        attackButton.onclick = () => {
+            if (selected && !hasAttacked) {
+                const target = prompt("Enter the target position (e.g., c3):");
+                if (target) {
+                    const toX = cols.indexOf(target[0]);
+                    const toY = rows.indexOf(target[1]);
+                    if (toX >= 0 && toY >= 0) {
+                        handleAttack(selected.x, selected.y, toX, toY);
+                    }
+                }
+            }
+        };
+
+        function handleAttack(fromX, fromY, toX, toY) {
+            const dx = Math.abs(toX - fromX);
+            const dy = Math.abs(toY - fromY);
+            const distance = Math.max(dx, dy);
+
+            if (distance > 3) {
+                alert("Target is out of range.");
+                return;
+            }
+
+            const accuracy = [0, 0.9, 0.7, 0.5][distance];
+            const damage = [0, 5, 3, 2][distance];
+
+            if (Math.random() < accuracy) {
+                const targetPiece = board[toY][toX];
+                if (targetPiece) {
+                    targetPiece.hp = (targetPiece.hp || 10) - damage;
+                    if (targetPiece.hp <= 0) {
+                        capturedPieces[turn].push(pieces[targetPiece.piece]);
+                        board[toY][toX] = '';
+                        updateCapturedPieces();
+                    }
+                    renderBoard();
+                    hasAttacked = true;
+                    endTurnButton.disabled = !hasMoved;
+                } else {
+                    alert("No target found.");
+                }
+            } else {
+                alert("Attack missed!");
+                hasAttacked = true;
+                endTurnButton.disabled = !hasMoved;
+            }
+        }
+
+        renderBoard();
+    </script>
+</body>
+</html>

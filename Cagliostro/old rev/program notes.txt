@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Count of Cagliostro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            width: 80%;
+            max-width: 1000px;
+        }
+        .header, .footer {
+            grid-column: span 10;
+            text-align: center;
+        }
+        .card {
+            width: 50px;
+            height: 70px;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .card.empty {
+            background-color: lightgrey;
+        }
+        .menu, .stats {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .menu {
+            grid-column: span 1;
+        }
+        .stats {
+            grid-column: span 1;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Count of Cagliostro</div>
+        <!-- Top Row -->
+        <div class="menu">
+            <button onclick="newRun()">New Run</button>
+            <button onclick="mainMenu()">Main Menu</button>
+            <button onclick="showPokerHands()">Poker Hands</button>
+        </div>
+        <div class="card" id="hand1"></div>
+        <div class="card" id="hand2"></div>
+        <div class="card" id="hand3"></div>
+        <div class="card" id="hand4"></div>
+        <div class="card" id="hand5"></div>
+        <div class="stats" id="stats">Blind: 50<br>Points: 0</div>
+        <!-- Middle Row -->
+        <div class="card" id="card1"></div>
+        <div class="card" id="card2"></div>
+        <div class="card" id="card3"></div>
+        <div class="card" id="card4"></div>
+        <div class="card" id="card5"></div>
+        <div class="card" id="card6"></div>
+        <div class="card" id="card7"></div>
+        <div class="card" id="card8"></div>
+        <div class="card empty"></div>
+        <div class="card empty"></div>
+        <!-- Bottom Row -->
+        <div class="card" id="castle1"></div>
+        <div class="card" id="castle2"></div>
+        <div class="card" id="castle3"></div>
+        <div class="card empty"></div>
+        <div class="card empty"></div>
+        <div class="card empty"></div>
+        <div class="card empty"></div>
+        <div class="card empty"></div>
+        <div class="card" id="deck"></div>
+        <div class="card" id="discard"></div>
+        <div class="footer">Form the highest-scoring poker hand to beat the blind!</div>
+    </div>
+
+    <script>
+        const deck = [];
+        const hand = [];
+        let blind = 50;
+        let points = 0;
+
+        function initDeck() {
+            const suits = ['♠', '♥', '♦', '♣'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push(value + suit);
+                }
+            }
+        }
+
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function dealHand() {
+            hand.length = 0; // Clear hand
+            for (let i = 0; i < 8; i++) {
+                hand.push(deck.pop());
+            }
+            displayHand();
+        }
+
+        function displayHand() {
+            for (let i = 0; i < 8; i++) {
+                document.getElementById('card' + (i + 1)).textContent = hand[i];
+            }
+        }
+
+        function newRun() {
+            initDeck();
+            shuffleDeck();
+            dealHand();
+            points = 0;
+            document.getElementById('stats').innerHTML = `Blind: ${blind}<br>Points: ${points}`;
+        }
+
+        function mainMenu() {
+            alert('Main Menu is not yet implemented.');
+        }
+
+        function showPokerHands() {
+            alert('Poker Hands info is not yet implemented.');
+        }
+
+        // Initialize the game
+        newRun();
+    </script>
+</body>
+</html>

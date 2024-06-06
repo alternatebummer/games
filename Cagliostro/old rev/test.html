@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Chess Board</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            gap: 2px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            background-color: white;
+            border: 1px solid #ccc;
+        }
+        .cell:nth-child(even) {
+            background-color: #ddd;
+        }
+        .cell:nth-child(odd) {
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="board"></div>
+    <script>
+        const board = document.getElementById('board');
+        const cardUnicode = [
+            '🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨',
+            '🂩', '🂪', '🂫', '🂬', '🂭', '🂮', '🂯', '🂰',
+            '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸',
+            '🂹', '🂺', '🂻', '🂼', '🂽', '🂾', '🂿', '🃀',
+            '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈',
+            '🃉', '🃊', '🃋', '🃌', '🃍', '🃎', '🃏', '🃐',
+            '🃑', '🃒', '🃓', '🃔'
+        ];
+
+        function createBoard() {
+            for (let i = 0; i < 64; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                board.appendChild(cell);
+            }
+        }
+
+        function placeCards() {
+            const cells = document.querySelectorAll('.cell');
+            for (let i = 0; i < 8; i++) {
+                cells[56 + i].textContent = cardUnicode[i];
+            }
+        }
+
+        createBoard();
+        placeCards();
+    </script>
+</body>
+</html>
