@@ -44,8 +44,9 @@
     </style>
 </head>
 <body>
+  <img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png">
     <div id="info">
-        <p id="clock">Time: )7:10 AM</p>
+        <p id="clock">Time: 7:10 AM</p>
         <p id="location">Location: Fair Harbour</p>
         <p id="stamina">Stamina: Well rested!</p>
         <p id="wallet">Wallet: $0</p>
@@ -246,14 +247,12 @@
             sleepButton.style.display = 'none';
             setSailButton.style.display = 'none';
             sellButton.style.display = 'none';
-            locationSelect.style.display = 'none';
         }
 
         function showButtons() {
             catchButton.style.display = 'inline-block';
             sleepButton.style.display = 'inline-block';
             setSailButton.style.display = 'inline-block';
-            locationSelect.style.display = 'inline-block';
             sellButton.style.display = (currentLocation === "Fair Harbour") ? 'inline-block' : 'none';
         }
 
