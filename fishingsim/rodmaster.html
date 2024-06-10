@@ -31,6 +31,7 @@
             font-family: inherit;
             flex-direction: column;
             align-items: center;
+	    justify-content: center;
             padding: 20px;
 	    x-index: 2;
         }
@@ -40,7 +41,8 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 2px;
-            min-width: 260px;
+            min-width: 300px;
+	    width: 100%;
             font-size: 16px;
             text-align: center;
             line-height: 2px;
@@ -57,12 +59,15 @@
         }
         .msgs {
             position: absolute;
-            top: 355px;
+            min-width: 300px;
+	    width: 100%;
+            top: 365px;
             left: 50%;
+	    text-align: center;
             transform: translateX(-50%);
             margin-top: 110px;
             margin-left: 0;
-            align-items: left; 
+            align-items: center; 
 	    color: black !important;   
         }
         #actions span {
@@ -130,6 +135,7 @@
             <div id="throwback-message"></div>
         </div>        
         <div id="inventory"></div>
+
     </div>
 
     <script>
@@ -234,8 +240,8 @@
                 newColor = '#7db5e3';
                 newTextColor = '#0067cb'; // black text
             } else if (hours >= 13 && hours < 17) {
-                newColor = '#4777ad';
-                newTextColor = '#5daaf5'; // black text
+                newColor = '#7db5e3';
+                newTextColor = '#0067cb'; // black text
             } else if (hours >= 17 && hours < 21) {
                 newColor = '#165391';
                 newTextColor = '#0067cb'; // black text
