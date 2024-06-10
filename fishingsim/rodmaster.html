@@ -8,6 +8,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            align-items: center;
             padding: 0;
             background-image: url('https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/headerbgrepeat.png');
             background-repeat: repeat-x;
@@ -17,6 +18,7 @@
         #game {
             display: flex;
             flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
             padding: 20px;
         }
@@ -35,6 +37,10 @@
         #inventory {
             margin-top: 20px;
         }
+        .logo img {
+            display: block;
+            margin: 0 auto;
+        }
         .fish-item {
             cursor: pointer;
             margin: 5px;
@@ -46,7 +52,7 @@
     </style>
 </head>
 <body>
-  <img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png">
+  <div class="logo"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png" alt="Header Image"></div>
     <div id="info">
         <p id="clock">Time: 7:10 AM</p>
         <p id="location">Location: Fair Harbour</p>
