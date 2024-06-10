@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Hand Generator</title>
+    <style>
+        .card {
+            display: inline-block;
+            width: 105px;
+            height: 160px;
+            margin: 5px;
+            text-align: center;
+            line-height: 162px;
+	    margin-left: 10px;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-size: 175px;
+	    margin: 2px;
+	    
+        }
+	.deepcard {
+	    margin-left: -10px;
+	}
+        .selected {
+            background-color: yellow;
+        }
+        #controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Poker Hand Generator</h1>
+    <div id="hand" class="deepcard"></div>
+    <div id="controls">
+        <button onclick="discardCards()">Discard</button>
+        <button onclick="playHand()">Play Hand</button>
+    </div>
+    <div id="result"></div>
+    <div id="score">Score: <span id="scoreValue">0</span></div>
+    <div id="blind">Blind: <span id="blindValue">300</span></div>
+    <div id="deckCount">Deck: <span id="deckValue">52</span>/52</div>
+    <div id="handsRemaining">Hands Remaining: <span id="handsValue">3</span></div>
+    <div id="discardsRemaining">Discards Remaining: <span id="discardsValue">3</span></div>
+
+    <script>
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const rankValues = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11};
+        const unicodeCards = {
+            'hearts': ['🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🂱'],
+            'diamonds': ['🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃁'],
+            'clubs': ['🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞', '🃑'],
+            'spades': ['🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂡']
+        };
+        let deck = [];
+        let hand = [];
+        let selectedCards = [];
+        let score = 0;
+        let blind = 300;
+        let handsRemaining = 3;
+        let discardsRemaining = 3;
+
+        function createDeck() {
+            deck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    deck.push({ rank, suit });
+                }
+            }
+            shuffleDeck();
+            updateDeckCount();
+        }
+
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function dealHand(numCards = 8) {
+            for (let i = 0; i < numCards; i++) {
+                hand.push(deck.pop());
+            }
+            displayHand();
+            updateDeckCount();
+        }
+
+        function displayHand() {
+            const handDiv = document.getElementById('hand');
+            handDiv.innerHTML = '';
+            hand.forEach((card, index) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.textContent = unicodeCards[card.suit][ranks.indexOf(card.rank)];
+                cardDiv.onclick = () => toggleSelectCard(index);
+                handDiv.appendChild(cardDiv);
+            });
+        }
+
+        function toggleSelectCard(index) {
+            const cardDiv = document.getElementsByClassName('card')[index];
+            if (selectedCards.includes(index)) {
+                selectedCards = selectedCards.filter(i => i !== index);
+                cardDiv.classList.remove('selected');
+            } else if (selectedCards.length < 5) {
+                selectedCards.push(index);
+                cardDiv.classList.add('selected');
+            }
+        }
+
+        function discardCards() {
+            if (discardsRemaining > 0) {
+                selectedCards.forEach(index => {
+                    hand[index] = deck.pop();
+                });
+                selectedCards = [];
+                displayHand();
+                discardsRemaining--;
+                document.getElementById('discardsValue').textContent = discardsRemaining;
+                updateDeckCount();
+            } else {
+                alert("No discards remaining.");
+            }
+        }
+
+        function playHand() {
+            if (handsRemaining > 0) {
+                const playedHand = selectedCards.map(index => hand[index]);
+                const handType = evaluateHand(playedHand);
+                document.getElementById('result').textContent = `Hand Type: ${handType}`;
+                updateScore(handType, playedHand);
+                
+                // Remove played cards from hand
+                hand = hand.filter((_, index) => !selectedCards.includes(index));
+                
+                // Deal new cards equal to the number of cards played
+                dealHand(playedHand.length);
+                
+                selectedCards = [];
+                handsRemaining--;
+                document.getElementById('handsValue').textContent = handsRemaining;
+
+                if (score >= blind) {
+                    alert(`Congratulations! You met the blind of ${blind} and advance to the next round with a score of ${score}.`);
+                    blind += 100;
+                    document.getElementById('blindValue').textContent = blind;
+                    resetRound();
+                } else if (handsRemaining === 0) {
+                    alert(`Game over. You did not meet the blind of ${blind}. Your score was ${score}.`);
+                    resetGame();
+                }
+
+            } else {
+                alert("No hands remaining.");
+            }
+        }
+
+        function evaluateHand(cards) {
+            if (cards.length === 0) return 'No cards selected';
+
+            const rankCounts = {};
+            const suitCounts = {};
+            cards.forEach(card => {
+                rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
+                suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+            });
+
+            const rankValues = Object.values(rankCounts).sort((a, b) => b - a);
+            const isFlush = Object.values(suitCounts).some(count => count === cards.length);
+            const isStraight = isStraightHand(cards.map(card => ranks.indexOf(card.rank)).sort((a, b) => a - b));
+
+            if (isFlush && isStraight && cards.length === 5) {
+                return 'Straight Flush';
+            }
+            if (rankValues[0] === 4) return 'Four of a Kind';
+            if (rankValues[0] === 3 && rankValues[1] === 2) return 'Full House';
+            if (isFlush) return 'Flush';
+            if (isStraight) return 'Straight';
+            if (rankValues[0] === 3) return 'Three of a Kind';
+            if (rankValues[0] === 2 && rankValues[1] === 2) return 'Two Pair';
+            if (rankValues[0] === 2) return 'Pair';
+            return 'High Card';
+        }
+
+        function isStraightHand(sortedRanks) {
+            for (let i = 1; i < sortedRanks.length; i++) {
+                if (sortedRanks[i] !== sortedRanks[i - 1] + 1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function updateScore(handType, playedHand) {
+            const handScores = {
+                'Royal Flush': { points: 100, multiplier: 8 },
+                'Straight Flush': { points: 100, multiplier: 8 },
+                'Four of a Kind': { points: 50, multiplier: 7 },
+                'Full House': { points: 40, multiplier: 4 },
+                'Flush': { points: 35, multiplier: 4 },
+                'Straight': { points: 30, multiplier: 4 },
+                'Three of a Kind': { points: 30, multiplier: 3 },
+                'Two Pair': { points: 20, multiplier: 2 },
+                'Pair': { points: 10, multiplier: 2 },
+                'High Card': { points: 5, multiplier: 1 }
+            };
+
+            const baseScore = handScores[handType]?.points || 0;
+            const multiplier = handScores[handType]?.multiplier || 1;
+
+            let relevantCards = [];
+            if (handType === 'Pair') {
+                relevantCards = playedHand.filter((card, index, self) => self.map(c => c.rank).indexOf(card.rank) !== self.map(c => c.rank).lastIndexOf(card.rank));
+            } else if (handType === 'Two Pair') {
+                let pairs = playedHand.filter((card, index, self) => self.map(c => c.rank).indexOf(card.rank) !== self.map(c => c.rank).lastIndexOf(card.rank));
+                relevantCards = pairs.slice(0, 4); // First two pairs only
+            } else if (handType === 'Three of a Kind') {
+                relevantCards = playedHand.filter((card, index, self) => self.filter(c => c.rank === card.rank).length === 3);
+            } else if (handType === 'Four of a Kind') {
+                relevantCards = playedHand.filter((card, index, self) => self.filter(c => c.rank === card.rank).length === 4);
+            } else if (handType === 'Full House') {
+                let threeOfAKind = playedHand.filter((card, index, self) => self.filter(c => c.rank === card.rank).length === 3);
+                let pair = playedHand.filter((card, index, self) => self.filter(c => c.rank === card.rank).length === 2);
+                relevantCards = threeOfAKind.concat(pair);
+            } else {
+                relevantCards = playedHand;
+            }
+
+            const rankSum = relevantCards.reduce((sum, card) => sum + rankValues[card.rank], 0);
+            const totalScore = (baseScore + rankSum) * multiplier;
+            score += totalScore;
+            document.getElementById('scoreValue').textContent = score;
+        }
+
+        function updateDeckCount() {
+            document.getElementById('deckValue').textContent = deck.length;
+        }
+
+        function resetRound() {
+            score = 0;
+            handsRemaining = 3;
+            discardsRemaining = 3;
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('handsValue').textContent = handsRemaining;
+            document.getElementById('discardsValue').textContent = discardsRemaining;
+
+            // Reset and shuffle deck
+            createDeck();
+            hand = [];
+            dealHand();
+            updateDeckCount();
+        }
+
+        function resetGame() {
+            score = 0;
+            blind = 300;
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('blindValue').textContent = blind;
+            createDeck();
+            resetRound();
+        }
+
+        createDeck();
+        dealHand();
+    </script>
+</body>
+</html>
