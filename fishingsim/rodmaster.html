@@ -5,35 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fishing Simulator</title>
     <style>
+        @font-face {
+            font-family: 'Ac437_IBM_BIOS';
+            src: url('Ac437_IBM_BIOS.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: Ac437_IBM_BIOS, sans-serif;
             margin: 0;
             align-items: center;
+            justify-content: center;
             padding: 0;
             background-image: url('https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/headerbgrepeat.png');
             background-repeat: repeat-x;
             background-size: auto;
-            background-color: lightblue;
             height: 100vh; /* Set the height of the page */
         }
         #game {
             display: flex;
+            font-family: inherit;
             flex-direction: column;
-            justify-content: flex-start;
             align-items: center;
             padding: 20px;
         }
         #info {
             position: absolute;
-            top: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 18px;
-            left: 10px;
+            top: 350px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px;
+            font-size: 14px;
+            text-align: left;
+            line-height: 2px;
         }
         #actions {
-            margin-top: 20px;
+            margin-top: 100px;
+            align-items: center;
+            justify-content: center;
         }
         #inventory {
             margin-top: 20px;
@@ -53,9 +62,9 @@
     </style>
 </head>
 <body>
-  <div class="logo"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png" alt="Header Image"></div>
+    <div class="logo"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png" alt="Header Image"></div>
     <div id="info">
-        <p id="clock">Time: 7:10 AM</p>
+        <p id="clock">Time: 07:10 AM</p>
         <p id="location">Location: Fair Harbour</p>
         <p id="stamina">Stamina: Well rested!</p>
         <p id="wallet">Wallet: $0</p>
@@ -63,21 +72,19 @@
         <p id="boatName">Boat: Galadriel</p>
     </div>
     <div id="game">
-        <h1>Fishing Simulator</h1>
-        <p id="message"></p>
-        <p id="throwback-message"></p>
         <div id="actions">
-            <select id="locationSelect">
-                <option value="Fair Harbour">Fair Harbour</option>
-                <option value="Hank's Lagoon">Hank's Lagoon</option>
-                <option value="Open Sea">Open Sea</option>
+            <select id="locationSelect"  style="font-family:Ac437_IBM_BIOS;border:2px solid black;background-color:white;">
+                <option value="Fair Harbour" style="font-family:Ac437_IBM_BIOS;">Fair Harbour</option>
+                <option value="Hank's Lagoon" style="font-family:Ac437_IBM_BIOS;">Hank's Lagoon</option>
+                <option value="Open Sea" style="font-family:Ac437_IBM_BIOS;">Open Sea</option>
             </select>
-            <button id="setSail">Set Sail</button>
-            <button id="catch" disabled>Catch Fish</button>
-            <button id="sleep">Sleep</button>
-            <button id="sell" disabled>Fish Market</button>
+            <button id="setSail" style="font-family:Ac437_IBM_BIOS;background-color:white;">Set Sail</button>
+            <button id="sleep" style="font-family:Ac437_IBM_BIOS;background-color:white;">Sleep</button><p></p>
+            <button id="catch" style="font-family:Ac437_IBM_BIOS;background-color:white;">Catch Fish</button>
+            <button id="sell"  style="font-family:Ac437_IBM_BIOS;background-color:white;">Fish Market</button>
         </div>
-        <div id="inventory"></div>
+        <p id="message"></p>
+        <p id="throwback-message"></p><div id="inventory"></div>
     </div>
 
     <script>
@@ -116,6 +123,7 @@
             time.setMinutes(time.getMinutes() + 5);
             clockElement.textContent = `Time: ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             updateStamina();
+            updateBackgroundColor();
         }
 
         setInterval(updateClock, 2000);
@@ -163,6 +171,29 @@
                 staminaElement.textContent = "Stamina: Needs to sleep...";
                 catchButton.disabled = true;
             }
+        }
+
+        function updateBackgroundColor() {
+            let hours = time.getHours();
+            let newColor;
+
+            if (hours >= 5 && hours < 7) {
+                newColor = '#d1c2ea';
+            } else if (hours >= 7 && hours < 9) {
+                newColor = '#c2dbea';
+            } else if (hours >= 9 && hours < 13) {
+                newColor = '#c5dce7';
+            } else if (hours >= 13 && hours < 17) {
+                newColor = '#9fc3d1';
+            } else if (hours >= 17 && hours < 21) {
+                newColor = '#fb9062';
+            } else if (hours >= 21 || hours < 2) {
+                newColor = '#0c132e';
+            } else if (hours >= 2 && hours < 5) {
+                newColor = '#273c50';
+            }
+
+            document.body.style.backgroundColor = newColor;
         }
 
         function startFishing() {
@@ -256,12 +287,14 @@
             sleepButton.style.display = 'none';
             setSailButton.style.display = 'none';
             sellButton.style.display = 'none';
+            locationSelect.style.display = 'none';
         }
 
         function showButtons() {
             catchButton.style.display = 'inline-block';
             sleepButton.style.display = 'inline-block';
             setSailButton.style.display = 'inline-block';
+            locationSelect.style.display = 'inline-block';
             sellButton.style.display = (currentLocation === "Fair Harbour") ? 'inline-block' : 'none';
         }
 
@@ -292,7 +325,6 @@
                 messageElement.textContent = `You sold a ${fish.type} weighing ${fish.weight} lbs for $${earnings}.`;
                 throwbackMessageElement.textContent = "";
                 if (inventory.length === 0) {
-                    sellButton.disabled = true;
                     atFishMarket = false;
                 }
             } else {
