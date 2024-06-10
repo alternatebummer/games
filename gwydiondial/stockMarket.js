@@ -224,7 +224,7 @@ function startTimer(duration, display) {
     const interval = setInterval(() => {
         seconds = parseInt(timer % 60, 10);
         const dots = '··········'.substring(0, Math.ceil(seconds / 2));
-        display.textContent = `${seconds} seconds ${dots}`;
+        display.textContent = `${dots}`;
         if (--timer < 0) {
             nextTurn();
             timer = duration;
