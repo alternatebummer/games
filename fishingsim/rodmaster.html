@@ -36,20 +36,19 @@
         }
         #info {
             position: absolute;
-            top: 346px;
+            top: 340px;
             left: 50%;
             transform: translateX(-50%);
             padding: 2px;
             min-width: 260px;
             font-size: 16px;
-            text-align: left;
+            text-align: center;
             line-height: 2px;
 	    background-color: ;
-	    margin-left: -48px;
         }
         #actions {
             position: absolute;
-            top: 390px;
+            top: 410px;
             left: 50%;
             transform: translateX(-50%);
             margin-top: 100px;
@@ -58,12 +57,13 @@
         }
         .msgs {
             position: absolute;
-            top: 358px;
+            top: 355px;
             left: 50%;
             transform: translateX(-50%);
-            margin-top: 100px;
+            margin-top: 110px;
             margin-left: 0;
-            align-items: left;    
+            align-items: left; 
+	    color: black !important;   
         }
         #actions span {
             cursor: pointer;
@@ -87,13 +87,14 @@
         }
         .fish-item {
             position: relative;
-            left: 135px;
-            top: 95px;
+            left: 120px;
+            top: 115px;
             display: block;
             font-size: 16px;
             cursor: pointer;
             margin: 5px 0;
             background-color: ;
+	    color: black !important;
             border: 0px solid black;
             padding: 2px;
             line-height: normal;
@@ -103,7 +104,6 @@
 </head>
 <body>
     <div class="logo"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/header.png" alt="Header Image"></div>
-    <div class="body"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/body.png"></div>
     <div id="info">
         <p id="clock">Time: 07:10 AM</p>
         <p id="location">Location: Fair Harbour</p>
@@ -114,7 +114,7 @@
     </div>
     <div id="game">
         <div id="actions">
-            <select id="locationSelect" style="font-family:Ac437_IBM_BIOS;border:0px solid black;color:#0067cb;background-color:tan;padding:2px;">
+            <select id="locationSelect" style="font-family:Ac437_IBM_BIOS;border:0px solid black;color:#0067cb;background-color:lightblue;padding:2px;font-size:16px;">
                 <option value="Fair Harbour" style="font-family:Ac437_IBM_BIOS;">Fair Harbour</option>
                 <option value="Hank's Lagoon" style="font-family:Ac437_IBM_BIOS;">Hank's Lagoon</option>
                 <option value="Open Sea" style="font-family:Ac437_IBM_BIOS;">Open Sea</option>
@@ -211,10 +211,10 @@
                 staminaElement.textContent = "Stamina: Well rested!";
                 catchElement.style.pointerEvents = 'auto';
             } else if (hoursAwake < 13) {
-                staminaElement.textContent = "Stamina: It's been a long day...";
+                staminaElement.textContent = "Stamina: Getting tired.";
                 catchElement.style.pointerEvents = 'auto';
             } else {
-                staminaElement.textContent = "Stamina: Needs to sleep...";
+                staminaElement.textContent = "Stamina: Needs sleep...";
                 catchElement.style.pointerEvents = 'none';
             }
         }
@@ -225,22 +225,22 @@
             let newTextColor;
 
             if (hours >= 5 && hours < 7) {
-                newColor = '#d1c2ea';
-                newTextColor = '#0067cb'; // black text
+                newColor = '#7f778c';
+                newTextColor = '#5daaf5'; // black text
             } else if (hours >= 7 && hours < 9) {
                 newColor = '#c2dbea';
                 newTextColor = '#0067cb'; // black text
             } else if (hours >= 9 && hours < 13) {
-                newColor = '#c5dce7';
+                newColor = '#7db5e3';
                 newTextColor = '#0067cb'; // black text
             } else if (hours >= 13 && hours < 17) {
-                newColor = '#9fc3d1';
-                newTextColor = '#0067cb'; // black text
+                newColor = '#4777ad';
+                newTextColor = '#5daaf5'; // black text
             } else if (hours >= 17 && hours < 21) {
-                newColor = '#fb9062';
+                newColor = '#165391';
                 newTextColor = '#0067cb'; // black text
             } else if (hours >= 21 || hours < 2) {
-                newColor = '#0c132e';
+                newColor = '#0f4780';
                 newTextColor = '#0067cb'; // white text
             } else if (hours >= 2 && hours < 5) {
                 newColor = '#273c50';
@@ -257,7 +257,7 @@
         }
 
         function startFishing() {
-            if (staminaElement.textContent.includes("Needs to sleep")) {
+            if (staminaElement.textContent.includes("Needs sleep...")) {
                 messageElement.textContent = "You are too tired to fish. You need to sleep.";
                 return;
             }
