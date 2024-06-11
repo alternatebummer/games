@@ -97,14 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fuelLevelElement.textContent = boatStatus.fuel;
     }
 
-    function populateOperations(location) {
+    function populateOperations(location, isTraveling = false) {
         const operations = [];
-        if (location.fishMarket) operations.push('<option value="fish_market">Fish Market</option>');
-        if (location.portCity) operations.push('<option value="fuel_station">Fuel Station</option>');
-        if (location.fishingLocation) operations.push('<option value="fish">Fish</option>');
-        if (location.openWater) operations.push('<option value="anchor">Anchor</option>');
-        operations.push('<option value="set_sail">Set Sail</option>');
-
+        if (isTraveling) {
+            operations.push('<option value="set_sail">Set Sail</option>');
+        } else {
+            if (location.fishMarket) operations.push('<option value="fish_market">Fish Market</option>');
+            if (location.portCity) operations.push('<option value="fuel_station">Fuel Station</option>');
+            if (location.fishingLocation) operations.push('<option value="fish">Fish</option>');
+            operations.push('<option value="set_sail">Set Sail</option>');
+        }
         operationSelect.innerHTML = operations.join('');
     }
 
@@ -144,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, MS_PER_SECOND);
     }
-
 
     function fishCheck() {
         const baseChance = 6; // 60% chance
@@ -294,10 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
             boatStatus.operation = 'Fishing';
             updateStatus();
             startFishing();
-        } else if (selectedOperation === 'anchor' && locations[selectedNavigation].openWater) {
-            boatStatus.operation = 'Anchored';
-            updateStatus();
-            stopFishing();
         } else if (selectedOperation === 'fuel_station' && locations[selectedNavigation].portCity) {
             boatStatus.operation = 'Fuel Station';
             updateStatus();
@@ -317,7 +314,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navigationSelect.addEventListener('change', () => {
         const selectedNavigation = navigationSelect.value;
-        populateOperations(locations[selectedNavigation]);
+        if (selectedNavigation !== boatStatus.location) {
+            populateOperations({}, true); // Only show "Set Sail"
+        } else {
+            populateOperations(locations[selectedNavigation]); // Show full operations menu
+        }
     });
 
     selectFuelButton.addEventListener('click', handleFuelSelection);
