@@ -7,10 +7,12 @@
     <style>
         body {
             display: flex;
+	    position: absolute;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+	    font: 1.2rem "garamond",serif;
+	    padding: 50px;
             margin: 0;
             background-color: lightblue;
         }
@@ -19,7 +21,8 @@
             grid-template-columns: repeat(10, 75px);
             grid-template-rows: repeat(3, 114px);
             gap: 1px;
-            margin-top: 10px;
+	    background-color: lightblue;
+            margin-top: 25px;
         }
         .cell {
             width: 68px;
@@ -29,9 +32,49 @@
             align-items: center;
             font-size: 120px;
             background-color: #e2825b;
-            border: 1px solid #ccc;
+            border: 0px solid #000;
             line-height: 1px;
         }
+	.title-font {
+	    font-weight: bold;
+	    font-size: 100px;
+	    color: #e2825b;
+	}
+	.score-font {
+	    font-weight: bold;
+	    position: absolute;
+	    font-size: 22px;
+	    color: black;
+	    margin-left: 35px;
+	    margin-top: -10px;	
+	    line-height: 0px;
+	}
+	.blinds-font {
+	    font-weight: bold;
+	    position: absolute;
+	    font-size: 22px;
+	    color: black;
+	    margin-left: 43px;
+	    margin-top: 12px;	
+	    line-height: 0px;
+	}
+	.playhand-font {
+	    position: absolute;
+	    font-weight: bold;
+	    font-size: 12px;
+	    color: black;
+	    right: 130px;
+	    bottom: 58px;
+	}
+	.discard-font {
+	    position: absolute;
+	    font-weight: bold;
+	    font-size: 12px;
+	    color: black;
+	    right: 61px;
+	    bottom: 58px;
+	}
+
         .piece {
             cursor: grab;
         }
@@ -41,6 +84,37 @@
         .selected {
             background-color: #e2b66a !important;
         }
+	.disc-button {
+	    position: absolute;
+            width: 70px;
+            height: 108px;
+	    display: flex;
+	    color: black;
+            font-size: 120px;
+            background-color: #D29641;
+            border: 1px solid #ccc;
+            line-height: 1px;
+            justify-content: center;
+            align-items: center;
+	    right: 97px;
+	    bottom: 77px;
+	}
+	.hand-button {
+	    position: absolute;
+            width: 70px;
+            height: 108px;
+	    display: flex;
+	    color: black;
+            font-size: 120px;
+            background-color: #D29641;
+            border: 1px solid #ccc;
+            line-height: 1px;
+            justify-content: center;
+            align-items: center;
+	    right: 173px;
+	    bottom: 77px;
+	}
+
         #controls {
             margin-top: 20px;
             display: flex;
@@ -48,12 +122,20 @@
             align-items: center;
         }
         #score {
-            font-size: 24px;
-            margin-top: 10px;
+	    position: absolute;
+ 	    font-weight: bold;
+	    font-size: 22px;
+	    color: black;
+            margin-top: -22px;
+            margin-left: 43px;
         }
         #hand-type {
-            font-size: 18px;
-            margin-top: 0px;
+	    position: absolute;
+	    font-weight: bold;
+	    font-size: 12px;
+	    color: black;
+	    right: 530px;
+	    bottom: 58px;
         }
         #header, #footer {
             width: 100%;
@@ -78,20 +160,19 @@
     </style>
 </head>
 <body>
-    <div id="header">Count of Cagliostro</div>
+    <div id="header" class="title-font">Count of Cagliostro</div>
     <div id="game-info">
-        <div>Blind: <span id="blind">300</span></div>
-        <div>Hands Remaining: <span id="hands-remaining">3</span></div>
-        <div>Discards Remaining: <span id="discards-remaining">3</span></div>
+        <div class="playhand-font">PLAY HAND</div>
+	<div class="discard-font">DISCARD</div>
+        <div class="blinds-font">Blind: <span id="blind">300</span></div>
+        <div class="score-font">Hands: <span id="hands-remaining">4</span><p>Discards: <span id="discards-remaining">3</span></p></div>
+        <button id="discard-button" class="disc-button">🂠</button>
+        <button id="play-hand-button" class="hand-button">🂠</button>
+        <div id="score">Score: 0</div>
     </div>
     <div id="board"></div>
     <div id="controls">
-        <button id="discard-button">Discard</button>
-        <button id="play-hand-button">Play Hand</button>
-        <div id="score">Score: 0</div>
-        <div id="hand-type">Hand Type: </div>
     </div>
-    <div id="footer">Points and multipliers associated with each poker hand...</div>
     <script>
         const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
         const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
@@ -109,7 +190,7 @@
         let totalScore = 0;
         let currentHand = [];
         let currentBlind = 300;
-        let handsRemaining = 3;
+        let handsRemaining = 4;
         let discardsRemaining = 3;
 
         const board = document.getElementById('board');
@@ -181,29 +262,30 @@
                 }
             }
 
-            if (pairs === 1) handType = "Pair";
-            if (pairs === 2) handType = "Two Pair";
-            if (threeOfAKind) handType = "Three of a Kind";
-            if (fourOfAKind) handType = "Four of a Kind";
+            if (pairs === 1) handType = "PAIR";
+            if (pairs === 2) handType = "TWO PAIR";
+            if (threeOfAKind) handType = "THREE OF A KIND";
+            if (fourOfAKind) handType = "FOUR OF A KIND";
             if (threeOfAKind && pairs) {
-                handType = "Full House";
+                handType = "FULL HOUSE";
                 fullHouse = true;
             }
-            if (straight) handType = "Straight";
-            if (flush) handType = "Flush";
-            if (straightFlush) handType = "Straight Flush";
-            if (royalFlush) handType = "Royal Flush";
+            if (straight) handType = "STRAIGHT";
+            if (flush) handType = "FLUSH";
+            if (straightFlush) handType = "STRAIGHT FLUSH";
+            if (royalFlush) handType = "ROYAL FLUSH";
 
             score = hand.reduce((sum, card) => sum + rankValues[card.rank], 0);
 
+            if (handType === "Pair") score *= 2;
             if (handType === "Two Pair") score *= 2;
             if (threeOfAKind) score *= 3;
             if (fourOfAKind) score *= 5;
             if (straight) score *= 3;
             if (fullHouse) score *= 4;
             if (flush) score *= 3;
-            if (straightFlush) score *= 5;
-            if (royalFlush) score *= 6;
+            if (straightFlush) score *= 4.5;
+            if (royalFlush) score *= 5;
 
             return { score: score, handType: handType };
         }
@@ -298,7 +380,7 @@
             const result = evaluateHand(playedHand);
             totalScore += result.score;
             scoreElement.textContent = `Score: ${totalScore}`;
-            handTypeElement.textContent = `Hand Type: ${result.handType}`;
+            handTypeElement.textContent = `${result.handType}`;
 
             selectedCards.forEach(index => {
                 const cell = document.querySelector(`[data-index='${index}']`);
@@ -324,7 +406,7 @@
                 currentBlind += 100;
                 blindElement.textContent = currentBlind;
                 totalScore = 0;
-                handsRemaining = 3;
+                handsRemaining = 4;
                 discardsRemaining = 3;
                 scoreElement.textContent = `Score: ${totalScore}`;
                 handsRemainingElement.textContent = handsRemaining;
@@ -334,7 +416,7 @@
             } else if (handsRemaining <= 0) {
                 alert("You have no hands remaining. Resetting for next blind.");
                 totalScore = 0;
-                handsRemaining = 3;
+                handsRemaining = 4;
                 discardsRemaining = 3;
                 scoreElement.textContent = `Score: ${totalScore}`;
                 handsRemainingElement.textContent = handsRemaining;

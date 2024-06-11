@@ -14,38 +14,66 @@
         body {
             font-family: Ac437_IBM_BIOS, sans-serif;
             margin: 0;
-            font-size: 13px;
+            font-size: 16px;
+	    color: 0c132e;
             align-items: center;
             justify-content: center;
             padding: 0;
             background-image: url('https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/headerbgrepeat.png');
             background-repeat: repeat-x;
-            background-color: #d1c2ea;
+            background-color: #c2dbea;
             background-size: auto;
             height: 100vh; /* Set the height of the page */
+	    color: #0067cb;
         }
         #game {
             display: flex;
             font-family: inherit;
             flex-direction: column;
             align-items: center;
+	    justify-content: center;
             padding: 20px;
+	    x-index: 2;
         }
         #info {
             position: absolute;
-            top: 350px;
+            top: 340px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 5px;
-            min-width: 370px;
-            font-size: 13px;
-            text-align: left;
+            padding: 2px;
+            min-width: 465px;
+	    width: 100%;
+            font-size: 16px;
+            text-align: center;
             line-height: 2px;
+	    background-color: ;
         }
         #actions {
+            position: absolute;
+            top: 410px;
+            left: 50%;
+            transform: translateX(-50%);
             margin-top: 100px;
-            align-items: center;
-            justify-content: center;
+            margin-left: -100px;
+            align-items: left;    
+        }
+        .msgs {
+            position: absolute;
+            min-width: 465px;
+	    width: 100%;
+            top: 365px;
+            left: 50%;
+	    text-align: center;
+            transform: translateX(-50%);
+            margin-top: 110px;
+            margin-left: 0;
+            align-items: center; 
+	    color: black !important;   
+        }
+        #actions span {
+            cursor: pointer;
+            margin: 0 10px;
+            text-decoration: none;
         }
         #inventory {
             margin-top: 20px;
@@ -53,16 +81,29 @@
         .logo img {
             display: block;
             margin: 0 auto;
+	    x-index: 1;
+        }
+        .body img {
+	    position: absolute;
+            top: 330px;
+            left: 50%;
+            transform: translateX(-50%);
+	    x-index: 1;
         }
         .fish-item {
-            font-size: 13px;
+            position: relative;
+            left: 120px;
+            top: 115px;
+            display: block;
+            font-size: 16px;
             cursor: pointer;
-            margin: 5px;
-            background-color: white;
-            border: 2px solid black;
-            margin-top: 10px;
+            margin: 5px 0;
+            background-color: ;
+	    color: black !important;
+            border: 0px solid black;
             padding: 2px;
-            line-height: -2px;
+            line-height: normal;
+	    x-index: 2;
         }
     </style>
 </head>
@@ -78,19 +119,23 @@
     </div>
     <div id="game">
         <div id="actions">
-            <select id="locationSelect"  style="font-family:Ac437_IBM_BIOS;border:2px solid black;background-color:white;">
+            <select id="locationSelect" style="font-family:Ac437_IBM_BIOS;border:0px solid black;color:#0067cb;background-color:lightblue;padding:2px;font-size:16px;">
                 <option value="Fair Harbour" style="font-family:Ac437_IBM_BIOS;">Fair Harbour</option>
                 <option value="Hank's Lagoon" style="font-family:Ac437_IBM_BIOS;">Hank's Lagoon</option>
                 <option value="Open Sea" style="font-family:Ac437_IBM_BIOS;">Open Sea</option>
-            </select>
-            <button id="setSail" style="font-family:Ac437_IBM_BIOS;background-color:white;">Set Sail</button>
-            <button id="sleep" style="font-family:Ac437_IBM_BIOS;background-color:white;">Sleep</button><p></p>
-            <button id="catch" style="font-family:Ac437_IBM_BIOS;background-color:white;">Catch Fish</button>
-            <button id="sell"  style="font-family:Ac437_IBM_BIOS;background-color:white;">Fish Market</button>
+                <option value="Crab Harbour" style="font-family:Ac437_IBM_BIOS;padding:2px;">Crab Harbour</option>
+            </select><p></p>
+            <span id="setSail" style="font-family:Ac437_IBM_BIOS;background-color:;padding:2px;">SET SAIL</span><p></p>
+            <span id="sleep" style="font-family:Ac437_IBM_BIOS;background-color:;padding:2px;">SLEEP</span><p></p>
+            <span id="catch" style="font-family:Ac437_IBM_BIOS;background-color:;padding:2px;">CATCH FISH</span>
+
         </div>
-        <div id="message"></div>
-        <div id="throwback-message"></div>
+        <div class="msgs">
+            <div id="message"></div>
+            <div id="throwback-message"></div>
+        </div>        
         <div id="inventory"></div>
+
     </div>
 
     <script>
@@ -103,10 +148,10 @@
         let messageElement = document.getElementById('message');
         let throwbackMessageElement = document.getElementById('throwback-message');
         let locationSelect = document.getElementById('locationSelect');
-        let setSailButton = document.getElementById('setSail');
-        let catchButton = document.getElementById('catch');
-        let sleepButton = document.getElementById('sleep');
-        let sellButton = document.getElementById('sell');
+        let setSailElement = document.getElementById('setSail');
+        let catchElement = document.getElementById('catch');
+        let sleepElement = document.getElementById('sleep');
+        let sellElement = document.getElementById('sell');
         let inventoryElement = document.getElementById('inventory');
 
         let time = new Date();
@@ -114,7 +159,7 @@
         let cargo = 0;
         let wallet = 0;
         let inHarbor = true;
-        let atFishMarket = false;
+        let atFishMarket = true;
         let currentLocation = "Fair Harbour";
         let boatNames = ["Galadriel", "Fishtunnel"];
         let boatName = boatNames[Math.floor(Math.random() * boatNames.length)];
@@ -163,59 +208,74 @@
             if (currentLocation !== "Fair Harbour") locationSelect.innerHTML += '<option value="Fair Harbour">Fair Harbour</option>';
             if (currentLocation !== "Hank's Lagoon") locationSelect.innerHTML += '<option value="Hank\'s Lagoon">Hank\'s Lagoon</option>';
             if (currentLocation !== "Open Sea") locationSelect.innerHTML += '<option value="Open Sea">Open Sea</option>';
+            if (currentLocation !== "Crab Harbour") locationSelect.innerHTML += '<option value="Crab Harbour">Crab Harbour</option>';
         }
 
         function updateStamina() {
             let hoursAwake = (time - lastSleepTime) / 3600000; // Convert milliseconds to hours
             if (hoursAwake < 4) {
                 staminaElement.textContent = "Stamina: Well rested!";
-                catchButton.disabled = false;
+                catchElement.style.pointerEvents = 'auto';
             } else if (hoursAwake < 13) {
-                staminaElement.textContent = "Stamina: It's been a long day...";
-                catchButton.disabled = false;
+                staminaElement.textContent = "Stamina: Getting tired.";
+                catchElement.style.pointerEvents = 'auto';
             } else {
-                staminaElement.textContent = "Stamina: Needs to sleep...";
-                catchButton.disabled = true;
+                staminaElement.textContent = "Stamina: Needs sleep...";
+                catchElement.style.pointerEvents = 'none';
             }
         }
 
         function updateBackgroundColor() {
             let hours = time.getHours();
             let newColor;
+            let newTextColor;
 
             if (hours >= 5 && hours < 7) {
-                newColor = '#d1c2ea';
+                newColor = '#7f778c';
+                newTextColor = '#5daaf5'; // black text
             } else if (hours >= 7 && hours < 9) {
                 newColor = '#c2dbea';
+                newTextColor = '#0067cb'; // black text
             } else if (hours >= 9 && hours < 13) {
-                newColor = '#c5dce7';
+                newColor = '#7db5e3';
+                newTextColor = '#0067cb'; // black text
             } else if (hours >= 13 && hours < 17) {
-                newColor = '#9fc3d1';
+                newColor = '#7db5e3';
+                newTextColor = '#0067cb'; // black text
             } else if (hours >= 17 && hours < 21) {
-                newColor = '#fb9062';
+                newColor = '#165391';
+                newTextColor = '#0067cb'; // black text
             } else if (hours >= 21 || hours < 2) {
-                newColor = '#0c132e';
+                newColor = '#0f4780';
+                newTextColor = '#0067cb'; // white text
             } else if (hours >= 2 && hours < 5) {
                 newColor = '#273c50';
+                newTextColor = '#0067cb'; // white text
             }
 
             document.body.style.backgroundColor = newColor;
+            document.body.style.color = newTextColor;
+
+            let elements = document.querySelectorAll('#info p, #game span, #game select, .fish-item');
+            elements.forEach(element => {
+                element.style.color = newTextColor;
+            });
         }
 
         function startFishing() {
-            if (staminaElement.textContent.includes("Needs to sleep")) {
+            if (staminaElement.textContent.includes("Needs sleep...")) {
                 messageElement.textContent = "You are too tired to fish. You need to sleep.";
                 return;
             }
             messageElement.textContent = "Currently fishing...";
             throwbackMessageElement.textContent = "";
-            catchButton.disabled = true;
-            hideButtons();
+            catchElement.style.pointerEvents = 'none';
+            hideActions();
 
             let fishingDuration = Math.floor(Math.random() * 11) + 10; // 10 to 20 seconds
             fishingTimeout = setTimeout(() => {
                 catchFish();
-                showButtons();
+                showActions();
             }, fishingDuration * 1000);
         }
 
@@ -233,7 +293,7 @@
                         { name: "Bass", minWeight: 4, maxWeight: 20, pricePerLb: 2 },
                         { name: "Sturgeon", minWeight: 12, maxWeight: 26, pricePerLb: 3 }
                     ];
-                } else if (currentLocation === "Fair Harbour") {
+                } else if (currentLocation === "Fair Harbour" || currentLocation === "Crab Harbour") {
                     fishTypes = [
                         { name: "Boot", minWeight: 5, maxWeight: 5, pricePerLb: 0 }
                     ];
@@ -254,7 +314,7 @@
             } else {
                 messageElement.textContent = "Cargo hold is full.";
             }
-            catchButton.disabled = false;
+            catchElement.style.pointerEvents = 'auto';
         }
 
         function setSail() {
@@ -273,35 +333,44 @@
                 travelDuration = Math.floor(Math.random() * 11) + 5; // 5 to 15 seconds
             } else if (currentLocation === "Open Sea" && destination === "Fair Harbour") {
                 travelDuration = Math.floor(Math.random() * 11) + 20; // 20 to 30 seconds
+            } else if (currentLocation === "Open Sea" && destination === "Crab Harbour") {
+                travelDuration = Math.floor(Math.random() * 16) + 20; // 20 to 35 seconds
+            } else if (currentLocation === "Crab Harbour" && destination === "Open Sea") {
+                travelDuration = Math.floor(Math.random() * 16) + 20; // 20 to 35 seconds
             } else {
                 return;
             }
 
             messageElement.textContent = `Traveling to ${destination}...`;
-            hideButtons();
+            hideActions();
 
             travelTimeout = setTimeout(() => {
                 currentLocation = destination;
                 updateLocation();
-                showButtons();
+                showActions();
                 messageElement.textContent = `You have arrived at ${destination}.`;
+                if (currentLocation === "Fair Harbour" || currentLocation === "Crab Harbour") {
+                    atFishMarket = true;
+                } else {
+                    atFishMarket = false;
+                }
             }, travelDuration * 1000);
         }
 
-        function hideButtons() {
-            catchButton.style.display = 'none';
-            sleepButton.style.display = 'none';
-            setSailButton.style.display = 'none';
-            sellButton.style.display = 'none';
+        function hideActions() {
+            let actions = document.querySelectorAll('#actions span');
+            actions.forEach(action => {
+                action.style.display = 'none';
+            });
             locationSelect.style.display = 'none';
         }
 
-        function showButtons() {
-            catchButton.style.display = 'inline-block';
-            sleepButton.style.display = 'inline-block';
-            setSailButton.style.display = 'inline-block';
-            locationSelect.style.display = 'inline-block';
-            sellButton.style.display = (currentLocation === "Fair Harbour") ? 'inline-block' : 'none';
+        function showActions() {
+            let actions = document.querySelectorAll('#actions span');
+            actions.forEach(action => {
+                action.style.display = 'inline';
+            });
+            locationSelect.style.display = 'inline';
         }
 
         function sleep() {
@@ -312,7 +381,7 @@
         }
 
         function openFishMarket() {
-            if (currentLocation === "Fair Harbour") {
+            if (currentLocation === "Fair Harbour" || currentLocation === "Crab Harbour") {
                 atFishMarket = true;
                 messageElement.textContent = "Click on a fish in the inventory to sell it.";
             }
@@ -343,10 +412,10 @@
             }
         }
 
-        setSailButton.addEventListener('click', setSail);
-        catchButton.addEventListener('click', startFishing);
-        sleepButton.addEventListener('click', sleep);
-        sellButton.addEventListener('click', openFishMarket);
+        setSailElement.addEventListener('click', setSail);
+        catchElement.addEventListener('click', startFishing);
+        sleepElement.addEventListener('click', sleep);
+        sellElement.addEventListener('click', openFishMarket);
     </script>
 </body>
 </html>
