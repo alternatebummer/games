@@ -4,7 +4,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 800px;
-    min-width: 471px;
+    max-width: 471px;
     width: 100%;
     margin: 0 auto;
     background-image: url('https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/ols/headerbgrepeat.png');
@@ -18,7 +18,7 @@ body {
     justify-content: center;
     background-color: white;
     padding: 10px;
-    min-width: 460;
+    max-width: 460;
     width: 100%;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
