@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rod King: Ocean's Bounty</title>
+    <title>Clock and Calendar System</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
             </div>
             <div style="text-align: left;">
             <p style="text-align:left;">Fuel Tank: <span id="fuel-level">40</span>/40 g</p>
-            <label for="navigation">Navigation:</label>
+            <label for="navigation">Destination:</label>
             <span id="countdown" style="position:absolute;text-align:left;margin-left:125px;margin-top:-4px;"></span>
             <select id="navigation">
                 <option value="crab_harbour">Crab Harbour</option>
@@ -30,6 +30,7 @@
                 <!-- Options will be populated dynamically based on location attributes -->
             </select>
             <button id="confirmOrders">Confirm Orders</button>
+            <button id="hoistNets" style="display:none;">Hoist Nets</button>
             </div>
             <p id="status" style="text-align:left;">Status: Arrived at Crab Harbour</p>
         </div>

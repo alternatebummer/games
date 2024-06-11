@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const operationSelect = document.getElementById('operation');
     const navigationSelect = document.getElementById('navigation');
     const confirmOrdersButton = document.getElementById('confirmOrders');
+    const hoistNetsButton = document.getElementById('hoistNets');
     const statusElement = document.getElementById('status');
     const countdownElement = document.getElementById('countdown');
     const cargoHoldElement = document.getElementById('cargo-hold');
@@ -197,11 +198,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStatus();
             }
         }, MS_PER_SECOND);
+        confirmOrdersButton.style.display = 'none';
+        hoistNetsButton.style.display = 'inline';
     }
 
     function stopFishing() {
         clearInterval(fishingInterval);
         countdownElement.textContent = '';
+        confirmOrdersButton.style.display = 'inline';
+        hoistNetsButton.style.display = 'none';
+        boatStatus.operation = 'Anchored';  // Update the status to Anchored after fishing stops
+        updateStatus();
     }
 
     function priceCheck() {
@@ -311,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stopFishing();
         }
     });
+
+    hoistNetsButton.addEventListener('click', stopFishing);
 
     navigationSelect.addEventListener('change', () => {
         const selectedNavigation = navigationSelect.value;
