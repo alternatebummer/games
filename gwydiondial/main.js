@@ -34,7 +34,7 @@ const startBuilding = (name) => {
 const gameTurn = () => {
     turn += 1;
 
-    // Add a new colonist every 60 seconds
+    // Add a new colonist every 10 seconds
     if (turn % 2 === 0) {
         if (population < populationLimit) {
             colonists.push(generateColonist());
