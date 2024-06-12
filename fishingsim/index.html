@@ -7,55 +7,83 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="logo"><img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/ols/header.png" style="z-index:0;" alt="Header Image"></div>
-  <div id="info">
-    <div class="container">
-        <p id="clock" style="text-align:left;"></p><p id="calendar" style="text-align:left;"></p>
-        <h2>Fleet Management</h2>
-        <div class="boat-container">
-            <h3>The Minnow</h3>
-            <div id="cargo-hold" style="text-align:left;">
-                <p>Total Cargo: 0/200 lbs (Empty)</p>
-            </div>
-            <div style="text-align: left;">
-            <p style="text-align:left;">Fuel Tank: <span id="fuel-level">40</span>/40 g</p>
-            <label for="navigation">Destination:</label>
-            <span id="countdown" style="position:absolute;text-align:left;margin-left:125px;margin-top:-4px;"></span>
-            <select id="navigation">
-                <option value="crab_harbour">Crab Harbour</option>
-                <option value="hanks_lagoon">Hank's Lagoon</option>
-            </select><br>
-            <label for="operation">Operations:</label>
-            <select id="operation">
-                <!-- Options will be populated dynamically based on location attributes -->
-            </select>
-            <button id="confirmOrders">Confirm Orders</button>
-            <button id="hoistNets" style="display:none;">Hoist Nets</button>
-            </div>
-            <p id="status" style="text-align:left;">Status: Arrived at Crab Harbour</p>
-        </div>
-        <div id="fish-market" style="display:none;">
-            <h2>Fish Market</h2>
-            <div id="fish-prices"></div>
-            <button id="acceptSale">Accept</button>
-            <button id="declineSale">Decline</button>
-        </div>
-        <div id="dock" style="display:none;">
-            <h2>Fuel Station</h2>
-            <div id="fuel-prices">
-                <label for="fuel-amount">Enter gallons of fuel:</label>
-                <input type="number" id="fuel-amount" min="1">
-                <button id="selectFuel">Select</button>
-                <p id="fuel-total">Total: $0.00</p>
-            </div>
-            <button id="acceptFuel">Accept</button>
-            <button id="declineFuel">Decline</button>
-        </div>
-        <div id="player-account">
-            <h2>Account:</h2>
-            <p>$<span id="account-balance">0.00</span></p>
-        </div>
+    <div class="logo">
+        <img src="https://raw.githubusercontent.com/alternatebummer/games/main/fishingsim/ols/header.png" style="z-index:0;" alt="Header Image">
     </div>
-    <script src="javaScript.js"></script>
+    <div id="info">
+        <div class="container">
+            <p id="clock" style="text-align:left;line-height:0px;margin-top:5px;"></p>
+            <p id="calendar" style="text-align:left;margin-top:5px;line-height:0px;"></p>
+            <h2>Fleet Management</h2>
+            <div id="boat-silver-arowana" class="boat-container">
+                <h3>Silver Arowana</h3>
+                <div class="cargo-hold" style="text-align:left;">
+                    <p>Total Cargo: 0/500 lbs (Empty)</p>
+                </div>
+                <div style="text-align: left;">
+                    <p style="text-align:left;">Fuel Tank: <span class="fuel-level">40</span>/40 g</p>
+                    <label for="navigation-silver-arowana">Destination:</label>
+                    <span class="countdown" id="countdown-silver-arowana" style="position:absolute;text-align:left;margin-left:125px;margin-top:-4px;"></span>
+                    <select id="navigation-silver-arowana" class="navigation">
+                        <option value="crab_harbour">Crab Harbour</option>
+                        <option value="hanks_lagoon">Hank's Lagoon</option>
+                        <option value="open_ocean">Open Ocean</option>
+                    </select><br>
+                    <label for="operation-silver-arowana">Operations:</label>
+                    <select id="operation-silver-arowana" class="operation">
+                        <!-- Options will be populated dynamically based on location attributes -->
+                    </select>
+                    <button id="confirmOrders-silver-arowana" class="confirmOrders">Confirm Orders</button>
+                    <button id="hoistNets-silver-arowana" class="hoistNets" style="display:none;">Hoist Nets</button>
+                </div>
+                <p class="status" style="text-align:left;">Status: Arrived at Crab Harbour</p>
+            </div>
+            <div id="boat-the-minnow" class="boat-container">
+                <h3>The Minnow</h3>
+                <div class="cargo-hold" style="text-align:left;">
+                    <p>Total Cargo: 0/80 lbs (Empty)</p>
+                </div>
+                <div style="text-align: left;">
+                    <p style="text-align:left;">Fuel Tank: <span class="fuel-level">30</span>/30 g</p>
+                    <label for="navigation-the-minnow">Destination:</label>
+                    <span class="countdown" id="countdown-the-minnow" style="position:absolute;text-align:left;margin-left:125px;margin-top:-4px;"></span>
+                    <select id="navigation-the-minnow" class="navigation">
+                        <option value="crab_harbour">Crab Harbour</option>
+                        <option value="hanks_lagoon">Hank's Lagoon</option>
+                        <option value="open_ocean">Open Ocean</option>
+                    </select><br>
+                    <label for="operation-the-minnow">Operations:</label>
+                    <select id="operation-the-minnow" class="operation">
+                        <!-- Options will be populated dynamically based on location attributes -->
+                    </select>
+                    <button id="confirmOrders-the-minnow" class="confirmOrders">Confirm Orders</button>
+                    <button id="hoistNets-the-minnow" class="hoistNets" style="display:none;">Hoist Nets</button>
+                </div>
+                <p class="status" style="text-align:left;">Status: Arrived at Crab Harbour</p>
+            </div>
+            <div id="fish-market" style="display:none;">
+                <h2>Fish Market</h2>
+                <div id="fish-prices"></div>
+                <button id="acceptSale">Accept</button>
+                <button id="declineSale">Decline</button>
+            </div>
+            <div id="dock" style="display:none;">
+                <h2>Fuel Station</h2>
+                <div id="fuel-prices">
+                    <label for="fuel-amount">Enter gallons of fuel:</label>
+                    <input type="number" id="fuel-amount" min="1">
+                    <button id="selectFuel">Select</button>
+                    <p id="fuel-total">Total: $0.00</p>
+                </div>
+                <button id="acceptFuel">Accept</button>
+                <button id="declineFuel">Decline</button>
+            </div>
+            <div id="player-account">
+                <h2>Account:</h2>
+                <p>$<span id="account-balance">0.00</span></p>
+            </div>
+        </div>
+        <script src="javaScript.js"></script>
+    </div>
 </body>
 </html>

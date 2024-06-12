@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     const clockElement = document.getElementById('clock');
     const calendarElement = document.getElementById('calendar');
-    const accountBalanceElement = document.getElementById('account-balance');
+    const operationSelect = document.getElementById('operation');
+    const navigationSelect = document.getElementById('navigation');
+    const confirmOrdersButton = document.getElementById('confirmOrders');
+    const hoistNetsButton = document.getElementById('hoistNets');
+    const statusElement = document.getElementById('status');
+    const countdownElement = document.getElementById('countdown');
+    const cargoHoldElement = document.getElementById('cargo-hold');
     const fishMarketElement = document.getElementById('fish-market');
     const fishPricesElement = document.getElementById('fish-prices');
     const acceptSaleButton = document.getElementById('acceptSale');
@@ -13,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fuelTotalElement = document.getElementById('fuel-total');
     const acceptFuelButton = document.getElementById('acceptFuel');
     const declineFuelButton = document.getElementById('declineFuel');
+    const accountBalanceElement = document.getElementById('account-balance');
+    const fuelLevelElement = document.getElementById('fuel-level');
 
     const locations = {
         'crab_harbour': {
@@ -69,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    let selectedBoatIndex = 0; // Start with the first boat in the list
+
     function updateClockAndCalendar() {
         currentDate.setMinutes(currentDate.getMinutes() + 30);
 
@@ -97,13 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarElement.textContent = `Date: ${dateString}`;
     }
 
-    function updateStatus(boatIndex) {
-        const boat = boats[boatIndex];
-        const boatContainer = document.getElementById(`boat-${boat.name.toLowerCase().replace(' ', '-')}`);
-        const cargoHoldElement = boatContainer.querySelector('.cargo-hold');
-        const fuelLevelElement = boatContainer.querySelector('.fuel-level');
-        const statusElement = boatContainer.querySelector('.status');
-
+    function updateStatus() {
+        const boat = boats[selectedBoatIndex];
         statusElement.textContent = `Status: ${boat.operation} at ${locations[boat.location].name}`;
 
         let cargoDescription = `Total Cargo: ${boat.cargo}/${boat.maxCargo} lbs`;
@@ -120,10 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fuelLevelElement.textContent = boat.fuel;
     }
 
-    function populateOperations(boatIndex, isTraveling = false) {
-        const boat = boats[boatIndex];
-        const location = locations[boat.location];
-        const operationSelect = document.getElementById(`operation-${boat.name.toLowerCase().replace(' ', '-')}`);
+    function populateOperations(location, isTraveling = false) {
         const operations = [];
         if (isTraveling) {
             operations.push('<option value="set_sail">Set Sail</option>');
@@ -136,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         operationSelect.innerHTML = operations.join('');
     }
 
-    function startJourney(boatIndex, destination) {
-        const boat = boats[boatIndex];
+    function startJourney(destination) {
+        const boat = boats[selectedBoatIndex];
         let travelTime;
         if ((boat.location === 'crab_harbour' && destination === 'open_ocean') ||
             (boat.location === 'open_ocean' && destination === 'crab_harbour')) {
@@ -150,9 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let countdown = travelTime;
-        const countdownElement = document.getElementById(`countdown-${boat.name.toLowerCase().replace(' ', '-')}`);
-        const confirmOrdersButton = document.getElementById(`confirmOrders-${boat.name.toLowerCase().replace(' ', '-')}`);
-        const statusElement = document.getElementById(`boat-${boat.name.toLowerCase().replace(' ', '-')}`).querySelector('.status');
+        countdownElement.textContent = '|'.repeat(10);
         confirmOrdersButton.disabled = true;
         statusElement.textContent = `${boat.name} has set sail for ${locations[destination].name}.`;
 
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     confirmOrdersButton.disabled = false;
                     return;
                 }
-                updateStatus(boatIndex);
+                fuelLevelElement.textContent = boat.fuel;
             }
 
             if (countdown <= 0) {
@@ -180,15 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 countdownElement.textContent = 'ARRIVED';
                 boat.operation = 'Docked';
                 boat.location = destination;
-                updateStatus(boatIndex);
-                populateOperations(boatIndex);
+                updateStatus();
+                populateOperations(locations[destination]);
                 confirmOrdersButton.disabled = false;
             }
         }, MS_PER_SECOND);
     }
 
-    function fishCheck(boatIndex) {
-        const boat = boats[boatIndex];
+    function fishCheck() {
+        const boat = boats[selectedBoatIndex];
         const randomRoll = Math.floor(Math.random() * 10) + 1;
 
         if (randomRoll <= boat.baseChance) {
@@ -228,19 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             boat.fish[fishType] += fishWeight;
 
-            updateStatus(boatIndex);
+            statusElement.textContent = `Caught ${fishWeight} lbs of ${fishType}. Total cargo: ${boat.cargo}/${boat.maxCargo} lbs`;
         } else {
-            updateStatus(boatIndex);
+            statusElement.textContent = `No catch this time. Total cargo: ${boat.cargo}/${boat.maxCargo} lbs`;
         }
     }
 
-    function startFishing(boatIndex) {
+    function startFishing() {
         let countdown = 10;
-        const boatContainer = document.getElementById(`boat-${boats[boatIndex].name.toLowerCase().replace(' ', '-')}`);
-        const countdownElement = boatContainer.querySelector('.countdown');
-        const confirmOrdersButton = boatContainer.querySelector('.confirmOrders');
-        const hoistNetsButton = boatContainer.querySelector('.hoistNets');
-
         countdownElement.textContent = '|'.repeat(10);
 
         fishingInterval = setInterval(() => {
@@ -249,31 +244,26 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownElement.textContent = '|'.repeat(progress);
 
             if (countdown <= 0) {
-                fishCheck(boatIndex);
+                fishCheck();
                 countdown = 10; // Reset countdown
                 countdownElement.textContent = '|'.repeat(10);
-                updateStatus(boatIndex);
+                updateStatus();
             }
         }, MS_PER_SECOND);
         confirmOrdersButton.style.display = 'none';
         hoistNetsButton.style.display = 'inline';
     }
 
-    function stopFishing(boatIndex) {
+    function stopFishing() {
         clearInterval(fishingInterval);
-        const boatContainer = document.getElementById(`boat-${boats[boatIndex].name.toLowerCase().replace(' ', '-')}`);
-        const countdownElement = boatContainer.querySelector('.countdown');
-        const confirmOrdersButton = boatContainer.querySelector('.confirmOrders');
-        const hoistNetsButton = boatContainer.querySelector('.hoistNets');
-
         countdownElement.textContent = '';
         confirmOrdersButton.style.display = 'inline';
         hoistNetsButton.style.display = 'none';
-        boats[boatIndex].operation = 'Docked';  // Update the status to Docked after fishing stops
-        updateStatus(boatIndex);
+        boats[selectedBoatIndex].operation = 'Anchored';  // Update the status to Anchored after fishing stops
+        updateStatus();
     }
 
-    function priceCheck(boatIndex) {
+    function priceCheck() {
         const prices = {
             Trout: (Math.random() * (2 - 1.5) + 1.5).toFixed(2),
             Bass: (Math.random() * (4 - 3) + 3).toFixed(2),
@@ -281,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Fuel: (Math.random() * (4 - 3.5) + 3.5).toFixed(2)
         };
 
-        fishPricesElement.innerHTML = Object.entries(boats[boatIndex].fish).map(([type, weight]) => {
+        fishPricesElement.innerHTML = Object.entries(boats[selectedBoatIndex].fish).map(([type, weight]) => {
             const pricePerLb = prices[type];
             const totalValue = (weight * pricePerLb).toFixed(2);
             return `
@@ -297,8 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dockElement.querySelector('#selectFuel').dataset.price = prices.Fuel;
     }
 
-    function handleSale(boatIndex) {
-        const boat = boats[boatIndex];
+    function handleSale() {
+        const boat = boats[selectedBoatIndex];
         const checkboxes = document.querySelectorAll('#fish-prices input[type="checkbox"]:checked');
         let totalSale = 0;
 
@@ -317,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         accountBalance += totalSale;
         accountBalanceElement.textContent = accountBalance.toFixed(2);
 
-        updateStatus(boatIndex);
+        updateStatus();
         fishMarketElement.style.display = 'none';
     }
 
@@ -328,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dockElement.querySelector('#fuel-total').textContent = `Total: $${totalCost}`;
     }
 
-    function handleFuelPurchase(boatIndex) {
-        const boat = boats[boatIndex];
+    function handleFuelPurchase() {
+        const boat = boats[selectedBoatIndex];
         const pricePerGallon = parseFloat(dockElement.querySelector('#selectFuel').dataset.price);
         const fuelAmount = parseInt(fuelAmountInput.value);
         const totalCost = parseFloat(pricePerGallon * fuelAmount).toFixed(2);
@@ -348,79 +338,67 @@ document.addEventListener('DOMContentLoaded', () => {
         boat.fuel += fuelAmount;
 
         accountBalanceElement.textContent = accountBalance.toFixed(2);
-        updateStatus(boatIndex);
+        updateStatus();
         dockElement.style.display = 'none';
     }
 
-    document.querySelectorAll('.confirmOrders').forEach((button, index) => {
-        button.addEventListener('click', () => {
-            const boat = boats[index];
-            const operationSelect = document.getElementById(`operation-${boat.name.toLowerCase().replace(' ', '-')}`);
-            const navigationSelect = document.getElementById(`navigation-${boat.name.toLowerCase().replace(' ', '-')}`);
-            const selectedOperation = operationSelect.value;
-            const selectedNavigation = navigationSelect.value;
+    confirmOrdersButton.addEventListener('click', () => {
+        const selectedOperation = operationSelect.value;
+        const selectedNavigation = navigationSelect.value;
+        const boat = boats[selectedBoatIndex];
 
-            if (selectedOperation === 'set_sail' && selectedNavigation !== boat.location) {
-                boat.operation = 'Set Sail';
-                updateStatus(index);
-                stopFishing(index); // Ensure fishing stops when en route
-                startJourney(index, selectedNavigation);
-            } else if (selectedNavigation !== boat.location) {
-                const statusElement = document.getElementById(`boat-${boat.name.toLowerCase().replace(' ', '-')}`).querySelector('.status');
-                statusElement.textContent = `${boat.name} must travel to ${locations[selectedNavigation].name} first.`;
-            } else if (selectedOperation === 'fish' && locations[selectedNavigation].fishingLocation) {
-                boat.operation = 'Fishing';
-                updateStatus(index);
-                startFishing(index);
-            } else if (selectedOperation === 'fuel_station' && locations[selectedNavigation].portCity) {
-                boat.operation = 'Fuel Station';
-                updateStatus(index);
-                priceCheck(index);
-                dockElement.style.display = 'block';
-                fishMarketElement.style.display = 'none';
-                stopFishing(index);
-            } else if (selectedOperation === 'fish_market' && locations[selectedNavigation].fishMarket) {
-                boat.operation = 'Fish Market';
-                updateStatus(index);
-                priceCheck(index);
-                fishMarketElement.style.display = 'block';
-                dockElement.style.display = 'none';
-                stopFishing(index);
-            }
-        });
+        if (selectedOperation === 'set_sail' && selectedNavigation !== boat.location) {
+            boat.operation = 'Set Sail';
+            updateStatus();
+            stopFishing(); // Ensure fishing stops when en route
+            startJourney(selectedNavigation);
+        } else if (selectedNavigation !== boat.location) {
+            statusElement.textContent = `${boat.name} must travel to ${locations[selectedNavigation].name} first.`;
+        } else if (selectedOperation === 'fish' && locations[selectedNavigation].fishingLocation) {
+            boat.operation = 'Fishing';
+            updateStatus();
+            startFishing();
+        } else if (selectedOperation === 'fuel_station' && locations[selectedNavigation].portCity) {
+            boat.operation = 'Fuel Station';
+            updateStatus();
+            priceCheck();
+            dockElement.style.display = 'block';
+            fishMarketElement.style.display = 'none';
+            stopFishing();
+        } else if (selectedOperation === 'fish_market' && locations[selectedNavigation].fishMarket) {
+            boat.operation = 'Fish Market';
+            updateStatus();
+            priceCheck();
+            fishMarketElement.style.display = 'block';
+            dockElement.style.display = 'none';
+            stopFishing();
+        }
     });
 
-    document.querySelectorAll('.hoistNets').forEach((button, index) => {
-        button.addEventListener('click', () => stopFishing(index));
-    });
+    hoistNetsButton.addEventListener('click', stopFishing);
 
-    document.querySelectorAll('.navigation').forEach((select, index) => {
-        select.addEventListener('change', () => {
-            const boat = boats[index];
-            const selectedNavigation = select.value;
-            if (selectedNavigation !== boat.location) {
-                populateOperations(index, true); // Only show "Set Sail"
-            } else {
-                populateOperations(index); // Show full operations menu
-            }
-        });
+    navigationSelect.addEventListener('change', () => {
+        const selectedNavigation = navigationSelect.value;
+        if (selectedNavigation !== boats[selectedBoatIndex].location) {
+            populateOperations({}, true); // Only show "Set Sail"
+        } else {
+            populateOperations(locations[selectedNavigation]); // Show full operations menu
+        }
     });
 
     selectFuelButton.addEventListener('click', handleFuelSelection);
-    acceptFuelButton.addEventListener('click', () => handleFuelPurchase(selectedBoatIndex));
+    acceptFuelButton.addEventListener('click', handleFuelPurchase);
     declineFuelButton.addEventListener('click', () => {
         dockElement.style.display = 'none';
     });
 
-    acceptSaleButton.addEventListener('click', () => handleSale(selectedBoatIndex));
+    acceptSaleButton.addEventListener('click', handleSale);
     declineSaleButton.addEventListener('click', () => {
         fishMarketElement.style.display = 'none';
     });
 
     updateClockAndCalendar();
-    boats.forEach((_, index) => {
-        updateStatus(index);
-        populateOperations(index);
-    });
+    updateStatus();
+    populateOperations(locations[boats[selectedBoatIndex].location]);
     setInterval(updateClockAndCalendar, MS_PER_HALF_HOUR);
 });
