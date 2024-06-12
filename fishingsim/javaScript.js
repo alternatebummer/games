@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const locations = {
         'crab_harbour': {
             name: 'Crab Harbour',
+            locationDes: true,
             fishMarket: true,
             portCity: true,
             fishingLocation: false,
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         'open_ocean': {
             name: 'Open Ocean',
+            locationDes: true,
             fishMarket: false,
             portCity: false,
             fishingLocation: true,
@@ -31,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         'hanks_lagoon': {
             name: "Hank's Lagoon",
+            locationDes: true,
             fishMarket: false,
             portCity: false,
             fishingLocation: true,
@@ -108,12 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let cargoDescription = `Total Cargo: ${boat.cargo}/${boat.maxCargo} lbs`;
         if (boat.cargo === 0) {
-            cargoDescription += " (Empty)";
+            cargoDescription += "<br>(Empty)";
         } else {
             const fishTypes = Object.entries(boat.fish)
                 .map(([type, weight]) => `${weight} lbs ${type}`)
                 .join(', ');
-            cargoDescription += ` (${fishTypes})`;
+            cargoDescription += `<br>(${fishTypes})`;
         }
 
         cargoHoldElement.innerHTML = `<p>${cargoDescription}</p>`;
@@ -128,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTraveling) {
             operations.push('<option value="set_sail">Set Sail</option>');
         } else {
+            if (location.locationDes) operations.push('<option value="none">Operations</option>');
             if (location.fishMarket) operations.push('<option value="fish_market">Fish Market</option>');
             if (location.portCity) operations.push('<option value="fuel_station">Fuel Station</option>');
             if (location.fishingLocation) operations.push('<option value="fish">Fish</option>');
