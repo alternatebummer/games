@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Station 6</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="flex-container">
+            <div class="stat-container">
+                <h2>Colony Stats</h2>
+                <p>Clock: <span id="time">07:00 AM</span></p>
+                <p>Date: <span id="date">06-01-2140</span></p>
+                <p>Population: <span id="population">9/30</span></p>
+                <p>Colony Funds: $<span id="colony-funds">100.00</span></p>
+                <p>Payroll: $<span id="payroll">0.00</span></p>
+                <p>Production: <span id="production">0</span></p>
+            </div>
+
+            <div class="building-container">
+                <h2>Buildings</h2>
+                <ul id="buildings"></ul>
+            </div>
+
+            <div class="colonist-container">
+                <h2>Colonists</h2>
+                <ul id="colonists"></ul>
+            </div>
+        </div>
+
+        <div class="status-update-container">
+            <h2>Status Updates</h2>
+            <ul id="status-updates"></ul>
+        </div>
+    </div>
+
+    <script src="colonists.js"></script>
+    <script src="buildings.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
