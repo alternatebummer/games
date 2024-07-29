@@ -11,18 +11,18 @@ body {
 
 .container {
     background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 800px;
+    width: 100%;
+    max-width: 700px;
     text-align: center;
 }
 
 .lists {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .list {
@@ -35,8 +35,8 @@ ul {
 }
 
 li {
-    padding: 10px;
-    border: 1px solid #ddd;
+    padding: 5px;
+    border: 0px solid #ddd;
     border-radius: 4px;
     margin-bottom: 5px;
     cursor: pointer;
@@ -61,10 +61,10 @@ button:disabled {
 }
 
 #status {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 #timer {
     display: block;
-    margin: 20px auto;
+    margin: 10px auto;
 }
