@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityBuilder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Welcome to CityBuilder</h1>
+        <div id="stats">
+            <p>Day: <span id="day">1</span> Month: <span id="month">1</span> Year: <span id="year">1</span></p>
+            <p>Funds: <span id="funds">1000</span></p>
+            <p>Population: <span id="population">0</span>/<span id="populationLimit">0</span></p>
+            <p>Working Pop: <span id="workingPop">0</span>/<span id="workingPopLimit">0</span></p>
+            <p>Labour: <span id="labour">10</span></p>
+            <p>Happiness: <span id="happiness">10</span></p>
+        </div>
+        <div id="commands">
+            <p>Commands:</p>
+            <ul>
+                <li>build housing (250 in Funds)</li>
+                <li>build industrial (500 in Funds)</li>
+                <li>build park (100 in Funds)</li>
+            </ul>
+        </div>
+        <div id="buildings">
+            <p>Buildings:</p>
+            <p>Residential Zones: <span id="residentialZones">0</span></p>
+            <p>Industrial Zones: <span id="industrialZones">0</span></p>
+            <p>Recreational Zones: <span id="recreationalZones">0</span></p>
+        </div>
+        <div id="input-field">
+            <input type="text" id="command-input" placeholder="Enter command">
+            <button onclick="processCommand()">Submit</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

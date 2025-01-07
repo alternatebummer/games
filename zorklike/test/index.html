@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>the DEATH of TINTIN</title>
+  <style>
+    body {
+      font-family: 'Courier', Courier, monospace;
+      background-color: #25252E;
+      color: #FF5555;
+      padding: 10px;
+      margin: 0;
+      display: 100%;
+      text-align: center;
+    }
+    #header {
+      font-size: 16px;
+    }
+    #content {
+      font-size: 3px;
+      line-height: 3px;
+      font-family: monospace;
+      white-space: pre;
+    }
+    #output {
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #DA947A;
+      height: 400px;
+      font-size: 16px;
+      max-width: 1000px;
+      margin: 0 auto 10px auto; /* Center horizontally, 10px bottom margin */
+      padding-right: 10px;
+      text-align: left;
+    }
+    input {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 16px;
+      border: none;
+      background-color: #25252E;
+      height: 15px;
+      color: #CEC075;
+      outline: none;
+      text-align: left;
+      width: 1000px;
+      box-sizing: border-box;
+    }
+    #output .command {
+      color: #DA947A;
+    }
+    #output .title {
+      color: #CEC075;
+    }
+    #output .description {
+      color: #B5B5B5;
+    }
+    #output .persons {
+      color: #79ABD9;
+    }
+    #output .direction {
+      color: #B2BD7E;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+        padding: 5px;
+      }
+      input {
+        font-size: 14px;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="content">                                                                           ... ... .  ........... .........::::::-::-::-:.   :+*--.  .:=-.....::.:--..::.:-----+*#***#%%%@%@@@@@@@@@+...=%@@@###+*#%%@@@@*:    </div>
+  <div id="content">  -%@@@@@@@@@@@@@@@@@@@%%%###%%%%%@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%*#@@@@@@@@@@@@@@@@@@@@@@@@@#   </div>
+  <div id="content"> .@@:::::...::.:.:.:::-==+++***+=++==-:......:+*+-.    ...:-=-===#@+.+@.       =@-                           #@.       ..:===:    ..%@@: ..:..  ...                                  ...                 :@#   </div>
+  <div id="content"> -@=                                                             %@  :@        -@:                           *@                    *@@.                          ......                                  -@%   </div>
+  <div id="content"> -@+                                                             #@  :@        .@.                           *@                   :@@                    .%@@@@@@@@@@@@@@@@@@%*:                         -@@   </div>
+  <div id="content"> :@+                                                             %@  :@        #@.                    +=     =@                   @@.                    .#@@-..       .:-=*%@@@@@@@=.                .::-@@.  </div>
+  <div id="content"> -@+                                                             *@. .@.       %@.                    @+     #@                  @@.                      .*@#                   .=@@@@:         -%@@@@@@@@@.  </div>
+  <div id="content"> :@+                                            +@:              *@. :@        %@.                    @+     +@                 =@#                     :@@@#.                       +@@%. .-#@@@@@@@@@@@@@@   </div>
+  <div id="content"> .@+                                            -@-              *@  :@        #@.                    @+     #@                 @@.                      #@@#                          %@@@@@@@@@@@@@@@@@@@@.  </div>
+  <div id="content"> :@*                                            -@-              *@  +@        =@:                    @*     @@                +@=                      =@@@*                           +@@@@@@@@@@@@@@@@@@@.  </div>
+  <div id="content"> -@+                                           .=@               *@  -@        :@.                    @#     @%                @@.                     *@@@@-                            *@@@@@@@@@@@@@@@@@@.  </div>
+  <div id="content"> :@=                                          .@@@       :.      =@  -@        -@-                    @*     @%               .@+                       . =@@.                            *@#-%@@@@@@@@@@@@@:  </div>
+  <div id="content">  @*              .%-                          %@@      -@-      -@. -@        :@-                    @#     @#               @@.                        .@@.                              .@@.*@@@@@@@@@@@@:  </div>
+  <div id="content"> .@@:.  .      .-%*@@#-:=-:..                  %@@      =*       =@  -@        :@.                    @*     @#              :@@                         =@#                                @%+@@@@@@@@@@@@@-  </div>
+  <div id="content"> :@@@@@@@@@@@@@%*%%@@@-@@-=*%@@@@@@@@@%###+-::-@@@#+*+=##%%%#%%%@@@. -@        =@:                    @#    .@#              @@-                         +@-                               %@@@@@@@@@@@@@@@@-  </div>
+  <div id="content">  %@*+++*********#@@@@+--+%@@@@@@%#*#####**=-=-@@@-::::---:-=++*@@@. :@        *@.                   .@#    :@*             .@@.                         %@-                              .@@@@@@@@@@@@@@@@@+  </div>
+  <div id="content">  *@=:.            .@@.                        %@@-   .          :@  :@        @@.                   .@*    .@#             :@@                          %@:                               @@@@@@@@@@@@@@@@@+  </div>
+  <div id="content">  =@=:-==*##%%@@@@@@@@@@@@%##*-=-::...         *@@:           ..-*@= :@        @@.                   .@#     @#             =@-                          +@+%+    @@                      *@@@@@@@@@@@@@@@@@+  </div>
+  <div id="content">  *@*+=-:..         +@@     . ..::---====+****#@@@#+++**###***+=:=@: .@        %@.                    @#     @#             @@.                          :@@@*    =*                      @@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content">  %@.               .@@+*@+..                  ++*:              :@+ :@        *@.                    ##     @#             @@                            #@@@.                          +@@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content"> .%@@%#@%%@%%%%###%#*@@@-:.:-====+**#%%%@@@@@@@@@@@@@@@@@@@@@@@@%@@: .@        #@.                    ##    .@#            .@@                            +@@=                           #@@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content">  -@=               :#@@:.                     *+*=              -@: :@.       #@:                    *@.   .@#            .@@                           +@#.                            @@@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content">  +@@@@@@@@@@@@@@@%@@@@@*:=+=+*#**@@@%%@@@%@@@@@@@@@@@@@@@@@@@@@*@@. :@.       +@:                    =@.   .@#            -@-                          @@=    .#@#                     .@@@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content">  #%.               ..@@+:++:..                .*%+:@            :@= :@        #@:                    =@.   :@*            .@%                         .@%. .+@@@@:    .                 @@@@@@@@@@@@@@@@@@@*  </div>
+  <div id="content">  %@@@@@@@@@@@@@@@@@@@@@@**%+*%@@@@@@@%%%+==::..:%#*@#+++**##@%@@@@- .@:       #@:                    =@:   -@*            .@%                          =@@@@@* =@@#. =@@@.              @@#@@@@@@@@@@@@@@@@#  </div>
+  <div id="content">  =@-                 .@*                    ....**.@: ..        :@- .@-       #@:      -             -@:   -@+            .@@                                   .-@@@#**#+#%@@@@.      %@-  .%@@@@@@@@@@@@@#  </div>
+  <div id="content"> .@@*==-:.:..........+#@@@#%%%%*+==-.:..         =#.@-           :@: .@*       %@.     .@=            -@-   -@+   .@@@@@@@%#@@                                      .-#%@@@@@= :@#   -@@@.     -@@@@@@@@@@@@#  </div>
+  <div id="content">  +@=-+++-:::-+-*****@@*@@..    .......-+#*###%@@@@@@@@@@@@@@@@@@:@+ .@+       @@.     .@-            .@=   -@#    -@#  .:*@@@@@:                   .. ....              +@=    @@@@@@%.        +@@@@@@@@@@@#  </div>
+  <div id="content">  +@=:... .     .       @@#-@@#*=-:-:.           -@.@:           .@- .@=       @@      .@-            .@+   -@#    .%@-       -%@@@=.   .+%@@@@@@@@@@@@@@@@@@@-         -@-                    .@@*@@@@@@@@@#  </div>
+  <div id="content">  -@@%%%%%##*==+-:+=--=:#@@:.     .:::#@@@@@@%#*=%@%@@%@@@@@@@@@@@@: .@:       @%      .@=            .@*   -@#     .@@-         .%@@@@@@@#=:               :@@.     -@@@%    .=+:.           +@@+-@@@@@@@@@#  </div>
+  <div id="content">  =@.                   .@@#                     -@-%+           -@  .@+      .@%      .@=            .@+   .@#       @@-           *@-                      =@%  .#@@@@@.  .%@@@@@%        -@@@@@@@@@@@@@@@%  </div>
+  <div id="content">  =@#++++*++*%##%%@@@@@@%@@@+=*######%#%@@%%@@@@*@@@@@@@@@@@@@@@@@@% .@+      .@@      .@=            -@+    @@        #@+           @@.                      %@.*@%.+@@% :%@@@@@@@@@.   .%@@@@@@@--.*@@@@@@%  </div>
+  <div id="content">  -@+...                 -@@.                       @*           -@   @-       @+      .@-            -@:    #@         *@%          .@-                      =@@@@:-@+@@@@@-@@@@@@%@@%#@@@. =@@@=    %@@@@@%  </div>
+  <div id="content">  =@-                 --=*@@@@@@@@@@@%#*=---:.      %=           :@  .@:      .@+      :@:            =@:    @%          *@%          %@:                     -@@@@@@@@@@%. %@@@@*  .@@@+     +@@*    =@@@@@%  </div>
+  <div id="content">  =@*=+**##@%@@@@@@%%++-. %@@:         .:----=++#%%%@@%%@@@@@@@@@@@. .@=      .@+      .@:            +@.   .@@         .@@@*          @#                     :@* .@+ .%#  .@%@@:  :@@.@:     *@@+    :@@@@@%  </div>
+  <div id="content">  -@+:::......            -@@*                      %+           -@. .@+      :@=      .@-            +@     @@         .@%@@          #@:                    .@@@@@. +%. =%%#+:  -@#  @-    %*.%+     @@@@@@  </div>
+  <div id="content">  :@=                      #@@-                    .@#           .@: .@=      *@.      :@-   %%       +@     #@          .@@=::..@@-    #@:               .*@@@@@@@% %%:@@@@@@@@-@@*%*%@@@@@@@@@@@*+*#%@@@@@@  </div>
+  <div id="content">  .@=                      :@@%                    .@%           :@-+@@:      %@.      .@:   #%.      *@+#@@*#@.         :@+     .@@@@- .@@              .%*..:..=@@@@#@@@@@@@@@@-     %@+      %%     %@@@@@  </div>
+  <div id="content">  :@=                       %@@=                    ..           :@. .@=      @@. :*%: .@-+%@@%@-     +@=:..%@@:         .@@         %@. %@:            *@@=      :-@@.-*####@@@@    .@@=       %*    .@@@@@@  </div>
+  <div id="content">  =@:                       .@@@.                                -@. .@*      %@*@@*--+=@:#*  .#@-    +%                 :@#        @@+  #@.           +@=          =@-*=.    =@=   %@:#=       ##    .@@@@@@  </div>
+  <div id="content">  =@.                        %@@-                         ..=+%@@@+   @%      @@+% #@@+.@@@-   @#.    #*                 .@%        -@@: %%            .@@+         :@@@@@@@@-@@   %%. @@@+     ##    +@@@@@@  </div>
+  <div id="content">  =@.                        =@@@.          ..:-+##%@@@@@@@@*-..     .@#      @@-@.  %*.@:--   *#    .@+                  =@@.      :@@:.@:             #@-          .@@@@@@@@@.  #@..+@@%.     %%...:@@@@@@@  </div>
+  <div id="content">  =@.                         @@%::.:#%@@@@@@@*-:....      .=+##%@@@@@:       #@%@.  :@@@.:-   *@--+#@@.                   .@@*.    .@* #@              @@#.          =@@@@@@@@#%@@@@@@@@@@@@@@@@@@@@@@@@@@@@.  </div>
+  <div id="content">  =@-                 .:--+*@@@%%#++=.       ..::-=*#%@@@%#*+=:.               .=@.   %@*@@.   :@@%#=.      .=@@#=-.    :+*%@@@@@@@@@*.=@%.              #@=          ##.*#@@@%%#*=-   @:       #%  -@@@@@@@@.  </div>
+  <div id="content">  -@-       .+#@@@@@@@@##:      .-=#@@@@@@@@@@#*=:.                             =@.             @@@@@@*+: -@@@*-+@@@@@@@@@*-::@-     *@@#@@.              %@@@@=-.   *%    #*         .@.       #* .@@@@@@@@@.  </div>
+  <div id="content">  .@@@@@@@@@*=:.:.  .=+#%%@@@@@@#*-:..-@@@@@@%%#*****=+=::.                     @%                 .:==#@@@+.                :@#       .@@+.                 .+@@@+ =@=    *#         -@.       #*:@@@@@@@@@*  </div>
+  <div id="content">   %*....:-=*@@@@@@@@#+.                           ....-=*##%%%@@-             :@:                                           *@:      .@%                      -@@@@@@.    %%         =@.       %@@@@@@@@@@@:  </div>
+  <div id="content">   @@@@@@%*+-.                                               =%@@@:            %@:     .=:                                  :@@      +@-                       =@@@@@+     @#         *@       .%@@@@@@@@@@@+  </div>
+  <div id="content">  .@*                                                 .-+#@@@@@#.@#            @@@@@:+@@*#@+                               .@@:    .%@:                        %@@@@@%%@@@@@@@@@@@%*+#@@@@@@@@@@@@@@@@@@@@@@%  </div>
+  <div id="content">   @@*=.                                      ..+@@@@@@@@@@@@@@+ .:           :@.  @@@.   :@-                            :@@@.    *@:                         -@@@@*--.....@%  :--=##+=@.   -@@*.       .-#@%  </div>
+  <div id="content">   %@@@@@@@@@%*+-..                 .:-+#@@@@@@@@@@@@@@@@@@@@@@*              =@   .-      @#                          =@@+.    :@%.                          =@@@:        @%         .@::%@@-            -@#  </div>
+  <div id="content">   %@@@@@@@@@@@@@@@@@@@@@#=:.=+@@@@@@@@@@@@@@@@@@@@@@@@@@@#+:                 @*           =-                        :@@=      .@+                            +%+@@@%+::...@@       .:#@@@=               =@*  </div>
+  <div id="content">   =@@@@@@@@@@@@@@@@@-   ..*@@-@@@@@@@@@@@@@@@@@@@@@@-.                       @@+#     .                 .@*     -..@@=       .=%..                           **   +@@@@@@@@@@@@@@@@@@+.                  =@*  </div>
+  <div id="content">   =@.  .-*@@@@@@@@@@.      +*.@@@@@@@@@@@@@@%*-.                          -@@@*%@.   *@:                -@+    -@@@* .+#%@@@@%+%%@@@@@@@*+:                 :@: .%@-                                     :@*  </div>
+  <div id="content">   =@.         -=+*%@@@@@@#%%@@@@@@@@@%%=.                               *@%. @: .                     .=%@#.  .%@@@@@@%*-  *%      . @@@@@@@@*.            .%@  @@.                                      =@*  </div>
+  <div id="content">   *%                   . .....                                       .*@*    @+                 -+###@@@@**@=*@%.:@.       =@        %@#.   =@@-          :@@@+#@=                                     :#@@*  </div>
+  <div id="content">   %#                                                                :@#  #@@%@*              +@@#+==*= .%@:.%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@:       .@%-@%@@                                  .-%@@@@@%  </div>
+  <div id="content">   +@                                                               .@% .@*   +*             *@.           :@@.    @#       :@    .@@ :@        .@@@.    -@%  %:@%                               .#@@@@@@@@@@  </div>
+  <div id="content">   +@:                                                              -@  :@:   +@            =@+@-      :-=+@#      @+       .@   .@*  +@         *@@@#  =@*   %.+@+                      .-+#@@@@@@@@@@@@@@@%  </div>
+  <div id="content">   @@   *@@@@%@@@@%%@%*=::---::-=***+++=--:......::::::::. . ..:=+%@@          @@.           .@@@@@@@@@@@@%        @%       .@.@%     :@.        -@.     .....##        .=#@@**+**#@@@@@@@@@@#*=:.         %@.  </div>
+  <div id="content">   #@: .@+                                                         -@*         .@@@@@@@:     #+%@@@@@@@@@@*..    ..@%.::+##*%@@@*=##%=%@%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*.                 %@   </div>
+  <div id="content">   *@:  %#                           .=-                           .@+          .%@@%@@#::.-+#@@@@@@@@@@@@@@@*%@@@@@@#+*#++#@@@%#**=+%@@#++=--...-@=:..     #@#@.          .@:*@@@@%-.                     %@.  </div>
+  <div id="content">   =@-  *%                        @: .@:                           .@-              ...=*##=#@@@@@@@@@@@@@@:       -@       .@@       :@.         @=       +@=-@.         :#@@@#=                          #@:  </div>
+  <div id="content">   =@-  #%                      :#@#-+%=@= .%#*                    .@*              +        @@@@@@@@@@@@%+@*      :@.      :@.       .@.         @=      :@@::@:    :*@@@@#:                              %@   </div>
+  <div id="content">   =@- .@*                       #%  %@.@:.@=#:                    .@%            -@#        +@@@@@@@@%-   .%@#-   :@=      +@.       .@.         %=      @@@@@@@@@@@@@=:                                  %@:  </div>
+  <div id="content">   +@: .@*                       @=#.@:=@#=@.::                     @@           =@*          =@@@@@%.        =@@@%#@@=**@##@@@:       @-         #*     +@@@@#                                            %@.  </div>
+  <div id="content">   #@: .@*                       .. .. ..  ..                       @@.         *@:             .                @@@@@@@@@@+=#@@@%=.   @:         *%    =@@...                                             %@.  </div>
+  <div id="content">   #@. .@*   :::::::.    ::::::::      :.   .:::::::::.::::. .::::. %@%         @%                               %@@@@@@@@:  @@@:*@@@@@@%=-:.  -::%@--*@@%.                                                #@-  </div>
+  <div id="content">   +@. .@*   .@@# .+@@@   *@@  -@     #@@   -%  @@= -@ .@@*   -@@   +@@@       .@=                              :@@@@@@@@=  .@@.   :@@@@@@@@@@@@@@@@@@@-                                                   +@=  </div>
+  <div id="content">   +@: .@#    @@*    @@@  +@@  -.    :@@@+  ..  @@=  :  @@+   -@@   -@%@@@#=.  %@                               #@@@@@@@@  .@@*    *@@@@@@@@#  +@@.                                                        +@+  </div>
+  <div id="content">   +@- .@#    @@*    =@@  +@@@@@.    %-+@@-     @@=     @@@@@@@@@   :@   +@%@@@@@%#+-:..                       .@@@@@@@@*  @@@     @@@@@@@@@.  %@=                                                         +@+  </div>
+  <div id="content">   +@-  %%    @@*    *@@  +@@  @:   *@%%@@@     @@=     @@+   -@@   :@-  .@   @@....+@@@@@@@@@@=..         .-%@@@@@@@@@@. :@@*    -@@@@@@@@-  =@@.                                                         -@#  </div>
+  <div id="content">   #@:  +@.   @@*   :@@.  +@@   *: :@:  .@@*    @@=     @@*   -@@   .@-  .@- #@.          ...=*@@@@@%+::+@@#+: :@@@@@@@@@:@@@:    %@@@@@@@@.  @@=                                                          :@#  </div>
+  <div id="content">   #@:  :@=  :@@@@@@@*    %@@@@@@:+@@+  =@@@#..*@@%=  .*@@@= :%@@#. .@    *@+@:                    .%@@%=  *=:#@%#@@@@: %@@@@@  .:@@@@@@@@@: *@@:                                                          -@%  </div>
+  <div id="content">   +@:  :@=                                                         .@    =@@+                  .+@@*.  +=:@@@@@:       :@@@@@@@%#@@@@@@@@+@#@@%                                                           -@%  </div>
+  <div id="content">   +@-  :@-                                :%+                      .*   =@@.                 =@@*.  .  #@@@@:          :@@@%=   :@@@@@@+  +@@@@.                                                          :@%  </div>
+  <div id="content">   =@-  .@=                               *%                        .@@%@@.@-               *@@:    :@@@@=             +@@:  .@@@@: .::.    @@@@@@@%*-                                                     -@#  </div>
+  <div id="content">   -@=  .@-                         %-:@:.%=.                         .@@  -@            .#@*.   .@@@@+:++          .#@+   .@%@@*@@.        @@@@@@@*#@@@@%*=-.                                             =@*  </div>
+  <div id="content">   .@#  =@.                        *@ :@::@:                         .%@.  .@:          *@#    :*@@#:*%-          .@@-  .*==@%%@@.          #@@@@@@=    :*%@@@@@@@@%+:...                                  :@#  </div>
+  <div id="content">    #@  :@:                        +@.@: *%                        :@@.     @%         @@.     *=.              .%@-  :..@@@@@.            =@@@@@@@:           ..:=#@@@@@@@@@#+:                           .@#  </div>
+  <div id="content">    #@   @=                              %:                        -@*      *@.       @%.                      =@+    *@@@@              :@@@@@@@@*                       .:+%@@@@@@@*#*=:                 .@*  </div>
+  <div id="content">   .@+  .@=                            =@.                         :@#      .@-      .@:                     .@%    +@@-               .@@@@@@@@@@@                               .*#@@@@@@@@@#-.          .@#  </div>
+  <div id="content">   :@+  .@-                                                        :@=       @@      :@#                  :*@@*     ..               =@@@@@@@@@@@@@                                       :-*@@@@@@@@@%*+:::%#  </div>
+  <div id="content">   :@#  .@#:@@@@@@@@@.@@@@* %@@#   =@@@-@@@@@@@@@.#@@@%.%@@#   -@@@:@*       #@.      :@@@+:...:-=++*#@@@@@#@#                    .#@@@@@@@@@@@@@@=                                              .-+*%%@@@@@@%  </div>
+  <div id="content">   .@#  :@.:%  @@*  @  @@=   @@@@.  .@..%  #@*  @. *@#   %@@@   :@ .@#       :@.        .:#@@@@@@%#+-::.   #@                  .#@@@@@@@@@@@@@@@@@.                                                        :@%  </div>
+  <div id="content">   .@%  +%     @@*     @@=   @-@@@: .@.    #@*     *@#   %*%@@- :@ .@*        @#                           %@              :+@@@@##@@@@@@@@@@@@@@=                                                         .@%  </div>
+  <div id="content">   .@#  =@.    @@*     @@=   @: #@@+.@.    #@*     *@#   %+ +@@#:@ .@%        @@.                          -@%.       .:#@@@@@@@.  @@@@@@@@@@@@@@                                                          .@%  </div>
+  <div id="content">   .@%  :@:    @@*     @@=   @:  -@@@@.    #@*     *@#   %+  :@@@@  @@        :@=                           :%@@%%%@@@@@@@@@@@%.   %@@@@@@@@@@@%.                                                           %%  </div>
+  <div id="content">   :@#  :@.    @@#     @@+   @-   .@@@.    #@#     *@%   @*   .@@@  +@.        @@                              .=+=-. =@@@@@*.     :@@@@@@@@@@@.                                                            #@. </div>
+  <div id="content">   .@*  :@=  .+++++   ++++= +++=    =@.   +++++   =++++ +++=    =%  :@         #@.                                                  :@@@@@@@@@.                                                             @@. </div>
+  <div id="content">   .@#  .@*                                                         +@         .@+                                                    =%@@@@:                                                               #@. </div>
+  <div id="content">   .@+   @%                                                         %@        .-@@:.                                                                                                                        %@. </div>
+  <div id="content">   .@*  .@#                                                        -@+     =#@@@+*@@@@%+:                                                                                                                  :@@. </div>
+  <div id="content">   :@#  .@%                                              .:-+#*=+#%@*.-#@@@%-.      .-*%@@@@@@@+-.                                                                                                         %@-  </div>
+  <div id="content">   .@#   .@@-+%@@@@***%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@#=::=+#@@@%:                    .-+%@@@@@@+.                                                                                                   %@.  </div>
+  <div id="content">   :@*     :++==-.:-==-:.   ...       ..                     :*@@@+.                               .:+%@@@@%*-.                                                                                            :@%  </div>
+  <div id="content">   :@+     -%@@*:                                                                                                                                              ..     .- .     .=%@@@@@@@+:::::.   :---:.. :@*  </div>
+  <div id="content">   :@#-%@@@@+                   .            ......                                                 .:%#=.....:-#***=++**#..=@@@@@@@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@:  </div>
+  <div id="content">   .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@%#%%%##*#%%%@@@@@@@@%#%@@@@@@@%#%%@%#%%*#**==-==-========---:....       ..:::.      :.  ....... :.           ....              </div><br>
+  <div id="header"></div>
+  <div id="output"></div>
+  <input id="input" type="text" placeholder="Enter a command">
+
+  <script>
+    const state = {
+      location: '3C',
+      inventory: [],
+      readableItems: {
+        'Initial Report': "<p>Initial Incident Report<br>To the Department of Illegal Affairs<p>Worldfamous Belgian reporter Tintin was found dead this morning at 8:21 AM. Cause of death determined: Excessive blood loss due to widespread hemorrhaging of internal organs. Witness testimony suggests a duel. Second party potentially fled the scene.<p>Recommending immediate delivery of the body to Party authorities. Witness testimony archived at <b>District Office</b>.<p> /s/ Lydia Frechka<br>Office of Party Coordinator<br>Spova",
+        'District Manifesto': "<br>5th Printing, 1927.<br>'Follow the edicts of the party and all will be well.'",
+      },
+      rooms: {
+        '3C': {
+          description: `
+<span class='title'>PARTY OFFICE, INTERIOR</span>
+<span class='description'>The <b>Party office</b> is a suffocating haze of flickering lights and ghoulish propaganda. Classical music warbles from some corner of the room, but the music is muffled by a broad and silent oppressive presence.<br><br>There is an <b>Equipment Locker</b> bolted to the northern wall and a manual (reads, "<b>District Manifesto</b>" in block lettering) of some kind on the commissar's desk.</span>
+<br><span class='title'>PERSONS</span>
+<span class='persons'><b>Lydia Frechka:</b> Party Coordinator for Spova District. She sits behind her desk, eyeing you impatiently.</span>
+<br><span class='title'>DIRECTIONS</span>
+<span class='direction'>west: An open door lets in the cold glow of a Spovian summer's morning</span>`,
+          exits: {
+            west: '3B',
+          },
+          items: {
+            'Equipment Locker': {
+              isOpen: false,
+              contents: ['Initial Report']
+            },
+            'desk': {
+              isOpen: true,
+              contents: ['District Manifesto']
+            },
+          },
+          persons: {
+            'Lydia': {
+              dialogue: "<span class='persons'>The Party wants this case closed quickly, comrade. This Belgian, this <i>Tintin</i>, was a menace. <p>I filed the report already, but I neglected to take notes. I need you to collect statements. Figure out what everyone was doing when the gun went off and rule out suspects until this looks like a random act of violence. Trust me, keep it simple.</span>",
+              responses: {
+                'District Manifesto': "<span class='persons'>I read mine before I start my day. Don't you, comrade?",
+                'Tintin': "<span class='persons'>The important fact of the matter is that he's dead. It <i>should</i> make your job <i>easier</i>, comrade. You're over-thinking this, maybe?",
+                'Initial Report': "<span class='persons'>Oh, it's just an old draft from yesterday. You can keep it if you want. State protocol requires that we section off the district until this case is closed.",
+                'Party Office': "<span class='persons'>It's just a job, you know that. Spovians don't care if it's Soviets or capitalists who run the government, which has made this a lucrative, relaxing job posting. That doesn't mean there isn't work to do, comrade. The Party's watching...",
+                'Kaspar Vilnik': "<span class='persons'>Oh, Vilnik. You saw him out there? Artists... I don't know.",
+              },
+            },
+          },
+        },
+
+        '3B': {
+          description: `
+<span class='title'>STREET: PARTY OFFICE, EXTERIOR</span>
+<span class='description'>The light out here is blinding. Shapes morph and fade behind high and filthy windowpanes of looming buildings. What function these shadowy denizens of Spova fulfill is a mystery to you.<p>You're feeling watched, anyway.</span>
+There's a hustle and bustle of people, yet an eerie quiet underneath it all.<br>
+<span class='title'>PERSONS</span>
+<span class='persons'><b>Kaspar Vilnik:</b> Local street performer. Specifically? A mime. He's gesticulating wildly, attempting to reel you in with an invisible fishing rod.</span>
+</span>
+<span class='title'>Directions</span>
+<span class='direction'>east : Back inside the Party Office</span>`,
+          exits: {
+            east: '3C',
+          },
+          items: {
+            'Sewer Drain': {
+              isOpen: true,
+              contents: []
+            },
+          },
+          persons: {
+            'Kaspar': {
+              dialogue: "<span class='persons'>The mime gestures energetically, a whirlwind of expression. He points to the ground and mimics a gunshot with his hands: <i>bang!</i> Then he holds an invisible notepad and pretends to write, looking up at you periodically.</span>",
+              responses: {
+                'District Manifesto': "<span class='persons'>Kaspar mimics reading a book, then tosses it aside with exaggerated boredom.</span>",
+                'Party Office': "<span class='persons'>Kaspar thinks for a moment, goosesteps in a tight circle, salutes, then, in silence, mimics a dramatic fart.",
+                'Tintin': "<span class='persons'>The mime portrays a short man with a quiff and a little dog. They are passengers on a train. Later, they are walking happily. Kaspar opens his arms wide, suggesting the short man and his dog were here in Spova. Suddenly, he freezes, mimics the gunshot, falls to the ground, and 'dies.' He rises, shrugs, and bows.</span>",              },
+            },
+          },
+        },
+      },
+    };
+
+    const output = document.getElementById('output');
+    const input = document.getElementById('input');
+
+    function clearOutput() {
+      output.innerHTML = '';
+    }
+
+    function display(message) {
+      output.innerHTML += message + '<br>';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function move(direction) {
+      const currentRoom = state.rooms[state.location];
+      if (currentRoom.exits[direction]) {
+        state.location = currentRoom.exits[direction];
+        clearOutput();
+        display(`<span class='direction'>  // You move ${direction}.`);
+        describeRoom();
+      } else {
+        display("<span class='direction'>You can't go that way.");
+      }
+    }
+
+    function describeRoom() {
+      const currentRoom = state.rooms[state.location];
+      display(currentRoom.description);
+    }
+
+    function openItem(itemName) {
+      const currentRoom = state.rooms[state.location];
+      if (!currentRoom.items || !currentRoom.items[itemName]) {
+        display(`There is no ${itemName} here to open.`);
+        return;
+      }
+
+      const item = currentRoom.items[itemName];
+      if (item.isOpen === undefined) {
+        display(`You can't open the ${itemName}.`);
+        return;
+      }
+
+      if (item.isOpen) {
+        display(`The ${itemName} is already open.`);
+        return;
+      }
+
+      item.isOpen = true;
+      display(`You open the ${itemName}.`);
+
+      if (item.contents && item.contents.length > 0) {
+        display(`Inside, you find: ${item.contents.join(', ')}.`);
+      } else {
+        display(`The ${itemName} is empty.`);
+      }
+    }
+
+    function take(itemName) {
+      const currentRoom = state.rooms[state.location];
+      if (!currentRoom.items) {
+        display("There is nothing to take here.");
+        return;
+      }
+
+      let foundItem = false;
+
+      for (const [containerName, containerData] of Object.entries(currentRoom.items)) {
+        if (containerData.isOpen && containerData.contents && containerData.contents.includes(itemName)) {
+          const index = containerData.contents.indexOf(itemName);
+          containerData.contents.splice(index, 1);
+          state.inventory.push(itemName);
+          display(`You take the ${itemName} from the ${containerName}.`);
+          foundItem = true;
+          break;
+        }
+      }
+
+      if (!foundItem) {
+        display(`You don't see a(n) ${itemName} worth taking.`);
+      }
+    }
+
+    function readItem(itemName) {
+      if (!state.inventory.includes(itemName)) {
+        display(`You don't have a ${itemName} to read.`);
+        return;
+      }
+
+      const content = state.readableItems[itemName];
+      if (content) {
+        display(`<span class='title'>You read the ${itemName}:</span><br><span class='description'>${content}</span>`);
+      } else {
+        display(`You can't read the ${itemName}.`);
+      }
+    }
+
+    function talkTo(personName) {
+      const currentRoom = state.rooms[state.location];
+      const person = currentRoom.persons[personName];
+
+      if (person) {
+        display(`<span class='title'>You talk to ${personName}:</span><br><span class='description'>${person.dialogue}</span>`);
+      } else {
+        display(`There's no one named ${personName} here to talk to.`);
+      }
+    }
+
+    function askAbout(personName, topic) {
+      const currentRoom = state.rooms[state.location];
+      const person = currentRoom.persons[personName];
+
+      if (person && person.responses[topic]) {
+        display(`<span class='title'>You ask ${personName} about ${topic}:</span><br><span class='description'>${person.responses[topic]}</span>`);
+      } else {
+        display(`You can't ask ${personName} about ${topic}.`);
+      }
+    }
+
+    function showHelp() {
+      const commands = `
+<span class='title'>Available Commands:</span>
+<span class='description'>
+- <b>go [direction]:</b> Move to a new location (e.g., 'go west').
+- <b>look:</b> Look around the current room.
+- <b>open [item]:</b> Open an item (e.g., 'open Equipment Locker').
+- <b>take [item]:</b> Take an item (e.g., 'take District Manifesto').
+- <b>inventory:</b> Check your inventory.
+- <b>read [item]:</b> Read an item in your inventory.
+- <b>talk to [person]:</b> Talk to a person in the room (e.g., 'talk to Lydia').
+- <b>ask [person] about [topic]:</b> Ask a person about a <b>topic</b>.
+- <b>help:</b> Display this help message.
+</span>`;
+      display(commands);
+    }
+
+    function handleCommand(command) {
+      const [action, ...args] = command.split(' ');
+      const argument = args.join(' ');
+
+      switch (action.toLowerCase()) {
+        case 'go':
+          move(argument);
+          break;
+        case 'look':
+          clearOutput();
+          display("<span class='command'>  // You look around.</span>");
+          describeRoom();
+          break;
+        case 'open':
+          openItem(argument);
+          break;
+        case 'take':
+          take(argument);
+          break;
+        case 'inventory':
+          display(
+            `You are carrying: ${
+              state.inventory.length > 0 ? state.inventory.join(', ') : 'nothing'
+            }`
+          );
+          break;
+        case 'read':
+          readItem(argument);
+          break;
+        case 'talk':
+          if (args[0] === 'to') {
+            talkTo(args[1]);
+          } else {
+            display("Who do you want to talk to?");
+          }
+          break;
+        case 'ask':
+          if (args[1] === 'about') {
+            askAbout(args[0], args.slice(2).join(' '));
+          } else {
+            display("Who and what do you want to ask about?");
+          }
+          break;
+        case 'help':
+          showHelp();
+          break;
+        default:
+          display("I don't understand that command.");
+      }
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const command = input.value.trim();
+        input.value = '';
+        if (command) {
+          display(`<span class='command'><br>  // ${command}</span><br>`);
+          handleCommand(command);
+        }
+      }
+    });
+
+    input.focus();
+    display("Welcome to the DEATH of TINTIN... Type 'help' to see available commands. Type 'look' to start.");
+  </script>
+</body>
+</html>

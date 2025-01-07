@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detective Game</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: green;
+        }
+
+        #game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: black;
+            border: 2px solid green;
+            border-radius: 5px;
+            color: green;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: green;
+            text-transform: uppercase;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 10px 0;
+            color: green;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        li::before {
+            content: attr(data-key) " ";
+            color: green;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        #location p, #dialogue p {
+            line-height: 1.6;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>Welcome to the Detective Game</h1>
+            <p>Investigate the scene, interrogate suspects, and solve the mystery!</p>
+            <ul>
+                <li data-key="1">Start</li>
+            </ul>
+        </div>
+        <div id="location" class="hidden">
+            <h2>Café Exterior</h2>
+            <p>The curb still has some of Binbin's blood draining out into the sewer below. There are some tables and chairs set up in front of the Spovian Café with a few people milling about, looking concerned.</p>
+            <h3>Suspects:</h3>
+            <ul>
+                <li data-key="1">Kaspar</li>
+            </ul>
+        </div>
+        <div id="dialogue" class="hidden">
+            <h2 id="suspect-name"></h2>
+            <p id="suspect-description"></p>
+            <h3>Actions:</h3>
+            <ul id="actions">
+                <!-- Actions will be populated dynamically -->
+            </ul>
+            <div id="dialogue-container"></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const locationDiv = document.getElementById("location");
+            const dialogueDiv = document.getElementById("dialogue");
+            const startScreen = document.getElementById("start-screen");
+
+            const suspectData = {
+                kaspar: {
+                    name: "Kaspar Vilnik",
+                    description: "Kaspar is leaning against an invisible fence or mailbox. It's hard to say for sure what it is, he's not a very good mime. He's exaggerated gestures implying that he is tired and bored.",
+                    statement: "I saw people running out of the café, but I couldn’t see much through my mask. It’s suffocating enough, you know.",
+                },
+            };
+
+            const handleSelection = (key, context) => {
+                if (context === "start") {
+                    if (key === "1") {
+                        startScreen.classList.add("hidden");
+                        locationDiv.classList.remove("hidden");
+                        document.addEventListener("keydown", (e) => handleSelection(e.key, "location"), { once: true });
+                    }
+                } else if (context === "location") {
+                    if (key === "1") {
+                        const suspect = suspectData["kaspar"];
+                        if (suspect) {
+                            locationDiv.classList.add("hidden");
+                            dialogueDiv.classList.remove("hidden");
+
+                            document.getElementById("suspect-name").textContent = suspect.name;
+                            document.getElementById("suspect-description").textContent = suspect.description;
+
+                            const actionsList = document.getElementById("actions");
+                            actionsList.innerHTML = "";
+
+                            const statementAction = document.createElement("li");
+                            statementAction.textContent = "1. I'd like to collect your statement.";
+                            statementAction.dataset.key = "1";
+                            actionsList.appendChild(statementAction);
+
+                            const backAction = document.createElement("li");
+                            backAction.textContent = "2. Back away from Kaspar.";
+                            backAction.dataset.key = "2";
+                            actionsList.appendChild(backAction);
+
+                            document.addEventListener("keydown", (e) => handleSelection(e.key, "dialogue"), { once: true });
+                        }
+                    }
+                } else if (context === "dialogue") {
+                    if (key === "1") {
+                        const suspect = suspectData["kaspar"];
+                        if (suspect) {
+                            const dialogueContainer = document.getElementById("dialogue-container");
+                            dialogueContainer.textContent = `"${suspect.statement}"`;
+                        }
+                    } else if (key === "2") {
+                        dialogueDiv.classList.add("hidden");
+                        locationDiv.classList.remove("hidden");
+                        document.addEventListener("keydown", (e) => handleSelection(e.key, "location"), { once: true });
+                    }
+                }
+            };
+
+            document.addEventListener("keydown", (e) => handleSelection(e.key, "start"), { once: true });
+        });
+    </script>
+</body>
+</html>
