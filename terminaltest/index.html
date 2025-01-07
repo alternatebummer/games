@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Emulator</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: #00FF00;
+            font-family: monospace;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #output {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #00FF00 black;
+        }
+
+        #output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #output::-webkit-scrollbar-thumb {
+            background-color: #00FF00;
+        }
+
+        #output::-webkit-scrollbar-track {
+            background-color: black;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid #00FF00;
+            background-color: black;
+        }
+
+        .input-container span {
+            margin-right: 5px;
+        }
+
+        #input {
+            background: none;
+            border: none;
+            color: #00FF00;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        #input::placeholder {
+            color: #008000;
+        }
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+    <div class="input-container">
+        <span>&gt;_</span><input id="input" autofocus placeholder="Type a command">
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        const inputField = document.getElementById('input');
+
+        const commands = {
+            help: "Available commands: help, clear, echo",
+            clear: "",
+            echo: args => args.join(' '),
+        };
+
+        function appendLine(content) {
+            const div = document.createElement('div');
+            div.textContent = content;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        inputField.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                const input = inputField.value.trim();
+                const [command, ...args] = input.split(' ');
+                appendLine(`>_ ${input}`);
+                inputField.value = '';
+
+                if (commands[command]) {
+                    if (command === 'clear') {
+                        output.innerHTML = '';
+                    } else {
+                        const outputText = typeof commands[command] === 'function' ? commands[command](args) : commands[command];
+                        appendLine(outputText);
+                    }
+                } else {
+                    appendLine(`Unknown command: ${command}`);
+                }
+            }
+        });
+
+        appendLine("Welcome to the terminal emulator. Type 'help' for a list of commands.");
+    </script>
+</body>
+</html>
