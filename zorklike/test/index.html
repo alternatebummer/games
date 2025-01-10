@@ -2,48 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=3.0">
   <title>the DEATH of TINTIN</title>
   <style>
     body {
       font-family: 'Courier', Courier, monospace;
       background-color: #25252E;
       color: #FF5555;
-      display: flex;
-      flex-direction: column;
-      justify-content:flex-start;
-      overflow: hidden; /* Prevent scrolling the page */
-      height:90vh;
       text-align: left;
+      white-space: pre-wrap;
       scrollbar-width: thin;
       scrollbar-color: #DA947A;
       align-items: center;
+      overflow-y: auto;
     }
     #output {
-      flex-grow: 1;
-      overflow-y: auto;
-      white-space: pre-wrap;
+      position: fixed;
+      top: 10px;
+      left: 50%; /* Center align horizontally */
+      transform: translateX(-50%); /* Adjust for centering */
       color: #DA947A;
-      font-size: 16px;
-      width: 90%; /* Use percentage to fit within screen width */
-      max-width: 700px; /* Limit width for larger screens */
-      min-width: 500px;
+      font-size: 14px;
+      width: 500px; /* Fit within the screen width */
+      height: 800px; /* Fixed height */
       padding: 10px;
       text-align: left;
+      background-color: #1E1E28; /* Background for contrast */
+      border: 1px solid #DA947A; /* Optional border */
+      overflow-y: auto; /* Enable scroll bar when content overflows */
+      box-sizing: border-box; /* Include padding and border in width/height */
     }
     input {
-      display: flex;
-      align-items: center;
-      white-space: pre-wrap;
-      overflow-y: auto;
+      position: fixed;
+      top: 809px;
+      left: 50%;
+      transform: translateX(-50%); /* Adjust for centering */
       padding: 10px;
-      background: none;
-      border: none;
-      width: 80%; /* Use percentage to fit within screen width */
-      max-width: 600px; /* Limit width for larger screens */
+      background-color: #1E1E28; /* Background for contrast */
+      border: 1px solid #DA947A; /* Optional border */
+      width: 478px; /* Use percentage to fit within screen width */
+      height: 10px;
       color: #B2BD7E;
       outline: none;
-      flex-grow: 0;
     }
     #output .command {
       color: #DA947A;
@@ -65,7 +65,7 @@
     }
 
     #output::-webkit-scrollbar-thumb {
-        background-color: #B2BD7E;
+        background-color: #DA947A;
     }
 
     #output::-webkit-scrollbar-track {
