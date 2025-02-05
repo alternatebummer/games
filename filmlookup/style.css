@@ -1,6 +1,6 @@
 /* style.css */
 body {
-    font-family: 'Courier', monospace;
+    font-family: 'Courier New', monospace;
     background-color: #1E1E28;
     color: #B2BD7E;
     white-space: pre-wrap;
@@ -25,7 +25,8 @@ hr {
 }
 
 #result, input {
-    width: 50%;
+    width: 70%;
+    min-width: 500px;
     padding: 10px;
     line-height: 16px;
     font-size: 16px;
@@ -38,7 +39,6 @@ input {
     border: 1px solid #DA947A;
     color: #B2BD7E;
     background-color: #1E1E28;
-    font-weight: bold;
 
 }
 
