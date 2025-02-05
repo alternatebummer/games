@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interstellar Grand Strategy</title>
+    <style>
+        body {
+            font-family: 'Courier', monospace;
+            background-color: #25252E;
+            color: #DA947A;
+            text-align: left;
+            white-space: pre-wrap;
+            padding: 20px;
+        }
+        #output {
+            background-color: #1E1E28;
+            border: 1px solid #DA947A;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #1E1E28;
+            border: 1px solid #DA947A;
+            color: #B2BD7E;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="output">Welcome, Commander. Your civilization has discovered warp technology. Type "update" to see your status.</div>
+    <input type="text" id="command" placeholder="Enter command...">
+
+    <script>
+        const output = document.getElementById("output");
+        const input = document.getElementById("command");
+
+        let civilization = "Earthlings";
+        let homePlanet = "Earth";
+        let colonizedPlanets = 1;
+        let fleet = {
+            "Science Vessel": { count: 1, buildTime: 2 },
+            "Colony Ship": { count: 1, buildTime: 5 },
+            "Combat Frigate": { count: 1, buildTime: 1 }
+        };
+        let knownLocations = ["Earth"];
+        let unknownLocations = { "The Unknown": 3 };
+        let missions = [];
+        let actionsPerTurn = 2;
+        let currentTurn = 1;
+        let buildingQueue = [];
+
+        function updateStatus() {
+            let status = `\nCivilization: ${civilization}\nHome Planet: ${homePlanet}\nColonized Planets: ${colonizedPlanets} (can build 1 ship at a time)\n\nFleet:\n`;
+            for (let ship in fleet) {
+                status += `- ${ship}s: ${fleet[ship].count.toString().padStart(3, '0')} (${fleet[ship].buildTime} turns to build)\n`;
+            }
+            status += `\nKnown Locations:\n` + knownLocations.join("\n") + "\n\nUnknown Locations:\n";
+            for (let loc in unknownLocations) {
+                status += `- ${loc} (${unknownLocations[loc]} turns to explore)\n`;
+            }
+            status += "\nCurrent Missions:\n";
+            if (missions.length === 0 && buildingQueue.length === 0) {
+                status += "none.";
+            } else {
+                missions.forEach(mission => {
+                    status += `Exploring ${mission.location} with ${mission.count} Science Vessel(s): Return in ${mission.turns} turn(s).\n`;
+                });
+                buildingQueue.forEach(build => {
+                    status += `Building ${build.count} ${build.type}(s): Ready in ${build.turns} turn(s).\n`;
+                });
+            }
+            appendOutput(status);
+        }
+
+        function appendOutput(text) {
+            output.innerHTML += `\n> ${text}`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                let command = input.value.trim();
+                input.value = "";
+                processCommand(command);
+            }
+        });
+
+        function processCommand(command) {
+            if (command.toLowerCase() === "update") {
+                updateStatus();
+                return;
+            }
+
+            if (command.toLowerCase() === "end turn") {
+                advanceTurn();
+                return;
+            }
+
+            if (command.toLowerCase() === "help") {
+                showHelp();
+                return;
+            }
+
+            let buildMatch = command.match(/^Build (\d+) (.+)$/i);
+            if (buildMatch) {
+                let count = parseInt(buildMatch[1]);
+                let shipType = buildMatch[2];
+                if (fleet[shipType]) {
+                    buildingQueue.push({ type: shipType, count, turns: fleet[shipType].buildTime });
+                    appendOutput(`Building ${count} ${shipType}(s), ready in ${fleet[shipType].buildTime} turns.`);
+                } else {
+                    appendOutput("Unknown ship type.");
+                }
+                return;
+            }
+
+            let exploreMatch = command.match(/^Explore (.+) with (\d+) Science Vessel/i);
+            if (exploreMatch) {
+                let location = exploreMatch[1];
+                let count = parseInt(exploreMatch[2]);
+                if (unknownLocations[location] && fleet["Science Vessel"].count >= count) {
+                    fleet["Science Vessel"].count -= count;
+                    missions.push({ location, count, turns: unknownLocations[location] });
+                    appendOutput(`Exploring ${location} with ${count} Science Vessel(s).`);
+                } else {
+                    appendOutput("Invalid mission or insufficient ships.");
+                }
+                return;
+            }
+
+            appendOutput("Unknown command. Try 'update'.");
+        }
+
+        function advanceTurn() {
+            missions.forEach(mission => mission.turns--);
+            missions = missions.filter(mission => {
+                if (mission.turns === 0) {
+                    appendOutput(`${mission.count} Science Vessel(s) has returned from ${mission.location}. Mars, a new planet, has been discovered.`);
+                    knownLocations.push("Mars");
+                    return false;
+                }
+                return true;
+            });
+
+            buildingQueue.forEach(build => build.turns--);
+            buildingQueue = buildingQueue.filter(build => {
+                if (build.turns === 0) {
+                    fleet[build.type].count += build.count;
+                    appendOutput(`${build.count} ${build.type}(s) completed and added to the fleet.`);
+                    return false;
+                }
+                return true;
+            });
+
+            appendOutput("Turn ended. Actions refreshed.");
+        }
+    </script>
+</body>
+</html>

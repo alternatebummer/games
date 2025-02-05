@@ -47,6 +47,10 @@
     #output .command {
       color: #DA947A;
     }
+    #output .header {
+      color: #DA947A;
+      font-size: 3px;
+    }
     #output .title {
       color: #CEC075;
     }
@@ -93,7 +97,7 @@
         '3C': {
           description: `
 <span class='title'>PARTY OFFICE, INTERIOR</span>
-<span class='description'>The <b>Party office</b> is a suffocating haze of flickering lights and ghoulish propaganda. Classical music warbles from some corner of the room, but the music is muffled by a broad and silent oppressive presence.<br><br>There is an <b>Equipment Locker</b> bolted to the northern wall and a manual (reads, "<b>District Manifesto</b>" in block lettering) of some kind on the commissar's desk.</span>
+<span class='description'>The <b>Party office</b> is a suffocating haze of flickering lights and ghoulish propaganda. Classical music warbles from some corner of the room, but the music is muffled by a broad and silent oppressive presence.<br><br>There is an <b>Equipment Locker</b> bolted to the northern wall and a manual (reads, "<b>District Manifesto</b>" in block lettering) of some kind on the Party Coordinator's desk.</span>
 <br><span class='title'>PERSONS</span>
 <span class='persons'><b>Lydia Frechka:</b> Party Coordinator for Spova District. She sits behind her desk, eyeing you impatiently.</span>
 <br><span class='title'>DIRECTIONS</span>
@@ -119,7 +123,7 @@
                 'Tintin': "<span class='persons'>The important fact of the matter is that he's dead. It <i>should</i> make your job <i>easier</i>, comrade. You're over-thinking this, maybe?",
                 'Initial Report': "<span class='persons'>Oh, it's just an old draft from yesterday. You can keep it if you want. State protocol requires that we section off the district until this case is closed.",
                 'Party Office': "<span class='persons'>It's just a job, you know that. Spovians don't care if it's Soviets or capitalists who run the government, which has made this a lucrative, relaxing job posting. That doesn't mean there isn't work to do, comrade. The Party's watching...",
-                'Kaspar Vilnik': "<span class='persons'>Oh, Vilnik. You saw him out there? Artists... I don't know.",
+                'Kaspar': "<span class='persons'>Oh, Vilnik. You saw him out there? Artists... I don't know.",
               },
             },
           },
@@ -128,15 +132,15 @@
         '3B': {
           description: `
 <span class='title'>STREET: PARTY OFFICE, EXTERIOR</span>
-<span class='description'>The light out here is blinding. Shapes morph and fade behind high and filthy windowpanes of looming buildings. What function these shadowy denizens of Spova fulfill is a mystery to you.<p>You're feeling watched, anyway.</span>
-There's a hustle and bustle of people, yet an eerie quiet underneath it all.<br>
+<span class='description'>The light out here is blinding. Shapes morph and fade behind high and filthy windowpanes of looming buildings. What function these shadowy denizens of Spova fulfill is a mystery to you.<p>You are feeling watched, anyway. There is the hustle-bustle, but still an eerie quiet underneath it all.<br>
 <span class='title'>PERSONS</span>
 <span class='persons'><b>Kaspar Vilnik:</b> Local street performer. Specifically? A mime. He's gesticulating wildly, attempting to reel you in with an invisible fishing rod.</span>
 </span>
-<span class='title'>Directions</span>
-<span class='direction'>east : Back inside the Party Office</span>`,
+<span class='title'>DIRECTIONS</span>
+<span class='direction'>north: Up the street, not much is going on.<br>east: Back inside the Party Office</span>`,
           exits: {
             east: '3C',
+            north: '2B',
           },
           items: {
             'Sewer Drain': {
@@ -149,14 +153,46 @@ There's a hustle and bustle of people, yet an eerie quiet underneath it all.<br>
               dialogue: "<span class='persons'>The mime gestures energetically, a whirlwind of expression. He points to the ground and mimics a gunshot with his hands: <i>bang!</i> Then he holds an invisible notepad and pretends to write, looking up at you periodically.</span>",
               responses: {
                 'District Manifesto': "<span class='persons'>Kaspar mimics reading a book, then tosses it aside with exaggerated boredom.</span>",
-                'Party Office': "<span class='persons'>Kaspar thinks for a moment, goosesteps in a tight circle, salutes, then, in silence, mimics a dramatic fart.",
-                'Tintin': "<span class='persons'>The mime portrays a short man with a quiff and a little dog. They are passengers on a train. Later, they are walking happily. Kaspar opens his arms wide, suggesting the short man and his dog were here in Spova. Suddenly, he freezes, mimics the gunshot, falls to the ground, and 'dies.' He rises, shrugs, and bows.</span>",              },
+                'Party Office': "<span class='persons'>Kaspar thinks for a moment, goosesteps in a tight circle, salutes, and hoists an invisible flag. Then, as though in mockery, dramatically farts for real.",
+                'Tintin': "<span class='persons'>The mime portrays a short man with a quiff and a little dog. They are passengers on a train. Later, they are walking happily. Kaspar opens his arms wide, suggesting the short man and his dog were here in Spova. Suddenly, he freezes, mimics a gunshot, falls to the ground, and 'dies.' He rises, shrugs, and bows.</span>",
+                'Lydia': "<span class='persons'>Kaspar reaches for his heart with both hands for fear of it bursting from his chest. He pants like a dog and bows in worship. It wasn't a very skillful performance, but the meaning is clear.",
+              },
+            },
+          },
+        },
+        '2B': {
+          description: `
+          <span class='title'>STREET: CIGAR SHOP, EXTERIOR</span>
+          <span class='description'>Spova smells of mulch and ashes. Smoke escapes from behind the <b>Cigar Shop's</b> dark oaken double doors. There is a <b>Garbage Can</b> by the curb.<br></span>
+          <span class='title'>DIRECTIONS</span>
+          <span class='direction'>south: A mime in the distance signals to you in a mockery of semaphore.<br>east: Through the shop's street-facing window, you can see a bored little man leaning on the counter, eating bread.<br>north: A cafe's glass pane window gleams in the sun, blinding you somewhat. Yellow and red tape marks it as a crime scene.</span>`,
+          exits: {
+            south: '2A',
+            east: '2C',
+            north: '2D',
+          },
+          items: {
+            'Garbage Can': {
+              isOpen: true,
+              contents: []
+            },
+          },
+          persons: {
+            'Miriam': {
+              dialogue: "<span class='persons'>A young woman in a faded apron stands outside the cafe, arms crossed, scowling at the crime scene tape. Miriam Wolt, Spova’s most unwilling barista, exhales sharply through her nose when she sees you. 'Oh, great. Another one.' She rolls her eyes. 'Are you here to actually do something, or just make it harder for me to pay rent?'</span>",
+              responses: {
+                'District Manifesto': "<span class='persons'>Miriam lets out a dry laugh. 'Oh, you mean that thing that tells us to love the dirt we’re buried in? Yeah, I’ve read it. Makes a great coaster.'</span>",
+                'Party Office': "<span class='persons'>Miriam smirks. 'The Party Office? Yeah, I went there once. The walls stared at me, and the clerk looked like he hadn't felt joy since birth. Real motivational.'</span>",
+                'Tintin': "<span class='persons'>Miriam scoffs. 'That guy? He came in, ordered black coffee, and then started monologuing about free will or something. Like, read the room, man. At least his dog was nice.'</span>",
+                'Lydia': "<span class='persons'>Miriam shrugs. 'Lydia Frechka? She’s just another cog in the wheel. She probably wants this whole mess cleaned up faster than I do. And trust me, I want this place open again yesterday.'</span>",
+                'Kaspar': "<span class='persons'>She smirks. 'Kaspar, huh? That mime gives me the creeps. He’s always watching people, always listening. But you know what’s weirder? He sees everything, but no one ever asks what he *thinks*.'</span>",
+                'Cigar Shop': "<span class='persons'>Miriam wrinkles her nose. 'The cigar shop? More like an ashtray with a door. My boss used to go there for 'meetings.' Pretty sure it’s just where old men go to die more slowly.'</span>",
+              },
             },
           },
         },
       },
     };
-
     const output = document.getElementById('output');
     const input = document.getElementById('input');
 
@@ -279,15 +315,15 @@ There's a hustle and bustle of people, yet an eerie quiet underneath it all.<br>
       const commands = `
 <span class='title'>Available Commands:</span>
 <span class='description'>
-- <b>go [direction]:</b> Move to a new location (e.g., 'go west').
-- <b>look:</b> Look around the current room.
-- <b>open [item]:</b> Open an item (e.g., 'open Equipment Locker').
-- <b>take [item]:</b> Take an item (e.g., 'take District Manifesto').
-- <b>inventory:</b> Check your inventory.
-- <b>read [item]:</b> Read an item in your inventory.
-- <b>talk to [person]:</b> Talk to a person in the room (e.g., 'talk to Lydia').
-- <b>ask [person] about [topic]:</b> Ask a person about a <b>topic</b>.
-- <b>help:</b> Display this help message.
+<b>go [direction]:</b><br>Move to a new location (e.g., 'go west').<br>
+<b>look:</b><br>Look around the current room. (e.g., 'look')<br>
+<b>open [item]:</b><br>Open an item (e.g., 'open Equipment Locker').<br>
+<b>take [item]:</b><br>Take an item (e.g., 'take District Manifesto').<br>
+<b>inventory:</b><br>Check your inventory (e.g., 'inventory').<br>
+<b>read [item]:</b><br>Read an item in your inventory. (e.g., 'read District Manifesto')<br>
+<b>talk to [person]:</b><br>Talk to a person in the room (e.g., 'talk to Lydia').<br>
+<b>ask [person] about [topic]:</b><br>Ask a person about a <b>topic</b>. <b>Topics</b> are hinted at through the use of <b>bolded text</b>. (e.g., 'ask Lydia about Kaspar')<br>
+<b>help:</b><br>Display this help message.
 </span>`;
       display(commands);
     }
@@ -355,7 +391,7 @@ There's a hustle and bustle of people, yet an eerie quiet underneath it all.<br>
     });
 
     input.focus();
-    display("Welcome to the DEATH of TINTIN... Type 'help' to see available commands. Type 'look' to start.");
+display("<b>the DEATH of TINTIN</b>: An alternate reality retelling of <b>Tintin in the Land of the Soviets</b>, where Tintin is immediately assassinated.You are a homicide detective contracted by the state to close this case as quickly as possible, by <i>any means</i>.<br><br>Type 'help' for a list of useful commands. Type 'look' to observe your surroundings.");
   </script>
 </body>
 </html>
