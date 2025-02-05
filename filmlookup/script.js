@@ -1,4 +1,3 @@
-/* script.js */
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("searchInput");
     const resultDiv = document.getElementById("result");
@@ -14,12 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
-        const filteredMovies = movies.filter(m => m.title.toLowerCase().startsWith(query));
+
+        if (query === "") {
+            resultDiv.innerHTML = "<p>Type a single letter to receive an alphabetized list of all movies beginning with that letter. Continue to type the movie title out to narrow down search results.</p>";
+            return;
+        }
+
+        const filteredMovies = movies
+            .filter(m => m.title.toLowerCase().startsWith(query))
+            .sort((a, b) => a.title.localeCompare(b.title)); // Sort alphabetically
 
         if (filteredMovies.length > 0) {
-            resultDiv.innerHTML = filteredMovies.map(movie =>`<b>${movie.title} (${movie.released})</b><br>Review Date: ${movie.reviewDate}<br>Rating: ${movie.rating}<br>
-${movie.review}`
-).join("<br><hr style='border-top: 1px solid #B2BD7E;'>");
+            resultDiv.innerHTML = filteredMovies.map(movie =>`<b>${movie.title} (${movie.released})</b><br>Review Date: ${movie.reviewDate}<br>Rating: ${movie.rating}<br><br>${movie.review}
+            `).join("<br><hr style='border-top: 1px solid #B2BD7E;'>");
         } else {
             resultDiv.innerHTML = "<p>No movies found.</p>";
         }
