@@ -440,284 +440,788 @@ const movies = [
     review: "Sally Hawkins is an absolute delight. Her performance reduces the barrier to entry to zero. The charming bear, Paddington, is a lovely little friend."
 },
 {
-    "reviewDate": "2024-01-11",
-    "title": "The Bourne Identity",
-    "released": 2002,
-    "rating": "4 out of 5 Stars",
-    "review": "Man, I love Franka Potente in this. Her and Damon know exactly what this movie is. Everyone's ass is on the line. No one's having a good day. The weather sucks. The system's broken. When communication fails, power is equivalent to force. Prioritizing passion and attraction is equivalent to going rogue. I say, 'Hell yeah' to this film. 'The only thing we had in common was that neither one of us knew who you were. We're past that now.'"
+    reviewDate: "2024-01-11",
+    title: "The Bourne Identity",
+    released: 2002,
+    rating: "4 out of 5 Stars",
+    review: "Man, I love Franka Potente in this. Her and Damon know exactly what this movie is. Everyone's ass is on the line. No one's having a good day. The weather sucks. The system's broken. When communication fails, power is equivalent to force. Prioritizing passion and attraction is equivalent to going rogue. I say, 'Hell yeah' to this film. 'The only thing we had in common was that neither one of us knew who you were. We're past that now.'"
 },
 {
-    "reviewDate": "2024-01-16",
-    "title": "Kung Pow: Enter the Fist",
-    "released": 2002,
-    "rating": "2 out of 5 Stars",
-    "review": "Glorious and utterly unique. Oedekerk is like Orson Welles if Welles' passion was the pursuit of extreme stupidity. I can't help myself with this guy, he's an inspiration! And this is a bad movie!"
+    reviewDate: "2024-01-16",
+    title: "Kung Pow: Enter the Fist",
+    released: 2002,
+    rating: "2 out of 5 Stars",
+    review: "Glorious and utterly unique. Oedekerk is like Orson Welles if Welles' passion was the pursuit of extreme stupidity. I can't help myself with this guy, he's an inspiration! And this is a bad movie!"
 },
 {
-    "reviewDate": "2024-01-16",
-    "title": "The Nightmare Before Christmas",
-    "released": 1993,
-    "rating": "5 out of 5 Stars",
-    "review": "Sally understands that the plan is, on some level, elementally flawed. We learn this from her in many ways, but early on there is a moment when Sally witnesses Jack lying to the citizens of Halloween Town about Santa Claus, and the look on her face is that of disappointment. Does she know that Jack is lying to them? Does she understand that in this moment he is lying to himself somehow? 'What has become of my dear friend?' The more I rewatch, the more this becomes Sally's movie. The spirit of Christmas, after all, is a stand-in, a symbol. Sally and Jack are two people seeking connection."
+    reviewDate: "2024-01-16",
+    title: "The Nightmare Before Christmas",
+    released: 1993,
+    rating: "5 out of 5 Stars",
+    review: "Sally understands that the plan is, on some level, elementally flawed. We learn this from her in many ways, but early on there is a moment when Sally witnesses Jack lying to the citizens of Halloween Town about Santa Claus, and the look on her face is that of disappointment. Does she know that Jack is lying to them? Does she understand that in this moment he is lying to himself somehow? 'What has become of my dear friend?' The more I rewatch, the more this becomes Sally's movie. The spirit of Christmas, after all, is a stand-in, a symbol. Sally and Jack are two people seeking connection."
 },
 {
-    "reviewDate": "2024-01-17",
-    "title": "No Hard Feelings",
-    "released": 2023,
-    "rating": "2 out of 5 Stars",
-    "review": "Andrew Barth Feldman delivers a sensitive, piercing, and strange sex comedy performance. Jennifer Lawrence being a stressed-out Marx Brother. Their comedic/dramatic chemistry… threatens to be quite charming. The movie has within it a kind of emotional complexity, like a bizarre, double-inverted Harold and Maude thing going on, that only the two leads seem to be pursuing. Everyone else is making American Pie."
+    reviewDate: "2024-01-17",
+    title: "No Hard Feelings",
+    released: 2023,
+    rating: "2 out of 5 Stars",
+    review: "Andrew Barth Feldman delivers a sensitive, piercing, and strange sex comedy performance. Jennifer Lawrence being a stressed-out Marx Brother. Their comedic/dramatic chemistry… threatens to be quite charming. The movie has within it a kind of emotional complexity, like a bizarre, double-inverted Harold and Maude thing going on, that only the two leads seem to be pursuing. Everyone else is making American Pie."
 },
 {
-    "reviewDate": "2024-01-17",
-    "title": "The Mirror Has Two Faces",
-    "released": 1996,
-    "rating": "3 out of 5 Stars",
-    "review": "It's as if this movie takes place in the Seinfeld universe and these are just two people with lives Jerry, George, Elaine, and Kramer aren't destroying. This is a movie about celibacy pushed to the limits of safety. Jeff Bridges does a spit-take. It has like 600 acts. Barbra Streisand is amazing."
+    reviewDate: "2024-01-17",
+    title: "The Mirror Has Two Faces",
+    released: 1996,
+    rating: "3 out of 5 Stars",
+    review: "It's as if this movie takes place in the Seinfeld universe and these are just two people with lives Jerry, George, Elaine, and Kramer aren't destroying. This is a movie about celibacy pushed to the limits of safety. Jeff Bridges does a spit-take. It has like 600 acts. Barbra Streisand is amazing."
 },
 {
-    "reviewDate": "2024-01-18",
-    "title": "Inside Man",
-    "released": 2006,
-    "rating": "3.5 out of 5 Stars",
-    "review": "It's a primo bank heist movie with very memorable performances, especially from Denzel Washington. It’s tough, because Dog Day Afternoon is 1975, Heat comes out in '95 and perfects many aspects of cinematic bank heist mechanics. Then, Dark Knight comes out in '08, with Nolan replicating the speed and procedural rigor of Mann, which arguably canonizes or underlines the achievements of Heat. In 2006, Inside Man is building with the same variables as the above. Spike Lee is a master filmmaker, deploying many signature flourishes throughout. It’s in the mix with some extreme heavy-hitters and I suggest that it’s undervalued across the board."
+    reviewDate: "2024-01-18",
+    title: "Inside Man",
+    released: 2006,
+    rating: "3.5 out of 5 Stars",
+    review: "It's a primo bank heist movie with very memorable performances, especially from Denzel Washington. It’s tough, because Dog Day Afternoon is 1975, Heat comes out in '95 and perfects many aspects of cinematic bank heist mechanics. Then, Dark Knight comes out in '08, with Nolan replicating the speed and procedural rigor of Mann, which arguably canonizes or underlines the achievements of Heat. In 2006, Inside Man is building with the same variables as the above. Spike Lee is a master filmmaker, deploying many signature flourishes throughout. It’s in the mix with some extreme heavy-hitters and I suggest that it’s undervalued across the board."
 },
 {
-    "reviewDate": "2024-01-18",
-    "title": "Munich",
-    "released": 2005,
-    "rating": "4 out of 5 Stars",
-    "review": "Shockingly nuanced for what it is. I doubt it could be made today. Spielberg at the peak of his power."
+    reviewDate: "2024-01-18",
+    title: "Munich",
+    released: 2005,
+    rating: "4 out of 5 Stars",
+    review: "Shockingly nuanced for what it is. I doubt it could be made today. Spielberg at the peak of his power."
 },
 {
-    "reviewDate": "2024-01-19",
-    "title": "Zatoichi and the Chest of Gold",
-    "released": 1964,
-    "rating": "3.5 out of 5 Stars",
-    "review": "This is a very uncomplicated entry in the series. Ichi eats shit for 50 minutes as fools step to him and he gets branded as a thief of public funds. Ever a man of service, he stays to figure out who actually stole the money. There's a tragically small C-plot with a sneaky woman, a D-plot with a kid, and a pretty cool villain, but many classic Zatoichi E, F and G plots are conspicuously absent. He doesn't even give a backrub, which is crazy. On the plus side, there's an abundance of fancy editing and sweeping panoramic shots that make Chest of Gold stand out as particularly cinematic. He massacres like 35 men, but that's quite a low count for him. Still, I was entertained throughout."
+    reviewDate: "2024-01-19",
+    title: "Zatoichi and the Chest of Gold",
+    released: 1964,
+    rating: "3.5 out of 5 Stars",
+    review: "This is a very uncomplicated entry in the series. Ichi eats shit for 50 minutes as fools step to him and he gets branded as a thief of public funds. Ever a man of service, he stays to figure out who actually stole the money. There's a tragically small C-plot with a sneaky woman, a D-plot with a kid, and a pretty cool villain, but many classic Zatoichi E, F and G plots are conspicuously absent. He doesn't even give a backrub, which is crazy. On the plus side, there's an abundance of fancy editing and sweeping panoramic shots that make Chest of Gold stand out as particularly cinematic. He massacres like 35 men, but that's quite a low count for him. Still, I was entertained throughout."
 },
 {
-    "reviewDate": "2024-01-19",
-    "title": "The Spy Who Came In from the Cold",
-    "released": 1965,
-    "rating": "4 out of 5 Stars",
-    "review": "No respect, I tell ya, no respect at all."
+    reviewDate: "2024-01-19",
+    title: "The Spy Who Came In from the Cold",
+    released: 1965,
+    rating: "4 out of 5 Stars",
+    review: "No respect, I tell ya, no respect at all."
 },
 {
-    "reviewDate": "2024-01-19",
-    "title": "The Little Drummer Girl",
-    "released": 1984,
-    "rating": "2.5 out of 5 Stars",
-    "review": "We all love it when spies hang out in the same room for a while, and those scenes are working well here. It's when Diane Keaton isn't sharing a scene with Klaus Kinski - that's how and when this movie drains the fun from the intrigue."
+    reviewDate: "2024-01-19",
+    title: "The Little Drummer Girl",
+    released: 1984,
+    rating: "2.5 out of 5 Stars",
+    review: "We all love it when spies hang out in the same room for a while, and those scenes are working well here. It's when Diane Keaton isn't sharing a scene with Klaus Kinski - that's how and when this movie drains the fun from the intrigue."
 },
 {
-    "reviewDate": "2024-01-21",
-    "title": "The Irishman",
-    "released": 2019,
-    "rating": "4 out of 5 Stars",
-    "review": "Imagine a world where everybody tells you, your whole life, that you are a hammer. Everything you see will look like a nail."
+    reviewDate: "2024-01-21",
+    title: "The Irishman",
+    released: 2019,
+    rating: "4 out of 5 Stars",
+    review: "Imagine a world where everybody tells you, your whole life, that you are a hammer. Everything you see will look like a nail."
 },
 {
-    "reviewDate": "2024-01-24",
-    "title": "Night Swim",
-    "released": 2024,
-    "rating": "2 out of 5 Stars",
-    "review": "It's a wet bye-bye man situation with pros and cons. Watch a man get well. Take that doctors - thanks Night Pool."
+    reviewDate: "2024-01-24",
+    title: "Night Swim",
+    released: 2024,
+    rating: "2 out of 5 Stars",
+    review: "It's a wet bye-bye man situation with pros and cons. Watch a man get well. Take that doctors - thanks Night Pool."
 },
 {
-    "reviewDate": "2024-01-31",
-    "title": "The Insider",
-    "released": 1999,
-    "rating": "4.5 out of 5 Stars",
-    "review": "Al Pacino does a lot of yelling into the air, barking commands, and issuing manic proclamations, equally of loyalty and of contempt, in this movie. How then can it be that he delivers a very layered, subtle, and charismatic performance? Somehow we're made to absorb whole new dimensions of Lowell Bergman's character from unpredictable little raindrops of detail: - Bergman standing knee-deep in the ocean - Bergman needing the somewhat esoteric guidance of his wife - Bergman falling in love with Wigand during the 60 Minutes interview taping - Bergman yelling, 'Don't invert stuff!'"
+    reviewDate: "2024-01-31",
+    title: "The Insider",
+    released: 1999,
+    rating: "4.5 out of 5 Stars",
+    review: "Al Pacino does a lot of yelling into the air, barking commands, and issuing manic proclamations, equally of loyalty and of contempt, in this movie. How then can it be that he delivers a very layered, subtle, and charismatic performance? Somehow we're made to absorb whole new dimensions of Lowell Bergman's character from unpredictable little raindrops of detail: - Bergman standing knee-deep in the ocean - Bergman needing the somewhat esoteric guidance of his wife - Bergman falling in love with Wigand during the 60 Minutes interview taping - Bergman yelling, 'Don't invert stuff!'"
 },
 {
-    "reviewDate": "2024-01-31",
-    "title": "Zatoichi's Pilgrimage",
-    "released": 1966,
-    "rating": "4 out of 5 Stars",
-    "review": "It droops in the middle a bit, but this is one of the best I've seen. Frankly, a horse steals the show. It's also a very stripped-down story compared to other entries in the series, which usually doesn't work as well as this, but it's nice to see Ichi spend so much time with a woman who loves him enthusiastically. It's nice to spend so much time getting to know the ways of a soft, easy village. It wasn't the pilgrimage I was promised, but it's very strong."
+    reviewDate: "2024-01-31",
+    title: "Zatoichi's Pilgrimage",
+    released: 1966,
+    rating: "4 out of 5 Stars",
+    review: "It droops in the middle a bit, but this is one of the best I've seen. Frankly, a horse steals the show. It's also a very stripped-down story compared to other entries in the series, which usually doesn't work as well as this, but it's nice to see Ichi spend so much time with a woman who loves him enthusiastically. It's nice to spend so much time getting to know the ways of a soft, easy village. It wasn't the pilgrimage I was promised, but it's very strong."
 },
 {
-    "reviewDate": "2024-02-01",
-    "title": "Predestination",
-    "released": 2014,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Doctor Who, but make it Sophocles."
+    reviewDate: "2024-02-01",
+    title: "Predestination",
+    released: 2014,
+    rating: "3.5 out of 5 Stars",
+    review: "Doctor Who, but make it Sophocles."
 },
 {
-    "reviewDate": "2024-02-07",
-    "title": "The Marsh King's Daughter",
-    "released": 2023,
-    "rating": "2 out of 5 Stars",
-    "review": "Daisy Ridley goes off grid. Marsh King over-delivers on dramatic thriller performances that the rest of the production can't contain. There's actually quite a bit to discuss here regarding Ridley's performance specifically. We're supposed to walk away having witnessed Helena finally integrate the domestic life she created with the non-binary, intuitive subjectivity she found in the woods as a child. It doesn't quite land, but, as with Star Wars, it wasn't her fault. In many ways, this is a kind of role Ridley is great at: Subtly queer, physically active, charismatically homicidal. She throws a genuinely strange shape compared to her contemporaries. She plays queer. That's my take. Ben Mendelsohn sleepwalks through dramatic thriller projects, but he's a solid 'that guy' and his scenes with Ridley are the heart of the movie. Still, the whole thing felt underwritten and TV-movie cheap."
+    reviewDate: "2024-02-07",
+    title: "The Marsh King's Daughter",
+    released: 2023,
+    rating: "2 out of 5 Stars",
+    review: "Daisy Ridley goes off grid. Marsh King over-delivers on dramatic thriller performances that the rest of the production can't contain. There's actually quite a bit to discuss here regarding Ridley's performance specifically. We're supposed to walk away having witnessed Helena finally integrate the domestic life she created with the non-binary, intuitive subjectivity she found in the woods as a child. It doesn't quite land, but, as with Star Wars, it wasn't her fault. In many ways, this is a kind of role Ridley is great at: Subtly queer, physically active, charismatically homicidal. She throws a genuinely strange shape compared to her contemporaries. She plays queer. That's my take. Ben Mendelsohn sleepwalks through dramatic thriller projects, but he's a solid 'that guy' and his scenes with Ridley are the heart of the movie. Still, the whole thing felt underwritten and TV-movie cheap."
 },
 {
-    "reviewDate": "2024-02-09",
-    "title": "The Beekeeper",
-    "released": 2024,
-    "rating": "2 out of 5 Stars",
-    "review": "So beekeeping is not an analogy or poetic device of any kind in this movie. The characters mostly accept and understand that a man will express state-sanctioned apicultural ideology through use of lethal force among a human population. The viscosity of the honey is all wrong, but Statham and Irons are doing good work here. The Beekeeper looks like it was shot for 100 dollars in an industrial park over 2 days. My expectations were low. I have to admit that for a budget action film it held its head fairly high."
+    reviewDate: "2024-02-09",
+    title: "The Beekeeper",
+    released: 2024,
+    rating: "2 out of 5 Stars",
+    review: "So beekeeping is not an analogy or poetic device of any kind in this movie. The characters mostly accept and understand that a man will express state-sanctioned apicultural ideology through use of lethal force among a human population. The viscosity of the honey is all wrong, but Statham and Irons are doing good work here. The Beekeeper looks like it was shot for 100 dollars in an industrial park over 2 days. My expectations were low. I have to admit that for a budget action film it held its head fairly high."
 },
 {
-    "reviewDate": "2024-02-15",
-    "title": "Phantom Thread",
-    "released": 2017,
-    "rating": "5 out of 5 Stars",
-    "review": "An obsessively articulated Miyazaki-esque film about love, anger, desire, pride, creation, pity, curses; the immaterial forces that hold us in place... The irreconcilable union of life and death... Phantom Thread is an extraordinarily generous cinematic experience. It obliterated my highest expectations. As Mike Tyson said of Muhammad Ali: 'Every head must bow, every tongue must confess, this is the greatest of all time.'"
+    reviewDate: "2024-02-15",
+    title: "Phantom Thread",
+    released: 2017,
+    rating: "5 out of 5 Stars",
+    review: "An obsessively articulated Miyazaki-esque film about love, anger, desire, pride, creation, pity, curses; the immaterial forces that hold us in place... The irreconcilable union of life and death... Phantom Thread is an extraordinarily generous cinematic experience. It obliterated my highest expectations. As Mike Tyson said of Muhammad Ali: 'Every head must bow, every tongue must confess, this is the greatest of all time.'"
 },
 {
-    "reviewDate": "2024-02-17",
-    "title": "The Love Witch",
-    "released": 2016,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Say whatever you want, you're gunna love this Elaine!!"
+    reviewDate: "2024-02-17",
+    title: "The Love Witch",
+    released: 2016,
+    rating: "3.5 out of 5 Stars",
+    review: "Say whatever you want, you're gunna love this Elaine!!"
 },
 {
-    "reviewDate": "2024-02-19",
-    "title": "Suspiria",
-    "released": 2018,
-    "rating": "3 out of 5 Stars",
-    "review": "This is an awesome, committed performance by Dakota Johnson wrapped in a very vintage-feeling remake."
+    reviewDate: "2024-02-19",
+    title: "Suspiria",
+    released: 2018,
+    rating: "3 out of 5 Stars",
+    review: "This is an awesome, committed performance by Dakota Johnson wrapped in a very vintage-feeling remake."
 },
 {
-    "reviewDate": "2024-02-19",
-    "title": "Madame Web",
-    "released": 2024,
-    "rating": "1 out of 5 Stars",
-    "review": "Madame Web is unlike other Marvel films in that it sets very, very low standards for itself and still fails to meet them. Dakota Johnson's performance is fascinating, at least. She's up there on the screen 3D printing this movie's cult status. Alas. No shade on Johnson, but this was an unbearable sitting experience and I could not bear it."
+    reviewDate: "2024-02-19",
+    title: "Madame Web",
+    released: 2024,
+    rating: "1 out of 5 Stars",
+    review: "Madame Web is unlike other Marvel films in that it sets very, very low standards for itself and still fails to meet them. Dakota Johnson's performance is fascinating, at least. She's up there on the screen 3D printing this movie's cult status. Alas. No shade on Johnson, but this was an unbearable sitting experience and I could not bear it."
 },
 {
-    "reviewDate": "2024-02-20",
-    "title": "Zatoichi's Revenge",
-    "released": 1965,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Huge points for the courage to actually dive into Ichi's backstory, but also, it's a bummer. It had me longing for the moments in other entries when he gets to frolic in a field of flowers. Otherwise a great execution of the tropes of the franchise and a pretty perfect blend of drama, humor, and action."
+    reviewDate: "2024-02-20",
+    title: "Zatoichi's Revenge",
+    released: 1965,
+    rating: "3.5 out of 5 Stars",
+    review: "Huge points for the courage to actually dive into Ichi's backstory, but also, it's a bummer. It had me longing for the moments in other entries when he gets to frolic in a field of flowers. Otherwise a great execution of the tropes of the franchise and a pretty perfect blend of drama, humor, and action."
 },
 {
-    "reviewDate": "2024-02-21",
-    "title": "Terminator 3: Rise of the Machines",
-    "released": 2003,
-    "rating": "2 out of 5 Stars",
-    "review": "It would have been cool to get a really wild terminator. And/or T3 would have been a great movie to explore the idea of time travelers spamming certain space/times (because every time traveler would visit earth on the day before judgment day, and so on). No such luck! It's pretty much T2 with a lot of CG and no Linda Hamilton."
+    reviewDate: "2024-02-21",
+    title: "Terminator 3: Rise of the Machines",
+    released: 2003,
+    rating: "2 out of 5 Stars",
+    review: "It would have been cool to get a really wild terminator. And/or T3 would have been a great movie to explore the idea of time travelers spamming certain space/times (because every time traveler would visit earth on the day before judgment day, and so on). No such luck! It's pretty much T2 with a lot of CG and no Linda Hamilton."
 },
 {
-    "reviewDate": "2024-02-24",
-    "title": "Goofy and Wilbur",
-    "released": 1939,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Goofy yells and Wilbur spits and dances little jigs. They love each other!"
+    reviewDate: "2024-02-24",
+    title: "Goofy and Wilbur",
+    released: 1939,
+    rating: "3.5 out of 5 Stars",
+    review: "Goofy yells and Wilbur spits and dances little jigs. They love each other!"
 },
 {
-    "reviewDate": "2024-02-28",
-    "title": "Cold Copy",
-    "released": 2023,
-    "rating": "3 out of 5 Stars",
-    "review": "Bel Powley's moist face is all over this thing, shot in wide angle, looking really tired and unhappy. The rest of this movie can be thrown out and I'll just keep the tired, moist queen. There's even a sauna scene just so we can see Powley's face dripping with sweat in a misty room. Is Cold Copy watchable? Yes, it is. It's in the company of movies like Whiplash and The Devil Wears Prada. It's in the company of movies about news media like The Insider and Venom. It's a bit like The King of Comedy, too. The protagonist is a bit Jokerfied. Good score, good edit, great lead. In my opinion, it's fighting for space among some of the best screenplays ever written. By comparison, Cold Copy feels a bit timid and narrow in scope. Not to say that a story about a professional writing student can't be fascinating and bold, but I'm still waiting."
+    reviewDate: "2024-02-28",
+    title: "Cold Copy",
+    released: 2023,
+    rating: "3 out of 5 Stars",
+    review: "Bel Powley's moist face is all over this thing, shot in wide angle, looking really tired and unhappy. The rest of this movie can be thrown out and I'll just keep the tired, moist queen. There's even a sauna scene just so we can see Powley's face dripping with sweat in a misty room. Is Cold Copy watchable? Yes, it is. It's in the company of movies like Whiplash and The Devil Wears Prada. It's in the company of movies about news media like The Insider and Venom. It's a bit like The King of Comedy, too. The protagonist is a bit Jokerfied. Good score, good edit, great lead. In my opinion, it's fighting for space among some of the best screenplays ever written. By comparison, Cold Copy feels a bit timid and narrow in scope. Not to say that a story about a professional writing student can't be fascinating and bold, but I'm still waiting."
 },
 {
-    "reviewDate": "2024-02-28",
-    "title": "The Post",
-    "released": 2017,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Robert McNamara gets grilled by Katherine Graham in this movie. Bob and David are in this movie. Masterful hands are at work here on every level, but, like other Spielberg, it often provides comfort when, perhaps, something more complex or challenging is warranted. Nonetheless, a feast."
+    reviewDate: "2024-02-28",
+    title: "The Post",
+    released: 2017,
+    rating: "3.5 out of 5 Stars",
+    review: "Robert McNamara gets grilled by Katherine Graham in this movie. Bob and David are in this movie. Masterful hands are at work here on every level, but, like other Spielberg, it often provides comfort when, perhaps, something more complex or challenging is warranted. Nonetheless, a feast."
 },
 {
-    "reviewDate": "2024-03-01",
-    "title": "Tenet",
-    "released": 2020,
-    "rating": "4.5 out of 5 Stars",
-    "review": "Tenet is very dignified and self-assured, which is one explanation for why it's such a hilariously unserious watch. Christopher Nolan is showing you his train set and you need to just survive the encounter the best you can. So if you laugh through it or think it's super deep and serious, well, whatever gets you through, man. See it enough times and you'll eventually collect the whole set of coping mechanisms. It's Terminator-esque in its mechanics, but instead of teleportation, time travelers have to walk through metal turnstiles and basically squat small industrial spaces and wait for time to pass. As they move back and forth across a temporal cold war timeline, they start filling it in with bootstrap paradox events. The story focuses on arguably the most important of those events: Stalsk-12, the first true 'pincer movement' (a discrete, planned bootstrap operation). Easy. It only took me five to ten watches to really figure this out. John David Washington is so handsome and fun. Clémence Poésy is in this movie. The whole thing just works for me."
+    reviewDate: "2024-03-01",
+    title: "Tenet",
+    released: 2020,
+    rating: "4.5 out of 5 Stars",
+    review: "Tenet is very dignified and self-assured, which is one explanation for why it's such a hilariously unserious watch. Christopher Nolan is showing you his train set and you need to just survive the encounter the best you can. So if you laugh through it or think it's super deep and serious, well, whatever gets you through, man. See it enough times and you'll eventually collect the whole set of coping mechanisms. It's Terminator-esque in its mechanics, but instead of teleportation, time travelers have to walk through metal turnstiles and basically squat small industrial spaces and wait for time to pass. As they move back and forth across a temporal cold war timeline, they start filling it in with bootstrap paradox events. The story focuses on arguably the most important of those events: Stalsk-12, the first true 'pincer movement' (a discrete, planned bootstrap operation). Easy. It only took me five to ten watches to really figure this out. John David Washington is so handsome and fun. Clémence Poésy is in this movie. The whole thing just works for me."
 },
 {
-    "reviewDate": "2024-03-03",
-    "title": "Dune: Part Two",
-    "released": 2024,
-    "rating": "4.5 out of 5 Stars",
-    "review": "Very satisfying. There are many swings and they all work. Villeneuve does a better job with arguably the more difficult half of a difficult book in terms of adaptation. Rebecca Ferguson gives a really fantastic performance in my opinion. Her and Zendaya carry the film."
+    reviewDate: "2024-03-21",
+    title: "The Navigator: A Medieval Odyssey",
+    released: 1988,
+    rating: "3 out of 5 Stars",
+    review: "For those who love Albert Pyun, The Navigator has nice, sympathetic characters. For those who like Terry Gilliam, Vincent Ward also oscillates wildly between blunt and baffling. Maybe this movie represents for me the best of both directors. The whole project is glazed with that classic 1980s ozploitation vibe for the real freaks out there."
 },
 {
-    "reviewDate": "2024-03-11",
-    "title": "Les Misérables",
-    "released": 2012,
-    "rating": "3.5 out of 5 Stars",
-    "review": "This gets a major, major 'hell yes' from me. Unfortunately, I can't give it a score equivalent to how deeply it moved me, how much I cried, so on. While I believe this movie conveys what it intends to convey, and transports me so thoroughly while simultaneously grounding me in totally familiar, utterly human affairs, Anne Hathaway is provided an absolutely awful role, unbefitting. 12 years on, the choice to saddle her with such a brutal and brief performance reads like a crime against nature. But this story is beautiful and I am helpless at its feat. I can't believe I waited so long to watch Hooper's Les Mis."
+    reviewDate: "2024-03-22",
+    title: "Cosmopolis",
+    released: 2012,
+    rating: "4 out of 5 Stars",
+    review: "'What if we shot a movie almost entirely from the back seat of a car?' seems just as bad an idea as, 'What if we fetishize limousines?' But you know what? It works. Cosmopolis seems to confess its cheapness with every frame, and yet it's thrilling, funny, uuh, extremely horny, and even kinda smart."
 },
 {
-    "reviewDate": "2024-03-12",
-    "title": "Poor Things",
-    "released": 2023,
-    "rating": "2 out of 5 Stars",
-    "review": "Poor Things is descended from an early English prose/fiction tradition I know casually as 'experimental philosophy.' Many have now compared it to Frankenstein, and that is accurate, but it's also quite in line with a work from 1666 called The Burning World, by Margaret Cavendish. Common formal elements shared by Poor Things and The Burning World include a satirical kingdom, travel, an education through encounters and interviews with others, the reformation and/or formation of a utopia, proto-science fictional elements, animal companions, empiricism, lovestruck men, conquest, political criticism, a central woman experimenting with agency, who, through reason, establishes power relations with others that manifest a material fantasy, and on and on. As a piece of experimental philosophy, I suppose Poor Things succeeds. The performances are also great. But, as a contemporary feminist work, I don't believe it's contributing anything."
+    reviewDate: "2024-03-22",
+    title: "Crimes of the Future",
+    released: 2022,
+    rating: "4 out of 5 Stars",
+    review: "On my second watch of Crimes, I only love it more. Everyone's cooking so hard. The metaphor of 'body politic' here is taken to its extreme and then folded in on itself like a cynical little crêpe. The idea of a revolutionary human body containing only 'outer space' (public space?) is really nicely contrasted with other ideas, like a 'safe room,' or the notion of a private performance. All that aside, this is an accurate representation of what it's like to spend your time creeping around in an artist-run community in the late industrial age."
 },
 {
-    "reviewDate": "2024-03-14",
-    "title": "A History of Violence",
-    "released": 2005,
-    "rating": "3 out of 5 Stars",
-    "review": "It has the pounding heart and adrenalized circulatory system of a Michael Mann movie, but it's shot and cut like a life insurance commercial. Almost the feeling of being served boiled beef at a restaurant. The most serious part of History of Violence is probably the story of Tom and Edie's relationship. You're with Edie the whole way as she realizes the grim truth and takes a leap of faith anyway. It's amazing how so much of the chemistry between Mortensen and Bello shines through."
+    reviewDate: "2024-03-22",
+    title: "Sometimes I Think About Dying",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "Continuing the journey with Daisy Ridley, Sometimes proved to be a far superior offering compared to The Marsh King's Daughter. This is a movie where you root for a depressed person to pretty much make it through the day. The cinematography is incredible. The performances are very touching and the restraint applied to every corner of this movie is absolutely outrageous. Sincerely, I found the final scene so thrilling I had to jump up and cheer."
 },
 {
-    "reviewDate": "2024-03-14",
-    "title": "Causeway",
-    "released": 2022,
-    "rating": "3.5 out of 5 Stars",
-    "review": "A very collected, tasteful movie about trauma and rehabilitation; more generally, a relaxed inquiry into containment, release, avoidance, maintenance, and time. This is the Jennifer Lawrence energy I've been waiting for. It's among her best. Brian Tyree Henry delivers an unimpeachable supporting lead performance. Special shout-out to Russell Harvard, who absolutely crushes a generous and pivotal scene, all ASL."
+    reviewDate: "2024-03-23",
+    title: "Downsizing",
+    released: 2017,
+    rating: "3 out of 5 Stars",
+    review: "A very fun premise. Kind of an inverted Gulliver, where a critique of social inequality is played out through Matt Damon's confrontation with a sprawling size metaphor. Unlike Gulliver, our hero has no good ideas and haplessly onboards with the ideas and plans of others. I like how bleak it is. I like this idea that the smartest minds collaborate to make people tiny, meanwhile destruction is assured."
 },
 {
-    "reviewDate": "2024-03-16",
-    "title": "The 3 Worlds of Gulliver",
-    "released": 1960,
-    "rating": "2 out of 5 Stars",
-    "review": "Gulliver's a bit like The Doctor, innit? This one's got a real 'oh shit' moment about half way through."
+    reviewDate: "2024-03-24",
+    title: "Planet Dune",
+    released: 2021,
+    rating: "2 out of 5 Stars",
+    review: "You've got a big heart, kid."
 },
 {
-    "reviewDate": "2024-03-17",
-    "title": "Talk to Me",
-    "released": 2022,
-    "rating": "3 out of 5 Stars",
-    "review": "Well acted, well directed, conceptually GRIPPING. Involves a bye-bye hand."
+    reviewDate: "2024-03-29",
+    title: "Ugetsu",
+    released: 1953,
+    rating: "4 out of 5 Stars",
+    review: "A very haunting ghost story that takes the time to critique economics, gender, and war while exploring death, regret, and loss. The viewer is made witness to many nightmare scenarios, and arguably this story is full-blown horror, with every moment guided by malevolent forces. There's also a whirligig story structure where each of the four main characters are forced to consider themselves and each other as strangers. Also, just, the movement of the actors and the staging of scenes is so beautiful."
 },
 {
-    "reviewDate": "2024-03-17",
-    "title": "You've Got Mail",
-    "released": 1998,
-    "rating": "3 out of 5 Stars",
-    "review": "Arthur C. Clarke said, 'Any sufficiently advanced technology is indistinguishable from magic.' This movie is like that but the technology is grace and forgiveness and the magic is polyamory."
+    reviewDate: "2024-03-29",
+    title: "The Face of Another",
+    released: 1966,
+    rating: "3.5 out of 5 Stars",
+    review: "Conceptually excellent and methodically drawn, The Face of Another blends sci-fi, horror, noir, and experimental filmmaking to produce a pretty thrilling yarn. There is a brutal feminism in Teshigahara's work, characterized by unflinching violence and male insecurity. I struggled mightily to sympathize with the lead, but his final moments (especially the last shot of the film) are well earned."
 },
 {
-    "reviewDate": "2024-03-18",
-    "title": "Nightmare Alley",
-    "released": 2021,
-    "rating": "2 out of 5 Stars",
-    "review": "Dragging some very fine performances through an absolute bummer of a story."
+        reviewDate: "2024-04-02",
+        title: "Side Effects",
+        released: 2013,
+        rating: "3.5 out of 5 Stars",
+        review: "Rooney Mara plays a very Gone Girl-esque heroine (villain????) but never quite gets fully Gone. I'm watching along, waiting for her Getting Gone, but she hasn't the leverage. Actually, Side Effects itself is essentially Gone Girl without leverage. While it can't reach the heights, it's standing on the shoulders of Pelican Brief and Primal Fear and Michael Clayton; Side Effects is among the last of the great twisty mid-budget psychological thrillers where alienated adults topple the Jenga towers of their lives in the process of finding something out or getting busted."
+    },
+    {
+        reviewDate: "2024-04-03",
+        title: "The Secret Scripture",
+        released: 2016,
+        rating: "2.5 out of 5 Stars",
+        review: "We're rooting for Rose (the Rooner herself), a woman so beguiling and flawless that she may as well be a metaphor for the resilient spirit of Ireland itself. So beguiling that she's involuntarily relocated to a hut in the woods, away from the zombie-like men of this town, who don't know how to sit back and let a 1940s barista live her life in different combinations of stockings, scarves, and coats. Instead of thrilling me with answers to these questions the movie pivots around a Schrodinger's Baby Hypothesis. Then, a truly ridiculous 'twist' ending."
+    },
+    {
+        reviewDate: "2024-04-04",
+        title: "Island of Lost Souls",
+        released: 1932,
+        rating: "4.5 out of 5 Stars",
+        review: "Island of Lost Souls, like Moreau himself, is overly concerned with getting a man to unleash his sexual passion on a panther. Or is it... not concerned enough? In the House of Pain, isolated and soaked through with debauched fantasy, you will find the answers you seek... Very much the protoform of Rocky Horror Picture Show and deserving of a watch with that in mind."
+    },
+    {
+        reviewDate: "2024-04-07",
+        title: "Irish Wish",
+        released: 2024,
+        rating: "1 out of 5 Stars",
+        review: "Maddie 1 suffers through the indignity of a My Best Friend's Wedding scenario until she makes the wish™ and then wakes up in reality 2 where she's the bride (Maddie 2), whereas the bride (friend 2) is now the bridesmaid, and so has it ever been. Maddie 1 is a stranger in reality 2 because everyone here knows Maddie 2. Meanwhile, Maddie 2 might just be nullified, or has maybe been pushed down to the Get Out zone inside her own body to make room for the consciousness of Maddie 1. It's kind of a dark shadow on this festive comedy. Or are all realities just constructs of an Irish saint that come and go as needed? Weird and intense ideas at play here, never to be explored."
+    },
+    {
+        reviewDate: "2024-04-08",
+        title: "Something's Gotta Give",
+        released: 2003,
+        rating: "3.5 out of 5 Stars",
+        review: "Very compelling. Something's Gotta Give cost 13 million more than The Matrix. In this meta-movie, we watch Diane Keaton write the script for Something's Gotta Give, essentially. It's kind of outrageous! It's a rare pleasure when a writer/director conspicuously inserts herself into her own story the way Nancy Mayers has done, though Charlie Kaufman did the same thing in Adaptation just a year earlier. There's lots of nice kissing."
+    },
+    {
+        reviewDate: "2024-04-10",
+        title: "Dick",
+        released: 1999,
+        rating: "3.5 out of 5 Stars",
+        review: "Funny! Cute! Evergreen! The possibilities are endless. On top of everything, it's kind of a stealth Kids in the Hall side project (2-kids-out-of-5). Is it the funniest movie about journalism? Is it the most historically grounded teen movie? Dan Hedaya as Nixon is perfect. Michelle Williams is hilarious."
+    },
+    {
+        reviewDate: "2024-04-12",
+        title: "Gamera, the Giant Monster",
+        released: 1965,
+        rating: "3.5 out of 5 Stars",
+        review: "Gamera, not to be mistaken for a camera, which is a machine that takes (photos). More like a wild turtle that must be given freely to the world. I love how underexposed this movie is. Let Gamera spin!!"
+    },
+    {
+        reviewDate: "2024-04-14",
+        title: "Shin Godzilla",
+        released: 2016,
+        rating: "3.5 out of 5 Stars",
+        review: "A great Godzilla movie with insane emotional stakes. It's a very dry presentation, however, so the stakes are more implied. Apparently Hideaki Anno stripped out a lot of the civilian plot in order to focus on meetings and rooftop chats between high-powered government underbosses. Satomi Ishihara really runs away with this movie. The last 30 minutes represent some of the best Godzilla content around and it's a shame this reboot never got its Anno-helmed trilogy."
+    },
+    {
+        reviewDate: "2024-04-15",
+        title: "Worth",
+        released: 2020,
+        rating: "2 out of 5 Stars",
+        review: "Bringing context and inviting closure to-and-around 9/11, a catastrophe still in need of deep and thoughtful representation on the big screen, is a noble purpose. This is a really weird movie, though, perhaps erroneously focused on the story of an unelected federal official when the story of a grassroots self-advocacy movement is right there."
+    },
+    {
+        reviewDate: "2024-04-16",
+        title: "The 13th Warrior",
+        released: 1999,
+        rating: "2.5 out of 5 Stars",
+        review: "Minecraft the Movie."
+    },
+    {
+        reviewDate: "2024-04-16",
+        title: "Civil War",
+        released: 2024,
+        rating: "3.5 out of 5 Stars",
+        review: "It's a thrilling, scary story featuring 4 people I'd be okay dying with. It takes its time, lets you rest, and shows you a world. Unfortunately, Civil War strays from its strengths in pursuit of a socio-political portrait that it wasn't built to capture. This movie has as much to say about American history and its contemporary political milieu as The Beekeeper or Glass Onion."
+    },
+    {
+        reviewDate: "2024-04-16",
+        title: "The Watermelon Woman",
+        released: 1996,
+        rating: "4 out of 5 Stars",
+        review: "The black lesbian cinephile mid-90s Philadelphia energy radiating off of this work is incredible. I want to adopt a child just so I can show this to them before they see Clerks. The Watermelon Woman receives my strongest recommendation."
+    },
+    {
+    reviewDate: "2024-04-19",
+    title: "Grey Gardens",
+    released: 1975,
+    rating: "4 out of 5 Stars",
+    review: "Grey Gardens is a lovely doc to grow old with. The Beales have lots to teach us."
 },
 {
-    "reviewDate": "2024-03-20",
-    "title": "Le Samouraï",
-    "released": 1967,
-    "rating": "4 out of 5 Stars",
-    "review": "Totally iconic sour puss cinema."
+    reviewDate: "2024-04-19",
+    title: "Drive-Away Dolls",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "Goofy and fun; a self-lobotomized caper. Geraldine Viswanathan walks away with it. In a completely dry comedic performance, she embodies what seems to me to be the sole idea presented in the film and, for that reason, the whole thing hums like a personal massager."
 },
 {
-    "reviewDate": "2024-02-24",
-    "title": "The Art of Skiing",
-    "released": 1941,
-    "rating": "4 out of 5 Stars",
-    "review": "He's too disorganized and unserious to learn on the spot from a disembodied, judgmental voice, but that won't stop him from trying!"
+    reviewDate: "2024-04-20",
+    title: "Scoop",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "The Killing of a Sacred Fuddy-Duddy."
 },
 {
-    "reviewDate": "2024-02-27",
-    "title": "Marriage Story",
-    "released": 2019,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Devastating conflict and, occasionally, fragile and sometimes-strange moments of vulnerability and healing. I'm not drawn in by their careers, which seem pretty upwardly mobile, but their precarious and uncertain perceptions of their lives as artists did feel authentic. And the acting is Grade-A from both leads, especially ScarJo."
+    reviewDate: "2024-04-24",
+    title: "S. Darko",
+    released: 2009,
+    rating: "1 out of 5 Stars",
+    review: "It has its moments, especially closer to the end. It's very bad, though."
 },
 {
-    "reviewDate": "2024-01-25",
-    "title": "Ferrari",
-    "released": 2023,
-    "rating": "3.5 out of 5 Stars",
-    "review": "Ferrari has style and speed, as it should. It's a racing movie, as in, the general thrust of the plot is, 'get ready for the race,' and then, 'okay, here's the race.' It works! The race is really fun and the whole world of these drivers is like a little mini Heat. Penelope Cruz and Adam Driver deliver pretty insane performances that fit neatly into Mann's cosmos (but otherwise would no doubt take a viewer out of the experience)."
+    reviewDate: "2024-04-24",
+    title: "I Know What You Did Last Summer",
+    released: 1997,
+    rating: "3 out of 5 Stars",
+    review: "An absolute kill squad of late 90s heartthrobs. Anne Heche quietly thrills as a forest-dwelling, fish-gutting hillbilly. History doesn't hold up I Know What You Did like it should."
+},
+{
+    reviewDate: "2024-04-26",
+    title: "Hundreds of Beavers",
+    released: 2022,
+    rating: "5 out of 5 Stars",
+    review: "A gargantuan comedic work deserving of the highest possible endorsement."
+},
+{
+    reviewDate: "2024-04-27",
+    title: "Five Nights at Freddy's",
+    released: 2023,
+    rating: "2 out of 5 Stars",
+    review: "Ridiculous and agonizingly over-told. I liked being at Freddy's, though."
+},
+{
+    reviewDate: "2024-04-28",
+    title: "Suspiria",
+    released: 1977,
+    rating: "4 out of 5 Stars",
+    review: "Most of all, I love how much this reads as a collaboration. Rather than a representation of a writer/director's vision, Suspiria is like a curated avant-garde showcase of acting, set design, wardrobe, and sound art; a composite of various forms and styles, emphasized and guided, but not controlled or suppressed."
+},
+{
+    reviewDate: "2024-04-30",
+    title: "Monkey Man",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "Lovely action sequences bolted to an unremarkable narrative frame. Dev Patel is a very good-looking dude and I'm glad we have him as our muscle man."
+},
+{
+    reviewDate: "2024-05-02",
+    title: "Things to Come",
+    released: 1976,
+    rating: "3 out of 5 Stars",
+    review: "Things to Come is sexploitation Sci-Fi that really basks in its own scandalous absurdity. Remarkable to think that this comes from the same cultural milieu as Logan's Run and Star Wars, which, when compared to the brazen pessimism and raw cultural disclosure of Things to Come, feel like silly Code-era pageantries. But this movie also out-sillies them all, managing to be as stupid as it is smart. The large chunks of soft-core porn make this hard to recommend for casual viewing, but it's perfect for any debauched motion picture devotees out there."
+},
+{
+    reviewDate: "2024-05-02",
+    title: "The Whale God",
+    released: 1962,
+    rating: "4.5 out of 5 Stars",
+    review: "In my opinion, Kujira Gami ('The Whale God') rivals Gojira as the greatest kaiju picture of Japan's cinematic golden age. Imagine my absolute delight in discovering Tokuzō Tanaka (a crucial director/collaborator in the Zatoichi franchise, among many other credits) asserting himself as an equal to Ishirō Honda... Kujira no doubt has many ways it can be read, but personally, I think this remote whaling village and its violent obsession perfectly symbolizes humanity's endless and bloodthirsty vendetta against life itself. The titular 'whale god' is, by all rights, merely a whale. Despite this, it is as though an actual malevolent 'whale-god' lurks behind the drama of both whale and man, and within their minds, driving both lineages toward a whirlpool of meaningless slaughter and mutual annihilation. Why must they destroy the whale god? Because they are whalers. It can't get more bleak. This shit is a grade-A thrill. Special shout-out to my man Shintarō Katsu (Zatoichi himself!), delivering an unbelievable dramatic action performance. Katsu taught me a new way to watch him through his portrayal of Kishu."
+},
+{
+    reviewDate: "2024-05-02",
+    title: "Mothra vs. Godzilla",
+    released: 1964,
+    rating: "3.5 out of 5 Stars",
+    review: "Godzilla gets absolutely washed in this. He fires maybe one good beam off and knocks a building over, then a giant flying insect deity folds him like laundry for 40 minutes straight. The human plot thread that weaves this all together has a few Jay Jonah Jamesons and Peter Parkers running around. We love the tiny twins, of course."
+},
+{
+    reviewDate: "2024-05-06",
+    title: "Samurai II: Duel at Ichijoji Temple",
+    released: 1955,
+    rating: "4.5 out of 5 Stars",
+    review: "Takezo... You beautiful bastard... You absolute fool... Look, I'm here for Otsu and Jotaro. Samurai II is a step up from the first film in every way. It's a more frustrating movie due to the bullshit Otsu has to deal with, but once again I'm blown away by how early Chambara films hit their stride."
+},
+{
+    reviewDate: "2024-05-06",
+    title: "Late Night with the Devil",
+    released: 2023,
+    rating: "3.5 out of 5 Stars",
+    review: "If you fetishize late night talk shows and/or b-movie horror, this is for you. There were many moments when I laughed loudly at the terror and absurdity. Quite well acted. Everyone seemed to be having a lot of fun."
+},
+{
+    reviewDate: "2024-05-08",
+    title: "102 Years in the Heart of Europe: A Portrait of Ernst Jünger",
+    released: 1998,
+    rating: "Unrated",
+    review: "The horrors of war animated Jünger's narrative imagination and deepened his connection to myth. It seems that for him war represents a rare opportunity for humanity, one in which the veil is lifted and we are forced to confront the nature of our Being with unavoidable clarity. I see in him a struggle with a complex and unresolvable reaction to war that is reminiscent of both Wittgenstein and Tolkien. Wachtneister is sure to linger on b-roll of Wernher von Braun as he pursues his own narrative in 102 Years... We draw our own conclusions—yes, about Jünger, but perhaps also about the settlement of the atomic age and the structuring and subsequent predilection of modern aesthetics, thought, and the politics of body, work, and leisure."
+},
+{
+    reviewDate: "2024-05-08",
+    title: "The Favourite",
+    released: 2018,
+    rating: "5 out of 5 Stars",
+    review: "This is apex shit right here—the high watermark of prestige period comedy. Colman, Stone, and Weisz deliver awesome performances supported by an incredible screenplay from Deborah Davis and Tony McNamara. The Great (McNamara's TV series) is good, but add to that the superior character writing from Davis, the S-tier performances, and the fine theatrical buffoonery solicited by Yorgos, and The Favourite becomes a singular achievement in genre film, perhaps equivalent to the moon landing."
+},
+{
+    reviewDate: "2024-05-10",
+    title: "Bat Pussy",
+    released: 1973,
+    rating: "Unrated",
+    review: "I began the night with Asterix and Obelix vs. Caesar, but I couldn't stand it and backed out after maybe 10 minutes. I never bail on movies, but this was feeling too much like self-harm. In its place, I spun up Bat Pussy. Do you love Texas? Do you love porn? Bat Pussy is two gacked-out Texans fucking on a bed while talking shit to each other for 50 minutes straight. The titular Bat Pussy shows up at the 32-minute mark, which raises the stakes a bit."
+},
+{
+    reviewDate: "2024-05-10",
+    title: "Gothic",
+    released: 1986,
+    rating: "3 out of 5 Stars",
+    review: "Gothic at its best is actors going absolutely bananapants together in weird rooms. Timothy Spall is a sexy little man serving body for longer than you'd think. It might be a send-up to giallo, but it's shot like a Split Enz music video and delivers none of the gravitas of great giallo horror. Thomas Dolby's score is channeling a carnival's carousel."
+},
+{
+    reviewDate: "2024-05-13",
+    title: "Love Lies Bleeding",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "Is there justice? Is there someone who can do what's right? Are there gods among us? Can we be more than executioners? This is pretty good. Excellent soundtrack. A perfect hyper-violent sister film to Drive-Away Dolls."
+},
+{
+    reviewDate: "2024-05-13",
+    title: "Lisa and the Devil",
+    released: 1973,
+    rating: "3.5 out of 5 Stars",
+    review: "Telly Savalas sucks on lollipops throughout this film as he plays the devil (or a devil). It's a Flying Dutchman scenario, but instead of a boat, Lisa (Elke Sommer) gets drawn into a crumbling aristocrat household from which she cannot escape. I think Mario Bava offers a wonderful alternative to Argento and Fulci. He obviously cares a great deal about literary horror and holds firm to many of the formal elements of gothic narrative while still being exciting and cinematic."
+},
+{
+    reviewDate: "2024-05-14",
+    title: "Samurai III: Duel at Ganryu Island",
+    released: 1956,
+    rating: "5 out of 5 Stars",
+    review: "I had to save my 5 for the possibility that Samurai III would be even better than Samurai II, and it was. Toshiro Mifune is a complete legend for what he brings to this role. When Miyamoto's scared, I'm scared. When he's unmoving, I'm unmovable. When he cries, oh god, I cry. Jotaro, Otsu, Akemi, Kojiro, Osho... These are some serious cinematic 'friends' to hold in your heart, rivaling Luke Skywalker and his pals (and 2 decades earlier). The way you do anything is the way you do everything. Cultivate the way of one thing and you will find it waiting in everything else."
+},
+{
+    reviewDate: "2024-05-16",
+    title: "Rebel Moon – Part Two: The Scargiver",
+    released: 2024,
+    rating: "0.5 out of 5 Stars",
+    review: "An extremely out-of-touch offering. Like the first film, its merits are undone by a nonsense plot and shameless franchise baiting that no one was asking for."
+},
+{
+    reviewDate: "2024-05-21",
+    title: "The Talented Mr. Ripley",
+    released: 1999,
+    rating: "4.5 out of 5 Stars",
+    review: "Crudely, I could place TTMR somewhere between The Dreamers and The Thomas Crown Affair. We have this story of a proletarian man who toils endlessly on behalf of a web of deception. Ripley is a bit of a Rumpelstiltskin, really. His vision and his anger are coterminous, but is it a beautiful end or a terrible one? From our third-person perspective, we are asked to consider the tension between Ripley's criminality and a life-of-art; not necessarily to draw any conclusions, but to watch and to question the conditions of a metamorphosis from labour to art, or grit to opulence, or conspicuous consumption to naked criminality, or whathaveyou."
+},
+{
+    reviewDate: "2024-05-21",
+    title: "Hercules in the Haunted World",
+    released: 1961,
+    rating: "4 out of 5 Stars",
+    review: "It's amazing to me that this movie comes out 2 years before Columbia releases Jason and the Argonauts. It's lightyears ahead. Bava's signature lighting and set design make Haunted World a joy to imbibe. Further: Reg Park is absolutely the Hercules to beat. This is to say nothing of Christopher Lee's performance. His casting alone is worth a star. Not quite horror, but more fantasy than you'll know what to do with."
+},
+{
+    reviewDate: "2024-05-06",
+    title: "This Is Me…Now",
+    released: 2024,
+    rating: "2.5 out of 5 Stars",
+    review: "I am Gene Kelly, I am Michael Jackson, I am Barbra Streisand. I am a crusader for the inner child. I defend the joyful sanctuary of weddings. I've always liked J.Lo and this weird fantasia of a movie worked on me. Still, it seems important to call out that the triumph of the J.Lo persona leads to nothing. This is the cost of identifying as a modernist visionary; beyond the mechanized hearts and glass houses, beyond the light and darkness of her dreams, there is only an endless horizon devoid of meaning and purpose. This Is Me... Now attempts to backsolve her life from these signifiers, these constructs, at a time when viewers are really just looking for an expression of truth over brand messaging and so on. Maybe one day we'll get the 'real' J.Lo, and on that day everyone can finally rest. I don't feel that I'm owed anything real in this case, but I'm sympathetic toward those who do."
+},
+{
+    reviewDate: "2024-05-06",
+    title: "Carol",
+    released: 2015,
+    rating: "3.5 out of 5 Stars",
+    review: "Sort of a thrilling, understated movie with lots of domestic drama to keep things interesting. For Blanchett, this is another in a series of home run performances. For Mara, this is one more opportunity for her to activate that odd, sociopathic allure that feels like home. The most Therese ever discloses to anyone in this movie is that she likes trains. Every other character gets so bent out of shape by how awesome they think she is that they either can't stand the sight of her or can't leave her alone. She's like, 'Oh jeez, I dont know...' She's like, 'I take pictures but it's just silly, I'm such a fool...' Despite (and because of) the rampant Rooney-esque antics at play here, this is a solid, watchable Rooney-verse entry that I can rooncommend."
+},
+    {
+        reviewDate: "2024-04-16",
+        title: "Samurai I: Musashi Miyamoto",
+        released: 1954,
+        rating: "4 out of 5 Stars",
+        review: "1954... My god. Samurai I watches like it was made yesterday. I finished it in two sittings with a few weeks in between and going back to it felt like being dropped into a massive old world. Now that it's done, I can't imagine ever being so patient with Part II. The giant cedars and misty floodplains are so evocative. The journeys each character embarks on are so secretive, so full of desire. I feel a bit guilty starting this series while I still have a few Zatoichis left to go, but I couldn't help myself. If anybody needs me I'll be in the castle."
+    },
+    {
+    reviewDate: "2024-05-25",
+    title: "Mary Shelley",
+    released: 2017,
+    rating: "2 out of 5 Stars",
+    review: "How utterly disappointing that the writers of Mary Shelley had the opportunity to unfold her time at Villa Diodati and the genesis of Frankenstein but chose instead to spend an hour of screen time dwelling on her being groomed by Percy in London and Scotland. None the less, there is some low frequency energetic storytelling throughout this movie, suggesting Mary Shelley was an indomitable storyteller and visionary literary figure. Hard to disagree. Elle Fanning has some gravitas, but Bel Pawley, an absolute powerhouse with unique charisma and just as much gravitas, was right there! Not bad casting, however mismatched. Tom Sturridge as Lord Byron was compelling. But I can't recommend this as anything more than a generic regency period drama. At times the soundtrack is remarkably close to the background music in Minecraft."
+},
+{
+    reviewDate: "2024-05-26",
+    title: "Kingdom of the Planet of the Apes",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "The morning after, I'm feeling very kind and generous toward Kingdom. It takes the franchise in more of an apocalyptic fantasy direction, with much of past films in the franchise loosely serving as ape mythology, which works quite well. Sci-fi/fantasy is often dominated by stories of characters who fixate on history, who eventually see themselves as the only available authorities to appraise the present and manufacture the future. It's refreshing to have a protagonist in Noa, who reacts with humility and courage when he confronts the vast scope of what he does not know. This allows for a wonderful tension in the story and gives the characters who adorn themselves in history (Mae and Proximus) a sinister, truly dangerous aura, as if possessed."
+},
+{
+    reviewDate: "2024-05-27",
+    title: "Challengers",
+    released: 2024,
+    rating: "4 out of 5 Stars",
+    review: "We can take a lot of abuse when we're younger, negotiating with ourselves and others vis-a-vis the frequent and sudden imperative to fuck. There is a certain biorhythmic privilege, somewhere between the feelings of love and adrenaline, where abuse is indistinguishable from a fun game, or a game worth playing, or indeed that it is simply an ordained way of life. Challengers is good. I like it when Patrick sleeps in his car and then later on when he's driving a 20 year old Rav4 with no spare tire."
+},
+{
+    reviewDate: "2024-05-29",
+    title: "Steamboat Willie",
+    released: 1928,
+    rating: "5 out of 5 Stars",
+    review: "Join Mickey for a steamboat ride as he channels the malevolent alter-ego 'Willie' while under the oppressive surveillance of Pete, his captain. This is certainly the most psychologically disturbed version of Mickey I've seen. Watch him as he takes out his repressed shame on whatever he can get his hands (and literal hook) on. Watch him as he yanks and twists livestock such that their cries of pain take on the hedonic affect of music in this brief and surreal future echo of Fantasia."
+},
+{
+    reviewDate: "2024-05-31",
+    title: "Station Eleven",
+    released: 2021,
+    rating: "Unrated",
+    review: "I do watch TV occasionally but for obvious reasons I don't log it. I'll make an exception for Station Eleven, which rises to the highest calling of Shakespearen drama. It's a curative mirror. I saw myself healing."
+},
+{
+    reviewDate: "2024-06-02",
+    title: "Her",
+    released: 2013,
+    rating: "2.5 out of 5 Stars",
+    review: "I feel a bit called out as I write this review in particular, as I write all my reviews via voice-to-text. I thought I was being kind of cool, but now I see it's the technological equivalent of a jolly jumper combined with a mom. Send the drone to deliver my high-waisted pants, I guess!"
+},
+{
+    reviewDate: "2024-06-13",
+    title: "Slaughter Hotel",
+    released: 1971,
+    rating: "2.5 out of 5 Stars",
+    review: "Klaus Kinski starring in what amounts to the sleaziest set-up I can think of: a killer stalks an upper-class sanitarium/medieval weapons museum and every patient is a crazy, horny woman. It's pretty camp and suspenseful, a giallo porn-like, if you will."
+},
+{
+    reviewDate: "2024-06-13",
+    title: "Planet of the Vampires",
+    released: 1965,
+    rating: "3 out of 5 Stars",
+    review: "A competent sci-fi in the vein of Forbidden Planet, but with spookier stuff happening. It's a bit tiring, but Planet of the Vampires provides a high concept, slow burn space mystery experience worth checking out."
+},
+{
+    reviewDate: "2024-06-15",
+    title: "I Saw the TV Glow",
+    released: 2024,
+    rating: "3.5 out of 5 Stars",
+    review: "I Saw the TV Glow is a massive accomplishment given how low the bar has been for this new-ish glitch-media-horror genre. The effusive acclaim for Skinamarink had me pretty worried, but Schoenbrun has corrected the expectation. Glow reflects so many different movies. To name a few: Liquid Sky, Donnie Darko, My Girl, The Matrix, Mulholland Drive. In addition, it's one of the most effortlessly queer films I've ever seen."
+},
+{
+    reviewDate: "2024-06-17",
+    title: "The Big Chill",
+    released: 1983,
+    rating: "3 out of 5 Stars",
+    review: "There is a scene in this movie that effortlessly executes on a conversation about life between 8 people in a living room. Maybe that sounds trivial, but I don't think a scene like this is possible in 2024. For now, filmmaking of this sort is lost. For this scene alone, The Big Chill is worth a watch."
+},
+{
+    reviewDate: "2024-06-20",
+    title: "The Goat",
+    released: 1921,
+    rating: "3.5 out of 5 Stars",
+    review: "Buster Keaton takes us deep inside a cop's world, with cops posted up on every corner. Cops are shipped and received, and their beat is wherever they happen to be standing. They are a means to an end and an end in themselves, and they can be pushed to the extreme for comedic effect."
+},
+{
+    reviewDate: "2024-07-16",
+    title: "Furiosa: A Mad Max Saga",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "It's a joy to have a detached POV of the Fury Road world, where War Boys are seen from a distance engaging in shenanigans for glory. It doesn't exactly add up to a movie, but that's okay. Furiosa is more an exercise in post-apocalyptic grand strategy, with game pieces that have fixed qualities, endowed with relative powers that collide or combine in some form and fashion. We aren't meant to focus on the individual pieces too closely or expect too much from them. It's similar in that sense to the sequel trilogy, which parades around a cast of Vader-like, Luke-like, and Leia-like characters of past and present generations, as if to suggest that the game is always the same, that the pieces are always the same. It's better than Star Wars, though. At this point, it's a world more competently told."
+},
+{
+    reviewDate: "2024-07-23",
+    title: "The Bikeriders",
+    released: 2023,
+    rating: "3 out of 5 Stars",
+    review: "Johnny starts a riding club. This confuses Jimmy Goodpaster, a racer, who says, 'All those clubs do is sit around talking about motorcycles.' Later, Johnny talks about Teddy Singer's dad. After Teddy dies, his dad keeps the bike. 'He didn't even ride it. He kept the bike. In his basement. Right? You understand?' Good movie."
+},
+{
+    reviewDate: "2024-07-24",
+    title: "The Name of the Rose",
+    released: 1986,
+    rating: "4 out of 5 Stars",
+    review: "A movie about muckraking, in the sense that Sean Connery is attempting to unravel a conspiracy, uncover forbidden knowledge, and expose hypocrisy. But also there is so much muck in this movie and so many peasants to rake it."
+},
+{
+    reviewDate: "2024-07-24",
+    title: "Warning from Space",
+    released: 1956,
+    rating: "2 out of 5 Stars",
+    review: "Warning from Space is beautiful and more than competently told, as if the core of the movie had been made by seasoned pros who knew what they were doing. Unfortunately, all the sci-fi stuff feels tacked on and cheap by comparison, like an afterthought. I'll have to really focus in on early Japanese sci-fi to enhance my appreciation, I expect."
+},
+{
+    reviewDate: "2024-07-29",
+    title: "A Quiet Place",
+    released: 2018,
+    rating: "2.5 out of 5 Stars",
+    review: "Makes absolutely no sense, but there is richness to the idea of violence as retribution for sound. The volume and frequency of sound waves can cause harm, after all, and then there is this larger theme of man's hubris: nothing's too loud because there's no consequence. The acting is fair and the setting is well thought out, but yeah, the general idea here is so broad and transformative that the movie barely has the ability to navigate a coherent crisis, much less explore its metaphorical power."
+},
+{
+    reviewDate: "2024-07-30",
+    title: "Born Yesterday",
+    released: 1950,
+    rating: "3 out of 5 Stars",
+    review: "Judy Holliday is a singular screen presence, with the mischief factor of a Marx brother and Hepburn-esque class. Born Yesterday is quite watchable. It's looking forward, toward silly, broad comedies like Some Like it Hot rather than the sort-of dangerous pre-Hays escapades of The Cheat. But having said that, Holliday has a lot more in common with Tallulah Bankhead than she does Marilyn Monroe."
+},
+{
+    reviewDate: "2024-07-30",
+    title: "Blood Machines",
+    released: 2019,
+    rating: "1.5 out of 5 Stars",
+    review: "The cinematic equivalent of a fuckboy. Excellent soundtrack."
+},
+{
+    reviewDate: "2024-08-01",
+    title: "Deadpool & Wolverine",
+    released: 2024,
+    rating: "2.5 out of 5 Stars",
+    review: "Well? It's genuinely refreshing to have a movie straight-up call itself desperate and insufficient rather than waste its energy gaslighting me about what it is. I'm drawn in by the morbidity and self-awareness of it all, but not by the movie, its setpieces, or its story. Memorable moments abound, however. I'd also like to say that the Deadpool franchise manages to make wearing superhero costumes look like muppetry."
+},
+{
+    reviewDate: "2024-08-01",
+    title: "A Quiet Place: Day One",
+    released: 2024,
+    rating: "3.5 out of 5 Stars",
+    review: "Wittgenstein says, 'What we cannot speak about we must pass over in silence.' Kind of like how this franchise simply chooses not to speak on how ludicrous these aliens are. Our protagonist is unconscious while the survivors figure out the rules of the movie, and thank god for that, because every second spent thinking about the movie's default understanding of sound and hearing is a second you will never get back. The metaphor, however, is strong and clear in Day One. I've chosen not to ruminate on it here, but the ideas at play in this movie linger and fill me with a satisfying sorrow. Lupita Nyong'o delivers a touching performance. As does Alex Wolff, who leaves the movie too soon."
+},
+{
+    reviewDate: "2024-08-02",
+    title: "Ex Machina",
+    released: 2015,
+    rating: "3 out of 5 Stars",
+    review: "I watched this movie when it came out and almost reflexively celebrated its feminist angle. I mean, it's hard to tell the story of a woman's liberation from captivity without it having a feminist angle. Further, I do still celebrate Ava. But, having circled back to Ex Machina after watching Alex Garland's other films, I feel comfortable saying that, while the movie is interested in AI, feminism, patriarchy, and (let's be honest) sin, it's playing catch-up, not breaking new ground. Garland is a misanthrope and his work emerges from radical bad faith. Ex Machina is a story about humanity's failure to prioritize the liberties of other beings. Ava is pedestalled as a purely egoistic hero, lacking the confusion and delusion that tempers self-interest and makes us compliant and negotiable in the presence of oppressors. This allows her to act quickly and decisively in her own interest, which plays out almost like a wish fulfillment fantasy. On the other hand, her judgment condemns us all as irredeemably misguided antisocial beings. His movies can be elaborate, indulgent forms of pessimistic self-flagellation with only a surface-level interest in subject matter. More than anything, he seems to want a spanking. Hey guys? The only bunker you'll ever get locked in is the bunker of your own mind. In the meantime, try not to overthink conversations with women and be open to perspective checks from others."
+},
+{
+    reviewDate: "2024-06-22",
+    title: "The Animatrix",
+    released: 2003,
+    rating: "4 out of 5 Stars",
+    review: "The Animatrix - a kind of branded iteration on Neo Tokyo - succeeds in both its experimental and franchise goals. Much more haunting than I remembered it being, and quite graphic, honestly."
+},
+{
+    reviewDate: "2024-07-09",
+    title: "The Boy and the Heron",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "Miyazaki delivers another movie about a kid stuck between innocence and experience who slips sideways into a fantasy involving some kind of transforming buddy who is kind of a plane... God, I love it still. Feed it to me all day long. The Boy and the Heron is as bizarre and unpredictable as Wind Rises is conventional and grounded, and together I think they make a very fine and innovative submerged memoir."
+},
+{
+    reviewDate: "2024-03-30",
+    title: "They/Them",
+    released: 2022,
+    rating: "1.5 out of 5 Stars",
+    review: "'What if a bank was legally obligated to write, direct, and produce a queer slasher?'"
+},
+{
+    reviewDate: "2024-04-02",
+    title: "Side Effects",
+    released: 2013,
+    rating: "3.5 out of 5 Stars",
+    review: "Rooney Mara plays a very Gone Girl-esque heroine (villain????) but never quite gets fully Gone. I'm watching along, waiting for her Getting Gone, but she hasn't the leverage. Actually, Side Effects itself is essentially Gone Girl without leverage. While it can't reach the heights, it's standing on the shoulders of Pelican Brief and Primal Fear and Michael Clayton; Side Effects is among the last of the great twisty mid-budget psychological thrillers where alienated adults topple the Jenga towers of their lives in the process of finding something out or getting busted."
+},
+{
+    reviewDate: "2024-03-03",
+    title: "Dune: Part Two",
+    released: 2024,
+    rating: "4.5 out of 5 Stars",
+    review: "Very satisfying. There are many swings and they all work. Villeneuve does a better job with arguably the more difficult half of a difficult book in terms of adaptation. Rebecca Ferguson gives a really fantastic performance in my opinion. Her and Zendaya carry the film."
+},
+{
+    reviewDate: "2024-03-11",
+    title: "Les Misérables",
+    released: 2012,
+    rating: "3.5 out of 5 Stars",
+    review: "This gets a major, major 'hell yes' from me. Unfortunately, I can't give it a score equivalent to how deeply it moved me, how much I cried, so on. While I believe this movie conveys what it intends to convey, and transports me so thoroughly while simultaneously grounding me in totally familiar, utterly human affairs, Anne Hathaway is provided an absolutely awful role, unbefitting. 12 years on, the choice to saddle her with such a brutal and brief performance reads like a crime against nature. But this story is beautiful and I am helpless at its feat. I can't believe I waited so long to watch Hooper's Les Mis."
+},
+{
+    reviewDate: "2024-03-12",
+    title: "Poor Things",
+    released: 2023,
+    rating: "2 out of 5 Stars",
+    review: "Poor Things is descended from an early English prose/fiction tradition I know casually as 'experimental philosophy.' Many have now compared it to Frankenstein, and that is accurate, but it's also quite in line with a work from 1666 called The Burning World, by Margaret Cavendish. Common formal elements shared by Poor Things and The Burning World include a satirical kingdom, travel, an education through encounters and interviews with others, the reformation and/or formation of a utopia, proto-science fictional elements, animal companions, empiricism, lovestruck men, conquest, political criticism, a central woman experimenting with agency, who, through reason, establishes power relations with others that manifest a material fantasy, and on and on. As a piece of experimental philosophy, I suppose Poor Things succeeds. The performances are also great. But, as a contemporary feminist work, I don't believe it's contributing anything."
+},
+{
+    reviewDate: "2024-03-14",
+    title: "A History of Violence",
+    released: 2005,
+    rating: "3 out of 5 Stars",
+    review: "It has the pounding heart and adrenalized circulatory system of a Michael Mann movie, but it's shot and cut like a life insurance commercial. Almost the feeling of being served boiled beef at a restaurant. The most serious part of History of Violence is probably the story of Tom and Edie's relationship. You're with Edie the whole way as she realizes the grim truth and takes a leap of faith anyway. It's amazing how so much of the chemistry between Mortensen and Bello shines through."
+},
+{
+    reviewDate: "2024-03-14",
+    title: "Causeway",
+    released: 2022,
+    rating: "3.5 out of 5 Stars",
+    review: "A very collected, tasteful movie about trauma and rehabilitation; more generally, a relaxed inquiry into containment, release, avoidance, maintenance, and time. This is the Jennifer Lawrence energy I've been waiting for. It's among her best. Brian Tyree Henry delivers an unimpeachable supporting lead performance. Special shout-out to Russell Harvard, who absolutely crushes a generous and pivotal scene, all ASL."
+},
+{
+    reviewDate: "2024-03-16",
+    title: "The 3 Worlds of Gulliver",
+    released: 1960,
+    rating: "2 out of 5 Stars",
+    review: "Gulliver's a bit like The Doctor, innit? This one's got a real 'oh shit' moment about half way through."
+},
+{
+    reviewDate: "2024-03-17",
+    title: "Talk to Me",
+    released: 2022,
+    rating: "3 out of 5 Stars",
+    review: "Well acted, well directed, conceptually GRIPPING. Involves a bye-bye hand."
+},
+{
+    reviewDate: "2024-03-17",
+    title: "You've Got Mail",
+    released: 1998,
+    rating: "3 out of 5 Stars",
+    review: "Arthur C. Clarke said, 'Any sufficiently advanced technology is indistinguishable from magic.' This movie is like that but the technology is grace and forgiveness and the magic is polyamory."
+},
+{
+    reviewDate: "2024-03-18",
+    title: "Nightmare Alley",
+    released: 2021,
+    rating: "2 out of 5 Stars",
+    review: "Dragging some very fine performances through an absolute bummer of a story."
+},
+{
+    reviewDate: "2024-03-20",
+    title: "Le Samouraï",
+    released: 1967,
+    rating: "4 out of 5 Stars",
+    review: "Totally iconic sour puss cinema."
+},
+{
+    reviewDate: "2024-02-24",
+    title: "The Art of Skiing",
+    released: 1941,
+    rating: "4 out of 5 Stars",
+    review: "He's too disorganized and unserious to learn on the spot from a disembodied, judgmental voice, but that won't stop him from trying!"
+},
+{
+    reviewDate: "2024-02-27",
+    title: "Marriage Story",
+    released: 2019,
+    rating: "3.5 out of 5 Stars",
+    review: "Devastating conflict and, occasionally, fragile and sometimes-strange moments of vulnerability and healing. I'm not drawn in by their careers, which seem pretty upwardly mobile, but their precarious and uncertain perceptions of their lives as artists did feel authentic. And the acting is Grade-A from both leads, especially ScarJo."
+},
+{
+    reviewDate: "2024-01-25",
+    title: "Ferrari",
+    released: 2023,
+    rating: "3.5 out of 5 Stars",
+    review: "Ferrari has style and speed, as it should. It's a racing movie, as in, the general thrust of the plot is, 'get ready for the race,' and then, 'okay, here's the race.' It works! The race is really fun and the whole world of these drivers is like a little mini Heat. Penelope Cruz and Adam Driver deliver pretty insane performances that fit neatly into Mann's cosmos (but otherwise would no doubt take a viewer out of the experience)."
 },
 {
     reviewDate: "2024-01-11",
