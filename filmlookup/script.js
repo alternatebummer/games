@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
     centerContainer.appendChild(resultDiv);
 
     // Default message when nothing is typed
-    resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.`;
+    resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>To see the review for each entry, tap/click on it.`;
 
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
 
         if (query === "") {
-            resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.`;
+            resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>To see the review for each entry, tap/click on it.`;
             return;
         }
 

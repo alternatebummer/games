@@ -7,8 +7,8 @@ body {
     flex-direction: column;
     align-items: center;
     margin: 0;
-    font-size: 15px;
-    line-height: 15px;
+    font-size: 18px;
+    line-height: 17px;
     text-align: left;
     overflow-y: hidden;
 }
@@ -140,7 +140,7 @@ input {
 
 /* Modal Review Text */
 .modal-text {
-    font-size: 18px;
+    font-size: 20px;
     color: #B2BD7E;
 }
 
