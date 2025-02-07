@@ -15,8 +15,16 @@ body {
 
 h1 {
     margin-bottom: 5px;
-    margin-left: -250px;
     color: #B2BD7E;
+}
+
+.bordered-paragraph {
+    border: 1px dashed #777e55;
+    width: 578px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
 }
 
 /* Divider */
@@ -49,7 +57,7 @@ hr {
 
 input {
     padding: 10px;
-    border: 3px solid #7e5555;
+    border: 1px solid #7e5555;
     background-color: #1E1E28;
     border-radius: 5px;
     height: 50px;
@@ -64,7 +72,7 @@ input {
     overflow-y: auto;
     padding: 10px;
     border-radius: 5px;
-    border: 3px solid #777e55;
+    border: 1px solid #777e55;
     background-color: #1E1E28;
 }
 
@@ -115,9 +123,9 @@ input {
     background-color: #1E1E28;
     color: #B2BD7E;
     padding: 20px;
-    margin-bottom: 600px;
+    margin-top: -400px;
     border-radius: 10px;
-    width: 60%;
+    width: 700px;
     border: 3px solid #777e55;
     text-align: left; /* Ensures left-aligned text */
 }
@@ -151,7 +159,7 @@ input {
 }
 
 /* Mobile-friendly modal adjustments */
-@media screen and (max-width: 600px) {
+@media screen and (width: 600px) {
     body {
         padding: 20px;
     }
