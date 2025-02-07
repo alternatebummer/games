@@ -7,8 +7,8 @@ body {
     flex-direction: column;
     align-items: center;
     margin: 0;
-    font-size: 13px;
-    line-height: 11px;
+    font-size: 15px;
+    line-height: 15px;
     text-align: left;
     overflow-y: hidden;
 }
@@ -41,7 +41,7 @@ hr {
     line-height: 20px;
     font-size: 20px;
     color: #B2BD7E;
-    width: 500px;
+    width: 600px;
     outline: none;
     text-align: justify;
     box-sizing: border-box;
@@ -59,7 +59,7 @@ input {
 /* Improved result container */
 #result {
     color: #919969;
-    max-height: 700px;
+    max-height: 500px;
     min-height: 50px;
     overflow-y: auto;
     padding: 10px;
@@ -104,6 +104,7 @@ input {
     top: 0;
     width: 100%;
     height: 100%;
+    line-height: 20px;
     background-color: rgba(0, 0, 0, 0.7);
     align-items: center;
     justify-content: center;
@@ -114,7 +115,7 @@ input {
     background-color: #1E1E28;
     color: #B2BD7E;
     padding: 20px;
-    margin-bottom: 500px;
+    margin-bottom: 600px;
     border-radius: 10px;
     width: 60%;
     border: 3px solid #777e55;
