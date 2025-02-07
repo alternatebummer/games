@@ -113,6 +113,7 @@ input {
     background-color: #1E1E28;
     color: #B2BD7E;
     padding: 20px;
+    margin-bottom: 500px;
     border-radius: 10px;
     width: 60%;
     border: 3px solid #777e55;
@@ -136,7 +137,7 @@ input {
 /* Close Button */
 .close-btn {
     cursor: pointer;
-    font-size: 20px;
+    font-size: 40px;
     font-weight: bold;
     color: #B2BD7E;
     float: right;

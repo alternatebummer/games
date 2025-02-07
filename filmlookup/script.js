@@ -5,6 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalContent = document.getElementById("modalContent");
     const closeModal = document.getElementById("closeModal");
 
+    // Delay focusing slightly to ensure the input is fully loaded
+    setTimeout(() => {
+        searchInput.focus();
+    }, 100);
+
     // Ensure the container keeps elements centered
     const centerContainer = document.createElement("div");
     centerContainer.classList.add("center-container");
