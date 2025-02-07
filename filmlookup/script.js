@@ -20,13 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
     centerContainer.appendChild(resultDiv);
 
     // Default message when nothing is typed
-    resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>To see the review for each entry, tap/click on it.`;
+    resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>
+    Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>
+    To see the review for each entry, tap/click on it.`;
 
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
 
         if (query === "") {
-            resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>To see the review for each entry, tap/click on it.`;
+            resultDiv.innerHTML = `Welcome to the <b>Projektor</b>, a tool designed to streamline recall and review of a mysterious individual's movie watch logbook.<br><br>
+            Feel free to input any part of a movie's title. For example, "ani" will recall entries for <i>The <b>Ani</b>matrix</i> and <i>Ant-Man and the Wasp: Quantum<b>ani</b>a</i>, whereas "anim" refines the search further and omits the latter.<br><br>
+            To see the review for each entry, tap/click on it.`;
             return;
         }
 
@@ -54,6 +58,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (target) {
             const title = target.dataset.title; // Get movie title
             const review = target.dataset.review; // Get movie review
+            openModal(title, review);
+        }
+    });
+
+    // Event delegation to handle clicks on movie links inside the <p> tag
+    document.addEventListener("click", (event) => {
+        const target = event.target.closest(".movie-link");
+        if (target) {
+            event.preventDefault(); // Prevent default anchor behavior
+            const title = target.dataset.title;
+            const review = target.dataset.review;
             openModal(title, review);
         }
     });
