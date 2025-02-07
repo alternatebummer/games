@@ -1,4 +1,3 @@
-/* style.css */
 body {
     font-family: 'Courier New', monospace;
     background-color: #1E1E28;
@@ -6,17 +5,17 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    justify-content: left; /* Centers vertically */
-    align-items: center; /* Centers horizontally */
-    height: 100vh;
+    align-items: center;
     margin: 0;
-    text-align: center;
+    font-size: 14px;
+    text-align: left;
     overflow-y: hidden;
 }
 
 h1 {
     margin-bottom: 5px;
     margin-left: -250px;
+    color: #B2BD7E;
 }
 
 /* Divider */
@@ -39,31 +38,33 @@ hr {
 /* Input and Result Styling */
 #result, input {
     line-height: 20px;
-    font-size: 18px;
+    font-size: 20px;
     color: #B2BD7E;
     width: 500px;
     outline: none;
-    text-align: left;
+    text-align: justify;
     box-sizing: border-box;
 }
 
 input {
     padding: 10px;
-
     border: 3px solid #7e5555;
     background-color: #1E1E28;
     border-radius: 5px;
-    font-weight: bold;
     height: 50px;
+    color: #B2BD7E;
 }
 
+/* Improved result container */
 #result {
     color: #919969;
+    max-height: 700px;
+    min-height: 50px;
     overflow-y: auto;
-    height: 27vh;
     padding: 10px;
     border-radius: 5px;
     border: 3px solid #777e55;
+    background-color: #1E1E28;
 }
 
 /* Custom scrollbar for #result */
@@ -81,7 +82,72 @@ input {
     border-radius: 0px;
 }
 
-/* Mobile adjustments */
+/* Movie entry styling */
+.movie-entry {
+    cursor: pointer;
+    padding: 10px;
+    transition: background 0.3s ease;
+    border-radius: 5px;
+}
+
+.movie-entry:hover {
+    background: rgba(178, 189, 126, 0.2);
+}
+
+/* Modal Styling */
+.modal {
+    display: none; /* Keep modal hidden until triggered */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #1E1E28;
+    color: #B2BD7E;
+    padding: 20px;
+    border-radius: 10px;
+    width: 60%;
+    border: 3px solid #777e55;
+    text-align: left; /* Ensures left-aligned text */
+}
+
+/* Modal Title */
+.modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #B2BD7E;
+    margin-bottom: 10px;
+}
+
+/* Modal Review Text */
+.modal-text {
+    font-size: 18px;
+    color: #B2BD7E;
+}
+
+/* Close Button */
+.close-btn {
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    color: #B2BD7E;
+    float: right;
+    margin-bottom: 10px;
+}
+
+.close-btn:hover {
+    color: red;
+}
+
+/* Mobile-friendly modal adjustments */
 @media screen and (max-width: 600px) {
     body {
         padding: 20px;
@@ -90,6 +156,9 @@ input {
         width: 100%;
     }
     #result, input {
+        width: 90%;
+    }
+    .modal-content {
         width: 90%;
     }
 }

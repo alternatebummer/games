@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport">
-    <title>Film Look-Up</title>
+    <title>PROJEKTOR</title>
     <link rel="stylesheet" href="style.css">
     <script defer src="movies.js"></script>
     <script defer src="script.js"></script>
 </head>
-<body><h1>Film Look-Up</h1><input type="text" id="searchInput" placeholder="Enter movie title">
+<body>
+    <input type="text" id="searchInput" placeholder="PROJEKTOR | watch log recall tool">
     <div id="result"></div>
+    <p>Last updated on 2025-02-06:<br><i>• Zero Dark Thirty</i> (2012)<br><i>• Nosferatu</i> (2024)<br><i>• Agatha and the Truth of Murder</i> (2018)<br><i>• Field of Dreams</i> (1989)<br><i>• Escape from New York</i> (1981)</p>
+    <!-- Review Modal (Moved outside result div) -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close-btn">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
 </body>
 </html>

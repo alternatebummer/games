@@ -1397,7 +1397,7 @@ const movies = [
     title: "Ant-Man and the Wasp: Quantumania",
     released: 2023,
     rating: "3 out of 5 Stars",
-    review: "I dunno, buddy; Ant-Man rules and this was great! Best Marvel movie since Ragnarok! 2 messy hours of weird nonsense with no respect at all for scope or scale."
+    review: "I dunno, buddy; Ant-Man rules and this was great! 2 messy hours of weird nonsense with no respect at all for scope or scale (in the best way possible)."
 },
 {
     reviewDate: "2023-02-24",
@@ -1411,7 +1411,7 @@ const movies = [
     title: "28 Days Later",
     released: 2002,
     rating: "4 out of 5 Stars",
-    review: "\"Takes out the fire, but leaves the warmth.\""
+    review: "Takes out the fire, but leaves the warmth."
 },
 {
     reviewDate: "2023-08-01",
