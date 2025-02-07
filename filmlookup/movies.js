@@ -1400,6 +1400,609 @@ const movies = [
     review: "I dunno, buddy; Ant-Man rules and this was great! 2 messy hours of weird nonsense with no respect at all for scope or scale (in the best way possible)."
 },
 {
+    "reviewDate": "2024-08-07",
+    "title": "Kind Hearts and Coronets",
+    "released": 1949,
+    "rating": "4 out of 5 Stars",
+    "review": "A genuinely awesome performance from Dennis Price, who carries the film without a doubt. I barely noticed that Alec Guinness plays like 25 characters."
+},
+{
+    "reviewDate": "2024-08-07",
+    "title": "Quantum Cowboys",
+    "released": 2022,
+    "rating": "3 out of 5 Stars",
+    "review": "Hey, hapless folk acclimatizing to life at the collapse of possible worlds? I'll take it. It's not much of a spoiler to say that this is a good time loop movie. Quantum Cowboys vibes like Linklater rotoscope in terms of its expressionistic, experimental, and psychedelic nature. But it also has a great deal in common with Bakshi rotoscope. The animators seem to have improvised each sequence at gunpoint, with some scenes relying entirely on costumed actors delivering dialogue in vacuous rooms, fully FMV, pulled from a 90s western-themed point-and-click interactive CD-ROM. A great deal of effort has gone into explaining the physics of this world (think The Matrix's architect), though, in a Donnie Darko sort of way, none of that gibberish matters. This is a movie about watching characters mature in a non-linear temporality. It's not the best of its kind, but I love movies like this. And rotoscope is sacred. Add it to the pantheon."
+},
+{
+    "reviewDate": "2024-08-08",
+    "title": "The Ladykillers",
+    "released": 1955,
+    "rating": "4 out of 5 Stars",
+    "review": "William Rose (the writer) apparently dreamt The Ladykillers and wrote it from memory. I watched the movie and that story tracks. My father was an early adopter in the realm of personal computers and, as a result, I was an early adopter of the internet and internet porn. I remember him offering me a ride to school. I accepted, and so I was captive in his Nissan pick-up for more time than he needed. He told me porn was a lie. He told me it was bad for my brain. He asked me to imagine his mother, my granny, at all times. 'Would you have done that with granny in the room? Imagine granny in the room.'"
+},
+{
+    "reviewDate": "2024-08-12",
+    "title": "The Master",
+    "released": 2012,
+    "rating": "4.5 out of 5 Stars",
+    "review": "Two guys get more out of mutually exploiting each other's strengths and weaknesses than they do from the things they appear to want more than anything, suggesting some kind of naughtyboy solidarity."
+},
+{
+    "reviewDate": "2024-08-14",
+    "title": "The Devil Conspiracy",
+    "released": 2022,
+    "rating": "1.5 out of 5 Stars",
+    "review": "Maybe they wanted to make a biblical action movie for Christians while being forced into making a lore-heavy franchise origin story. Maybe they wanted to make the franchise origin story but were forced to make a biblical action movie for Christians. Either way, what they have done here is grossly unsatisfying and tedious."
+},
+{
+    "reviewDate": "2024-08-15",
+    "title": "The Last Voyage of the Demeter",
+    "released": 2023,
+    "rating": "1.5 out of 5 Stars",
+    "review": "I suppose Dracula's trip to England on the Demeter is intriguing, but my god, think of the miserable bastards who had to adapt it into a 2-hour movie. Having said that, the trip seems to have taken about 6 days. I dunno. Dracula's basically a monster with no interiority, which feels like a massive disservice. But the casting is awesome and the performances are pretty good too. It's not enough, though. It's a pretty flop."
+},
+{
+    "reviewDate": "2024-08-16",
+    "title": "Fly Me to the Moon",
+    "released": 2024,
+    "rating": "1 out of 5 Stars",
+    "review": "A movie about the moral failure of faking authenticity simultaneously celebrates it by being a knock-off cinematic experience."
+},
+{
+    reviewDate: "2024-08-23",
+    title: "I ♥ Huckabees",
+    released: 2004,
+    rating: "4 out of 5 Stars",
+    review: "There's an almost Shakespearian joy in watching the four leads of this movie running around, losing and regaining their grip on life. Somehow it doesn't come off as patronizing when characters explain vague concepts like betrayal and connectedness. Instead, you get the distinct impression that these people pretty much don't understand what they're on about. But, truth be told, a vague idea is often enough to get by on. This has always been one of my favourite movies. The Jon Brion soundtrack is charming beyond belief."
+},
+{
+    reviewDate: "2024-08-26",
+    title: "Immaculate",
+    released: 2024,
+    rating: "1.5 out of 5 Stars",
+    review: "Immaculate under-delivers across the board, but it has a good final five minutes."
+},
+{
+    reviewDate: "2024-08-26",
+    title: "The Island",
+    released: 2005,
+    rating: "1.5 out of 5 Stars",
+    review: "Released in 2005 and set in 2019, The Island dares to deliver the highest of future-world stakes: sexy, marginalized clones. This one's exclusively for people who fetishize that particular type of early new millennium consumer-futurist aesthetic synonymous with thin, synthetic fabrics, icey colour stories, and childlike wonderment about the surveillance state and dystopias in general (something Children of Men would in so many ways correct one year later). Come get your floating glass computers. Come get your clear, soft plastic. Witness the scales of justice rebalanced through the liberation of these wobbly clones. I, Robot, Æon Flux, and Ultraviolet all gun for the same kind of future tale at around the same time, but The Island lacks the decency of creativity and joy. At least the others have art direction. Choosing to focus on its contractual, obligatory action set-pieces, it sidelines the insanely fascinating philosophical implications of persons who awaken to the fact of a false self. It's a subjectivity rug-pull that ought to be interesting to watch. Michael Bay is at his absolute worst. Ewan McGregor and Scarlett Johansson are awkwardly climbing their way into A-tier lead role recognition. In The Island, they play proto-forms of Barbie and Ken; likewise conscious 'products' forced to wander the desert of the real... Yes, I detest this movie. It's awful. But yes, I also love dumb clones, I love the cast, and I think this idea could be attempted again with greater success."
+},
+{
+    reviewDate: "2024-08-26",
+    title: "Alien: Romulus",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "It's fun to see young people in Alien movies. Romulus rides the line of sequel vs. lega-sequel in my opinion. It's populated with call-backs and easter eggs, but it isn't about the Alien franchise in the same way Last Jedi or Matrix: Resurrections are about their franchises. Romulus has an original story, awesome setpieces, and a psychosexual energy we've all come to know and love."
+},
+{
+    reviewDate: "2024-08-27",
+    title: "Christopher Robin",
+    released: 2018,
+    rating: "3 out of 5 Stars",
+    review: "It's a Hook-like. And it's schlock. Just imagine the movie and you've got it. So grey and drab, but heartwarming nonetheless. It can't hold a candle to Paddington, but I was a Pooh-pilled kid and I guess I still am."
+},
+{
+    reviewDate: "2024-08-27",
+    title: "Alien",
+    released: 1979,
+    rating: "5 out of 5 Stars",
+    review: "Not an original take, but I think Alien is my personal favourite Sci-Fi/Horror (though The Thing is a close second). Ridley Scott, Dan O'Bannon, and Ronald Shusett - one, two, or all three of these guys were clearly inspired by the raw violence of Italian giallo, and sadly this is the only movie in the franchise that really reps giallo. It's not technically giallo, but check out Planet of the Vampires (1965) by Mario Bava (a great giallo director) along with Dark Star (1974), O'Bannon's first blue-collar alien encounter story. Gradually, it becomes clear that Alien was destined to be made in one form or another. It was merely a question of who had the scope of vision to assemble all the elements into a single movie. Consider also The Andromeda Strain (1971), which tells the story of a biological terror that unleashes itself on a team of researchers in a quarantined lab."
+},
+{
+    reviewDate: "2024-08-28",
+    title: "Twisters",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "I just wanna see Kate smile again, like she did in grad school! And see her visit her mom and meet interesting people. She's too hard on herself, she needs nourishment. Also, yo, Kiernan Shipka is in this movie and she's wearing glasses and baggy shorts."
+},
+{
+    reviewDate: "2024-09-03",
+    title: "Alien: Covenant",
+    released: 2017,
+    rating: "3.5 out of 5 Stars",
+    review: "Michael Fassbender going absolutely nuts in this, and I think it's the most visually rich movie in the franchise since Aliens, but the content of Alien: Covenant holds the dishonour (in my opinion) of also being the most lega-sequelly. Similar to the way the franchise dispenses ephemeral, almost random gumballs of story, Covenant reveals that, at their core, the aliens themselves are simply brutal and random genetic iterations... ...If only David had more time. Oh, if humanity could just see and understand his little beasties, his children, each one so special, if a bit imperfect... And can't they understand how, with enough market data and faith from movie-goers, Ridley Scott might emerge from his cave with the Alien he so badly seeks to sire in his age of experience? Having said all that, David loves to play the flute. It's a big galaxy."
+},
+{
+    reviewDate: "2024-09-04",
+    title: "Waterworld",
+    released: 1995,
+    rating: "1 out of 5 Stars",
+    review: "Waterworld is a great idea executed so joylessly that it quickly becomes a kind of emotional labour to watch it."
+},
+{
+    reviewDate: "2024-09-09",
+    title: "Brian Wilson: Long Promised Road",
+    released: 2021,
+    rating: "1.5 out of 5 Stars",
+    review: "It's very difficult to determine what's going on between Brian Wilson and Jason Fine as they struggle through this 'road trip' doc. Wilson's legacy is not at risk. Nothing but their supposed friendship is on the line. The premise is: Fine is cashing in on Wilson's trust. Truly, the only tension in the doc is whether Wilson will flip on Fine's premise and divest from what feels like a very thin friendship to begin with."
+},
+{
+    reviewDate: "2024-09-10",
+    title: "Beetlejuice Beetlejuice",
+    released: 2024,
+    rating: "2.5 out of 5 Stars",
+    review: "I've spent my whole life wondering what ever became of Lydia Deetz. In a way, we all 'know' what happens to her. Like, in some vague, collective sense. We have some collective sense of what she'd be like in her 50s, even though it's hard to put into words... Rather than tapping into that collective imagination, the movie sort of ignores the issue. A true Lydia is not allowed to fully emerge. Winona Ryder is a generational icon and absolutely owns the screen at any age. And she's good in Beetlejuice Beetlejuice, which is a rhapsodic celebration of death and silliness to rival the first. But we owe it to the aged actors who portray these legendary protagonists to provide them with the best possible storytelling, and to allow the scope of the story to service their characters exclusively, if necessary, in order to address the central preoccupation of every potential viewer: What became of Lydia? Unfortunately for Tim Burton, that means he had to show us. No small task."
+},
+{
+    reviewDate: "2024-09-10",
+    title: "Black Swan",
+    released: 2010,
+    rating: "4 out of 5 Stars",
+    review: "Is this movie comedic? It's so bleak and claustrophobic at times that it becomes absurd and I have to laugh. Black Swan wants to be seen as prestigious and formally flawless while drawing the audience toward its baser functions: mommy horror, body horror, and light erotica. I love it for its moonshot just as much as I do for its fundamentals. I think Portman's performance is singular here. She's always good. As Nina, she's very damp with sweat and blood and spends a lot of time splashing around in sinks. All things considered, it's a pretty stunning, scary, and potentially quite funny movie."
+},
+{
+    reviewDate: "2024-09-11",
+    title: "Vox Lux",
+    released: 2018,
+    rating: "3 out of 5 Stars",
+    review: "It's a great Natalie Portman performance, as ever. She's such a steady hand, even when the characters are so chaotic and tragic. Whereas Black Swan is a tragedy that leaves no hope on the table, Vox Lux leaves some. Raffey Cassidy is also excellent. We absentmindedly follow human beings and extend our faith to them at our own peril. Is there a moral justification for this behaviour? Perhaps not. We discover that virtue is a transient property experienced in moments. Somewhere in this movie, we are aware that Celeste carries a great deal of trauma from a school shooting. Amazingly, Celeste's trauma is never directly addressed and the movie doesn't suffer for it at all."
+},
+{
+    reviewDate: "2024-09-12",
+    title: "A Nightmare Wakes",
+    released: 2020,
+    rating: "1 out of 5 Stars",
+    review: "Woof... I continue down the list of movies featuring Mary Shelley and, amazingly, Ken Russell's Gothic is shaping up to be the best of them. Filmmakers have absolutely flooded the zone with 'Mary Shelley at Lake Geneva,' but I don't think they watch each other's shit. All these movies tell the same unembellished story, making the same assumptions and cutting the same corners."
+},
+{
+    reviewDate: "2024-09-13",
+    title: "Trap",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "Fits right in with other current era Shyamalan. Trap is like the anti-Gone Girl. It's a world where the majority of people are teetering on the edge of becoming homicide detectives."
+},
+{
+    reviewDate: "2024-09-13",
+    title: "Don't Worry, He Won't Get Far on Foot",
+    released: 2018,
+    rating: "3.5 out of 5 Stars",
+    review: "Adapted from Callahan's own memoir of same name. It's a biopic about a single panel cartoonist. Joaquin Phoenix and Jonah Hill deliver excellent performances and the storytelling is great."
+},
+{
+    reviewDate: "2024-09-16",
+    title: "The Night House",
+    released: 2020,
+    rating: "3 out of 5 Stars",
+    review: "A little on the long side but I only say that because it's scary! Rebecca Hall owns every scene. Her character handles hauntings the way a Floridian might handle an alligator."
+},
+{
+    reviewDate: "2024-09-18",
+    title: "Green Room",
+    released: 2015,
+    rating: "4.5 out of 5 Stars",
+    review: "Quite like The Descent but the cave is a bar and the goblins are nazis. Fuckin' go for for it."
+},
+{
+    reviewDate: "2024-09-22",
+    title: "Perfect Days",
+    released: 2023,
+    rating: "4.5 out of 5 Stars",
+    review: "Which world am I in?"
+},
+{
+    reviewDate: "2024-09-24",
+    title: "World War Z",
+    released: 2013,
+    rating: "2 out of 5 Stars",
+    review: "Coming 4 years too late 11 years ago, here's World War Z. It's the zombie of zombie movies. Nothing about it cooks."
+},
+{
+    reviewDate: "2024-10-01",
+    title: "Wings of Desire",
+    released: 1987,
+    rating: "5 out of 5 Stars",
+    review: "Okay, so the first band that plays is Crime & the City Solution, featuring Rowland S. Howard on guitar: You did not imagine it. Sitting somewhere between Marcel Carné's Children of Paradise (1945) and Ingmar Bergman's Seventh Seal (1957): Wim Wenders' Wings of Desire begins with a fantastical and poetic blueprint of finitude and embodiment, then pours on thick, heavy cinematic realism. Notwithstanding, Wenders puts an angel right beside you that lingers on long after the runtime of the film. And that is to say nothing of the way it captures the proletarian sensibilities that rose to meet post-punk and goth at its apex in the 1980s. What a triumph."
+},
+{
+    reviewDate: "2024-10-01",
+    title: "His Three Daughters",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "An abrupt inquiry into grief and family with a shocking final act. I loved it. I wish we had more time with these sisters, but if we only get this one week in their lives, I say this was well plucked by the filmmaker."
+},
+{
+    reviewDate: "2024-10-03",
+    title: "Megalopolis",
+    released: 2024,
+    rating: "1 out of 5 Stars",
+    review: "By all appearances, Coppola had intended to demonstrate anti-fascism, but it's a story about a man, told in earnest, who supplants his government and the people when they are at their weakest and most disorganized - according to his singular will, moral purity, bloodline, and his mystical ideology about eternity and the soul... I found it to be completely incompatible with itself. It's kind of a fun neo-noir in some ways. It's very stupid. For me, it's 'Down with Megalopolis and up with Cosmopolis!!'"
+},
+{
+    reviewDate: "2024-10-06",
+    title: "Mr. Holmes",
+    released: 2015,
+    rating: "3 out of 5 Stars",
+    review: "It's a paperback novel-style story, but Ian McKellen makes it beautiful, because he is beautiful."
+},
+{
+    reviewDate: "2024-10-08",
+    title: "Viy",
+    released: 1967,
+    rating: "4 out of 5 Stars",
+    review: "Spooky season! Viy will raise you from your coffin of cinematic mediocrity and have you wondering what else is rising (Answer? A witch.)! This is the tale of an absolute doofus clergyman who, once dispatched, immediately demonstrates his lack of courage. His only tie to dignity is his piety, but a beautiful corpse is hellbent on breaching his circle of protection. The cinematography is beautiful and many tricks - including mime-craft and rotating sets - are deployed to express myriad supernatural phenomena. This is the easiest October rec I'll be making, for certain."
+},
+{
+    reviewDate: "2024-10-08",
+    title: "Mr. Vampire II",
+    released: 1986,
+    rating: "2 out of 5 Stars",
+    review: "Spooky season! The Mr. Vampire franchise is all about rules. The basic idea with hopping vampires is they don't decay, they hop, and you turn into one if it bites you. Spells keep them dormant and ignorance sets them free. We will never be rid of them. Mr. Vampire II is set in the modern day, largely shying away from the ancient mysticism that enriches the first film. These movies are incredibly silly. There's an early gag where a poisonous snake wraps itself around a dude's penis. There's a 15-minute action set-piece where the combatants are on sedatives and move at 1/8th speed. If that sounds right to you, start with the original. This one will be here waiting when you're done."
+},
+{
+    reviewDate: "2024-10-08",
+    title: "Twilight of the Warriors: Walled In",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "This is a very competent action film deeply rooted in the Hong Kong style and mythos. Sammo Hung is perfectly utilized."
+},
+{
+    reviewDate: "2024-10-12",
+    title: "Lovely, Dark, and Deep",
+    released: 2023,
+    rating: "2.5 out of 5 Stars",
+    review: "Spooky season! It has very little to do with the Robert Frost poem, but there's lots of good trudging around in the woods going on here. The central mystery of missing persons is pretty cliché and I discerned no practical metaphor. If you're a fan of movies where people go off-grid, you'll find something to enjoy here."
+},
+{
+    reviewDate: "2024-10-13",
+    title: "Dark Angel: The Ascent",
+    released: 1994,
+    rating: "4 out of 5 Stars",
+    review: "Spooky season! Dark Angel: The Ascent feels like it was conceived as a demented sexploitation flick, reimagined during pre-production as European softcore, then finally presented as PG-13 campy heaven/hell divine romance. Like the platypus: if you squint, you'll find nods to almost everything. It shares common ancestry with The Fifth Element, Dogma, Alien from L.A., Buffy the Vampire Slayer, Basic Instinct, Se7en, The Quick and the Dead, Law and Order, Forbidden Zone, Beetlejuice, Natural Born Killers; there's this whole other side of it that's calling back to seedy Italian horror/fantasy, yet it's perfectly harmless and charming. I'll also add that this movie was restored at some point and looks just incredible on a modern TV."
+},
+{
+    reviewDate: "2024-11-16",
+    title: "E.T. the Extra-Terrestrial",
+    released: 1982,
+    rating: "4.5 out of 5 Stars",
+    review: "The ultimate alien-is-a-metaphor movie. - the 'goodbye' Elliot never got from his father. - Elliot's own depersonalized childhood (because he needs himself to be the healer that his father refused to be). - the alien is cinema and cinema's capacity to solicit empathy from the viewer regardless of proximity. - the alien is cinema's capacity to grant secret wishes. I love, love, love every reaction shot when someone sees E.T. for the first time. Like the dinosaurs in Jurassic Park, just seeing E.T. waddle around in front of them is awe-inspiring. - the alien is the ambiguous gender of childhood that exists before socialization. - is living a life while being pursued, resigned to a life lived in closets. Shit like this is how and why Spielberg was for a time the superior director against Scorsese, Scott, Lucas, Cameron, and Coppola."
+},
+{
+    reviewDate: "2024-11-19",
+    title: "The Shadowless Tower",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "Two hipsters in Beijing discover they share a very convenient liminal space with each other but are too exhausted to do anything about it. Beautifully shot, engagingly calm, and just enough humour to carry you through."
+},
+{
+    reviewDate: "2024-11-21",
+    title: "Robinson's Garden",
+    released: 1987,
+    rating: "4.5 out of 5 Stars",
+    review: "I highly recommend Robinson's Garden. Every scene weaves in and out of visual poetry and narrative, like Tarkovsky or Kurosawa would have done, but it's fun! So fun!"
+},
+{
+    reviewDate: "2024-11-29",
+    title: "Inland Empire",
+    released: 2006,
+    rating: "4 out of 5 Stars",
+    review: "All hope is lost within the first 10 minutes. This is a story obsessed with the idea of getting into trouble and pays the lightest possible lip service to the idea of getting out of it ('I have seen dogs reason their way out of problems.'). To make sense of a problem is paradoxical, says this movie, because you are the problem. You'd have to not be you to solve it, but guess what: New you? New problem. What if you used an actor? ('Now, Freddie's found out that our producers know the history of this film and they have taken it upon themselves not to pass that information along to us.') Good movie."
+},
+{
+    reviewDate: "2024-11-29",
+    title: "Evil Does Not Exist",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "A great fall/winter movie. Evil Does Not Exist begins with the simplest possible narrative, pivots into complex character building, then dissolves itself in its own poetry. It leaves behind a bad feeling about tap water."
+},
+{
+    reviewDate: "2024-12-01",
+    title: "Murder on the Orient Express",
+    released: 2017,
+    rating: "2 out of 5 Stars",
+    review: "Kenneth Branagh's Poirot is a little too cool, a little too independent. I really need my Poirot to be a bit bumbling. Poirot could do his job riding around on someone's shoulders or tucked into a backpack. All the same, Branagh is great at just being himself. Like the titular train, the story starts strong and then completely derails."
+},
+{
+    reviewDate: "2024-12-02",
+    title: "Death on the Nile",
+    released: 2022,
+    rating: "1.5 out of 5 Stars",
+    review: "This series is calibrated all lush and energetic - why?? There's hot magma under the surface of this movie for no reason at all and it erupts out of Branagh's performance and from elsewhere. I feel like the Maxell 'blown-away-guy' and Poirot's just sitting there asking questions! Why am I drenched in sweat??"
+},
+{
+    reviewDate: "2024-12-08",
+    title: "A Haunting in Venice",
+    released: 2023,
+    rating: "3 out of 5 Stars",
+    review: "I hated the first two, but this one rocked. To discuss it would be too spoilery. It's sufficient to say that a creepy little boy with a lot of gravitas steals the show here. Tina Fey has some good one-liners and I do so love a story where a lot of freaked out characters cause trouble for each other in a castle."
+},
+{
+    reviewDate: "2024-12-13",
+    title: "Juror #2",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "It works! Hoult tries something exciting with a more naturalistic version of the performance that is expected of him. Juror No. 2 is completely sopping with Clint Eastwood's special brand of patriotic misanthropy."
+},
+{
+    reviewDate: "2024-12-17",
+    title: "The Winter's Tale",
+    released: 1999,
+    rating: "5 out of 5 Stars",
+    review: "Quite simply the greatest filmed stage performance of Shakespeare I am aware of, and by a large margin the most underrated play. Antony Sher as the mad king Leontes is sweat-inducing and brutal to behold. And listen: this is on YouTube right now."
+},
+{
+    reviewDate: "2024-12-18",
+    title: "National Theatre Live: Twelfth Night",
+    released: 2017,
+    rating: "5 out of 5 Stars",
+    review: "Twelfth Night's signature merciless festivities are balanced here with outrageously funny character performances set to a mod gothic aesthetic. Tamsin Greig as 'Malvolia' outshines her castmates and nails Malvolio harder than I've ever seen before."
+},
+{
+    reviewDate: "2024-12-20",
+    title: "Pastoral: To Die in the Country",
+    released: 1974,
+    rating: "4 out of 5 Stars",
+    review: "Wherein an on-screen filmmaker travels back into his childhood, connects with his childhood self. 50 years on, the grandfather paradox trope is a little tired. However, it's thrilling to see one man divided into two, each balanced delicately on their respective edge of time, with 20 years between them. This is history's easiest recommendation for fans of Japanese cinema and the avant-garde in general."
+},
+{
+    reviewDate: "2024-12-23",
+    title: "Still of the Night",
+    released: 1982,
+    rating: "2.5 out of 5 Stars",
+    review: "Still of the Night is a hybrid psychological noir thriller (good.), combining the boring elements of both (boring.), but with expertly restrained performances by all (skillful!). This is an aesthetic boldly attempted by anyone but pretty much mastered by David Lynch."
+},
+{
+    reviewDate: "2024-10-22",
+    title: "The Day of the Triffids",
+    released: 1963,
+    rating: "2 out of 5 Stars",
+    review: "Spooky season! Watch it for a killer plant that defies a man's every conclusion and impulse."
+},
+{
+    reviewDate: "2024-10-22",
+    title: "Scanners",
+    released: 1981,
+    rating: "4 out of 5 Stars",
+    review: "Oh, I loved it so much! Scanners is a reckless and idealistic movie about so many things, but perhaps more than anything it lays out conceivable empowerment narratives experienced by those who suffer from pain and poor mental health. Unlike shining, which seems to broaden the identity of its users in the face of an ambiguous, alien psychic landscape, scanning seems to narrow and calcify, slowly mastering its users and turning them into weapons and targets. It evokes for me the sort of Cold War-era existentialism and despair that a good spy thriller can evoke (Munich!) with none of the prestige and five times the violence."
+},
+{
+    reviewDate: "2024-10-25",
+    title: "Cat People",
+    released: 1942,
+    rating: "3 out of 5 Stars",
+    review: "Spooky season! A lovely older film with, frankly, an iconic proto-horror climax. Retribution is owed to those who condemn the panther."
+},
+{
+    reviewDate: "2024-10-25",
+    title: "The Curse of the Cat People",
+    released: 1944,
+    rating: "1.5 out of 5 Stars",
+    review: "Excellent writing, but after factoring in the child protagonist, the dreadful backyard sequences, and the complete squandering of Simone Simon, it's utter schlock that results."
+},
+{
+    reviewDate: "2024-10-25",
+    title: "Underwater!",
+    released: 1955,
+    rating: "2 out of 5 Stars",
+    review: "Underwater! serves 1955 body, and I love that. It's a mix between - I don't know - Jaws, Twister, and National Treasure? It's predictive of blockbusters, but it isn't built like one. It has lots of agonizing sequences of guys going, 'Hehehe, hahaha, ahhh ye.'"
+},
+{
+    reviewDate: "2024-10-25",
+    title: "Paris, Texas",
+    released: 1984,
+    rating: "4.5 out of 5 Stars",
+    review: "I've spent my adult life casting thoughts into pithy, expressive lines, but I cannot do justice at short notice to the way Wim Wenders makes me feel. It was better when we hadn't the words. Wenders picks us up after words have failed us."
+},
+{
+    reviewDate: "2024-10-30",
+    title: "American Fiction",
+    released: 2023,
+    rating: "3.5 out of 5 Stars",
+    review: "Kaufman-esque metafiction, family drama, Oscar bait, grand farce, romantic comedy, coming-out story, art criticism. At its bright centre is a clear and compelling lesson about love. Cord Jefferson won an Emmy for Watchmen Episode 6. With American Fiction, he wins an Academy Award."
+},
+{
+    reviewDate: "2024-10-31",
+    title: "Dracula",
+    released: 1931,
+    rating: "3 out of 5 Stars",
+    review: "Spooky season!! Dwight Frye delivers an awesome performance as Renfield. I got to see this projected on a big screen at the municipal theatre, with kids running around and people walking in and out. Very wholesome film. Much campier than anticipated."
+},
+{
+    reviewDate: "2024-11-05",
+    title: "Omni Loop",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "This is an awesome time loop story told in the style of a casual, light, and dorky sci-fi. Similar in vibe to Downsizing or Don't Look Up, but also Edge of Tomorrow."
+},
+{
+    reviewDate: "2024-11-06",
+    title: "The Outrun",
+    released: 2024,
+    rating: "3.5 out of 5 Stars",
+    review: "I was completely swept away by Ronan's performance and the filmmaking is excellent. Every story element comes home and adds to something that turns out to be grand and cathartic. Anyone who struggles with substance abuse will recognize really painful details - some more obvious than others. The Outrun also beautifully depicts solitude. Perhaps if I were younger I would have formed a much deeper attachment to it."
+},
+{
+    reviewDate: "2024-11-11",
+    title: "Jack Reacher",
+    released: 2012,
+    rating: "3 out of 5 Stars",
+    review: "Tom Cruise in 2012 was an anvil, but Christopher McQuarrie makes him dance like a feather. Jack Reacher works well in a double-bill with The Beekeeper."
+},
+{
+    reviewDate: "2024-11-12",
+    title: "Chocolat",
+    released: 2000,
+    rating: "2.5 out of 5 Stars",
+    review: "Chocolat is a blue-tinted 'European' period drama where a woman transforms the sociocultural context of an entire town through patient resilience alone. The pitch meets my definition of outrageous. I like this movie until Depp shows up. There's absolutely no room for him in the story."
+},
+{
+    reviewDate: "2025-01-02",
+    title: "Popeye",
+    released: 1980,
+    rating: "4.5 out of 5 Stars",
+    review: "A political thriller centring the lives of thriving illegalists forced together by a collapsing society ruined by over-taxation."
+},
+{
+    reviewDate: "2025-01-10",
+    title: "Hanna",
+    released: 2011,
+    rating: "2.5 out of 5 Stars",
+    review: "It's a pleasure to watch a young Saoirse Ronan explore the world and punch people at the speed of sound. She's sort of a platinum blonde Paddington Bear. While it lacks the haunted violence of Under the Skin, Hanna is also a fine entry in the action-thriller subgenre where living weapons find their humanity. Unfortunately, Cate Blanchett delivers a pretty sub-par performance that drags the movie down from a solid 3 stars."
+},
+{
+    reviewDate: "2025-01-10",
+    title: "Number 24",
+    released: 2024,
+    rating: "3.5 out of 5 Stars",
+    review: "What a great movie. Number 24 doesn't shy away at all from the cost of true anti-fascism. Rather than valorizing, we are invited to see Sønsteby as a man transformed by killing. The liberation of Norway is secondary to Sønsteby's inner journey, toward the complex grief planted by war that, given time and peace, develops into a new truth worthy of interrogation, and yes, of re-litigation. After all, isn't discernment and accountability without fear or shame what a time of peace affords us? What's more, Sønsteby is a composite performance, with Sjur Vatne Brean playing the young man and Erik Hivju playing the old. I commend the screenwriter and director for believing it was important to provide a unified character arc for these two distinct performances of the same man, one full of guts, the other of tears."
+},
+{
+    reviewDate: "2025-01-27",
+    title: "Crash",
+    released: 1996,
+    rating: "3 out of 5 Stars",
+    review: "My thoughts on Scanners applies here as well: 'More than anything it lays out conceivable empowerment narratives experienced by those who suffer from pain and poor mental health.'"
+},
+{
+    reviewDate: "2025-01-27",
+    title: "21",
+    released: 2008,
+    rating: "1 out of 5 Stars",
+    review: "21 plays with the idea of solved games, which is cool, and it is porn if your idea of pleasure is winning at cards and getting emotionally tangled up with narcissists. Despite my interest in solved games, this was forgettable."
+},
+{
+    reviewDate: "2025-01-27",
+    title: "Stroszek",
+    released: 1977,
+    rating: "4 out of 5 Stars",
+    review: "Herzog has this way he applies a vérité documentary gaze to fiction, as he does in Stroszek. Equally transfixing is the way he reverses this gaze in his documentaries, always leaving some doubt about whether or not a subject has been coached, or is acting(!). The movie drags its heels from beginning to end. To me, this suggests what a burden narrative can be when its purpose all along is to lead you to an unfulfilling intellectual argument. I'm here for it though."
+},
+{
+    reviewDate: "2025-01-27",
+    title: "The Dig",
+    released: 2021,
+    rating: "2 out of 5 Stars",
+    review: "Fine performances. Basil Brown is the Ip Man of dirt and to that end no one will stop him from doing a great job for his country."
+},
+{
+    reviewDate: "2025-01-27",
+    title: "Eraserhead",
+    released: 1977,
+    rating: "5 out of 5 Stars",
+    review: "Eraserhead and 2001: A Space Odyssey have some similarities that interest me. And then I look at Eraserhead's Chaplin-like protagonist, its use of dreamscape, the totemic objects that persist and comply with its elastic reality without betraying the mystery, its fusion of fear and hope, and how all of the above is unpredictably woven into future Lynch projects... It leaves me speechless, honestly."
+},
+{
+    reviewDate: "2025-02-02",
+    title: "Sing Sing",
+    released: 2023,
+    rating: "4 out of 5 Stars",
+    review: "Hell yeah, a process drama about drama. It would have been easy to tell this story through the failures/setbacks of its characters, but no. The filmmakers love and respect their characters."
+},
+{
+    reviewDate: "2025-02-03",
+    title: "Escape from New York",
+    released: 1981,
+    rating: "2.5 out of 5 Stars",
+    review: "Iconic protagonist, neat performances, AMAZING soundtrack... But there aren't many reasons to watch it otherwise. Not to backseat write the movie but it would have benefited from like a chess tournament using human pieces or something like that."
+},
+{
+    reviewDate: "2025-02-03",
+    title: "Field of Dreams",
+    released: 1989,
+    rating: "3 out of 5 Stars",
+    review: "The concept has strengthened with age: You built a baseball diamond and now your life is about attracting the ghosts of baseball players. Costner is fairly restrained, but the camera is all over this man."
+},
+{
+    reviewDate: "2025-02-04",
+    title: "Agatha and the Truth of Murder",
+    released: 2018,
+    rating: "3 out of 5 Stars",
+    review: "Focusing on a very mysterious chunk of time in the real life of Agatha Christie. This movie gives you a conversation between Christie and Conan Doyle. It rules, even if it's not amazing cinema."
+},
+{
+    reviewDate: "2025-02-04",
+    title: "Nosferatu",
+    released: 2024,
+    rating: "3 out of 5 Stars",
+    review: "It's hard to say if Eggers pushed the needle on Nosferatu for me. Bill Skarsgård's portrayal of Orlok is amazing, though, leaving tons of ambiguity as to whether this creature is an emotionally complex being or just an adaptable blood-sucking monkey. The time commitment is far too great for such an orthodox presentation of such an old story, imo, but there is some food for thought and it's a bit of an event, no?"
+},
+{
+    reviewDate: "2025-02-05",
+    title: "Zero Dark Thirty",
+    released: 2012,
+    rating: "3 out of 5 Stars",
+    review: "Very good example of: 'A team must grind its way through a process to the bitter end.' Depicts the assassination of Osama bin Laden, for goodness' sake. How crazy is that?"
+},
+{
+    reviewDate: "2024-11-13",
+    title: "Mr. Monk's Last Case: A Monk Movie",
+    released: 2023,
+    rating: "1 out of 5 Stars",
+    review: "God-awful bullshit. I watched every episode of Monk blitzed out of my mind in the late 2000s and that may have been part of the problem. Somehow I tricked myself into thinking I had nostalgia for this bland cast of characters and this utterly bland formula."
+},
+{
+    reviewDate: "2024-11-14",
+    title: "Frances Ha",
+    released: 2012,
+    rating: "4 out of 5 Stars",
+    review: "This is my second viewing of Frances Ha and just as before I wept through the last 15 minutes."
+},
+{
+    reviewDate: "2024-12-30",
+    title: "Nightbitch",
+    released: 2024,
+    rating: "2 out of 5 Stars",
+    review: "Yes, Nightbitch delivers on its one major promise to the viewer. It takes its sweet time, but Amy Adams turns into a dog at night in this one. There are plenty of problems at the level of writing, editing, and directing, but Adams' performance engages and it's shot well. It's Black Swan for new parents, basically."
+},
+{
+    reviewDate: "2024-10-15",
+    title: "Tender Dracula",
+    released: 1974,
+    rating: "3 out of 5 Stars",
+    review: "Spooky season! It's a classic stoner castle romp. Four urbanite deviants show up at Peter Cushing's castle. They get up to lusty, vaguely troubling hijinks while Cushing watches, giggling to his pigeon-eyed groundskeeper and hot wife. Tender Dracula is also a movie about making movies, and you really feel a desperate will to make some kind of movie out of this experience, both from the characters (who play filmmakers) and the filmmakers themselves. Lots of music, special effects, and other solicitations for your benefit."
+},
+{
+    reviewDate: "2024-10-15",
+    title: "The Psychic",
+    released: 1977,
+    rating: "2 out of 5 Stars",
+    review: "Spooky season! A drawn-out procedural murder mystery with a Poe-esque centerpiece. There is some gore up front, but it's fairly tame for Fulci. The real crime here is how unfun this movie is."
+},
+{
+    reviewDate: "2024-10-18",
+    title: "The Wild Robot",
+    released: 2024,
+    rating: "2 out of 5 Stars",
+    review: "A helpful mechanique endures in mothering an orphan gosling. The animation style is beautiful, but the general pace and expression is like, 'Ahhhh!! Run!! You have to fly!!! Oh nooo, go go go!!' Can I just chill with this goose please?"
+},
+{
+    reviewDate: "2024-09-25",
+    title: "Shall We Dance?",
+    released: 1996,
+    rating: "4 out of 5 Stars",
+    review: "Just the sweetest movie about a bunch of hot dorks overcoming their hangups. I watch Shall We Dance? every 5 years or so and each watch gets more cathartic."
+},
+{
+    reviewDate: "2024-09-27",
+    title: "Lost in the Shuffle",
+    released: 2024,
+    rating: "2.5 out of 5 Stars",
+    review: "Excellent subject matter, obviously. A standard deck of playing cards is a calculator for the human heart. It's shocking that there aren't more thorough investigations into the meaning and function of playing cards. The close-up magic aspect of this was difficult for me."
+},
+{
+    reviewDate: "2024-08-29",
+    title: "Ghostbusters: Frozen Empire",
+    released: 2024,
+    rating: "1.5 out of 5 Stars",
+    review: "Deep within the zombie husk of this unthrilling movie is a serviceable queer teenage ghost/human romance."
+},
+{
+    "reviewDate": "2024-08-20",
+    "title": "Horizon: An American Saga – Chapter 1",
+    "released": 2024,
+    "rating": "2.5 out of 5 Stars",
+    "review": "Costner depicts the characters of this story as dead behind the eyes, like puppets of history. It plays out with a nihilistic determination that speaks to an amoral lens, but this haunting momentum is in conflict with a soundtrack and cinematography more in line with a classical Western approach that valorizes westward expansion. So it has it both ways, the entire time, which is unforgivably frustrating. Fortunately, Costner's self-insertion into his own movie is ridiculous and hilarious, and helped to remind me that this franchise was always going to be dead on arrival. Given all of that, you have to kick at the darkness 'til it bleeds daylight and if we want good Westerns, we'll have to continuously rework the recipe until it's both nourishing and tasty. Horizon doesn't quite get there, but it's obviously an attempt at being That Western."
+},
+{
+    "reviewDate": "2024-08-13",
+    "title": "The Constant Gardener",
+    "released": 2005,
+    "rating": "3 out of 5 Stars",
+    "review": "Stunningly committed to all of its various elements. Is it accurate to call this a post-colonial story? Perhaps it is, in the most cynical possible way, which befits le Carré. The hum-drum diplomat lingering without purpose eventually learns that he must grow to redeem himself. Unfortunately, growth ensures his death. Why? The well is poisoned. Because it's too late to throw the wrench into the gears of empire. It's too late to negate the incentives of capitalism. But through self-annihilation, Tessa and Justin can terrorize their cohort by reminding them that the only way out is death. Sometimes you have to fall silent to be heard, and so on. Sometimes you have to leave, and leaving can speak volumes."
+},
+
+{
     reviewDate: "2023-02-24",
     title: "Knock at the Cabin",
     released: 2023,
