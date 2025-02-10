@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock-Based Game</title>
+    <style>
+        body {
+            font-family: "Courier New", monospace;
+            background-color: black;
+            color: lime;
+            text-align: left;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #game-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        #inventory, #message-log {
+            padding: 10px;
+            overflow-y: auto;
+            height: 100%;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            border: 2px solid lime;
+        }
+        #inventory {
+            width: 50%;
+            background: black;
+        }
+        #message-log {
+            width: 50%;
+            background: black;
+        }
+        #inventory div, #message-log div {
+            padding: 2px;
+            cursor: pointer;
+        }
+        #inventory div:hover {
+            background: darkgreen;
+        }
+        #build-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: black;
+            color: lime;
+            border: 2px solid lime;
+            padding: 10px;
+            width: 300px;
+        }
+        #build-menu div {
+            padding: 5px;
+            cursor: pointer;
+        }
+        #build-menu div:hover {
+            background: darkgreen;
+        }
+        #close-build-menu {
+            text-align: right;
+            cursor: pointer;
+            padding: 5px;
+        }
+        #close-build-menu:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="inventory"></div>
+        <div id="message-log"></div>
+    </div>
+    <div id="build-menu">
+        <div id="close-build-menu">[x]</div>
+        <h3>Build Menu</h3>
+        <div id="build-job-center">Job Placement Centre (200 Credits)</div>
+        <div id="build-lumber-camp">Lumber Camp (10 Wood)</div>
+        <div id="build-fish-market">Fish Market (150 Wood)</div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let currentDate = new Date("2040-01-01");
+            let inventory = {};
+            const timeInterval = 5000; // 5 seconds per day
+            const messageLog = document.getElementById("message-log");
+            const inventoryList = document.getElementById("inventory");
+            const buildMenu = document.getElementById("build-menu");
+            const closeBuildMenu = document.getElementById("close-build-menu");
+            const buildJobCenter = document.getElementById("build-job-center");
+            const buildLumberCamp = document.getElementById("build-lumber-camp");
+            const buildFishMarket = document.getElementById("build-fish-market");
+
+            function logMessage(message) {
+                const entry = document.createElement("div");
+                entry.textContent = message;
+                messageLog.prepend(entry);
+            }
+
+            function updateInventoryDisplay() {
+                inventoryList.innerHTML = "";
+                for (let item in inventory) {
+                    if (inventory[item] > 0) {
+                        const entry = document.createElement("div");
+                        entry.textContent = `${item} (${inventory[item]})`;
+                        entry.dataset.item = item;
+                        entry.addEventListener("click", () => handleItemClick(item));
+                        inventoryList.appendChild(entry);
+                    }
+                }
+            }
+
+            function handleItemClick(item) {
+                            if (item === "Colonist") {
+                                buildMenu.style.display = "block";
+                            } else if (item === "Fish Market") {
+                                if (inventory["Freshwater Cod"] > 0) {
+                                    inventory["Freshwater Cod"]--;
+                                    inventory["Credits"] = (inventory["Credits"] || 0) + 50;
+                                    logMessage("Fish Market converted 1 Freshwater Cod into 50 Credits.");
+                                    updateInventoryDisplay();
+                                } else {
+                                    logMessage("No Freshwater Cod available to sell at the Fish Market.");
+                                }
+                              } else if (item === "Lumber Camp") {
+                                  if (inventory["Dead Tree"] > 0) {
+                                      inventory["Dead Tree"]--;
+                                      inventory["Wood"] = (inventory["Wood"] || 0) + 10;
+                                      logMessage("Lumber Camp milled 1 Dead Tree into 10 Wood.");
+                                  } else if (inventory["Evergreen"] > 0) {
+                                      inventory["Evergreen"]--;
+                                      inventory["Wood"] = (inventory["Wood"] || 0) + 10;
+                                      logMessage("Lumber Camp milled 1 Evergreen into 10 Wood.");
+                                  } else {
+                                      logMessage("No trees available to mill at the Lumber Camp.");
+                                  }
+                                  updateInventoryDisplay();
+                            } else {
+                                convertItem(item);
+                            }
+                        }
+
+            function closeBuildMenuFunction() {
+                buildMenu.style.display = "none";
+            }
+
+            function buildItem(item, costType, cost) {
+                if (inventory[costType] >= cost) {
+                    inventory[costType] -= cost;
+                    inventory[item] = (inventory[item] || 0) + 1;
+                    logMessage(`${item} added to inventory.`);
+                    updateInventoryDisplay();
+                    closeBuildMenuFunction();
+                } else {
+                    logMessage(`Not enough ${costType} to build ${item}.`);
+                }
+            }
+
+            function convertItem(item) {
+                let conversion = {
+                    "Freshwater Cod": 10,
+                    "Plump Hare": 5,
+                    "White Elk": 15,
+                    "Merchant": 100,
+                    "Dead Tree": 10,
+                    "Evergreen": 50
+                };
+
+                if (conversion[item]) {
+                    let newItem;
+                    if (item === "Merchant") {
+                        newItem = "Credits";
+                    } else if (item === "Dead Tree" || item === "Evergreen") {
+                        newItem = "Wood";
+                    } else {
+                        newItem = "Food";
+                    }
+
+                    inventory[newItem] = (inventory[newItem] || 0) + conversion[item];
+                    inventory[item] = Math.max(0, (inventory[item] || 0) - 1);
+                    logMessage(`${item} converted into ${conversion[item]} ${newItem}`);
+                    updateInventoryDisplay();
+                }
+            }
+
+            closeBuildMenu.addEventListener("click", closeBuildMenuFunction);
+            buildJobCenter.addEventListener("click", function () { buildItem("Job Placement Centre", "Credits", 200); });
+            buildLumberCamp.addEventListener("click", function () { buildItem("Lumber Camp", "Wood", 10); });
+            buildFishMarket.addEventListener("click", function () { buildItem("Fish Market", "Wood", 150); });
+
+            function checkDailyEvents() {
+                if (inventory["Lumber Camp"] && inventory["Lumber Camp"] > 0) {
+                    inventory["Wood"] = (inventory["Wood"] || 0) + 2 * inventory["Lumber Camp"];
+                }
+
+                let events = [
+                    { name: "Colonist", chance: 0.2 },
+                    { name: "Merchant", chance: 0.05 },
+                    { name: "White Elk", chance: 0.05 },
+                    { name: "Plump Hare", chance: 0.1 },
+                    { name: "Freshwater Cod", chance: 0.05 },
+                    { name: "Dead Tree", chance: 0.05 },
+                    { name: "Evergreen", chance: 0.1 }
+                ];
+
+                events.forEach(event => {
+                    if (Math.random() < event.chance) {
+                        inventory[event.name] = (inventory[event.name] || 0) + 1;
+                        logMessage(`${event.name} has appeared.`);
+                    }
+                });
+                updateInventoryDisplay();
+            }
+
+            function advanceDay() {
+                currentDate.setDate(currentDate.getDate() + 1);
+                logMessage(`${currentDate.toDateString()}, a new day dawns...`);
+                checkDailyEvents();
+            }
+
+            setInterval(advanceDay, timeInterval);
+            advanceDay();
+        });
+    </script>
+</body>
+</html>
