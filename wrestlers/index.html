@@ -3,73 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clock-Based Game</title>
+  <title>COLONIST CORPSE</title>
   <style>
     body {
       font-family: "Courier New", monospace;
       background-color: black;
-      color: lime;
+      color: #83946B;
+      font-weight: bold;
       text-align: left;
       margin: 0;
       padding: 0;
       overflow: hidden;
     }
     #game-container {
+      position: absolute;
       display: flex;
       width: 100vw;
       height: 100vh;
     }
     #inventory,
     #message-log {
-      padding: 10px;
+      position: fixed;
       overflow-y: auto;
-      height: 100%;
       box-sizing: border-box;
       white-space: pre-wrap;
-      border: 2px solid lime;
+      width: 50vw;
     }
     #inventory {
-      width: 50%;
-      background: black;
+      height: 100vh;
+      text-align: left;
+      color: #927951;
+      border: 3px dotted #83946B;
+      font-size: 20px;
+      z-index: 997;
     }
     #message-log {
-      width: 50%;
-      background: black;
+      height: 50%;
+      top: 0;
+      margin-left: 50vw;
+      color: #83946B;
+      text-align: right;
+      border: 3px dotted #83946B;
+      z-index: 998;
+    }
+    #action-log {
+      position: fixed;
+      height: 50%;
+      bottom: 0;
+      width: 49.8%;
+      right: 0;
+      color: #83946B;
+      text-align: right;
+      border: 3px dotted #83946B;
+      z-index: 999;
+
     }
     #inventory div,
+    #action-log div,
     #message-log div {
-      padding: 2px;
+      padding: 3px;
       cursor: pointer;
+      color: #83946B;
+      font-size: 16px;
+      font-weight: normal;
     }
     #inventory div:hover {
-      background: darkgreen;
+      background: #2A372C;
     }
     #build-menu {
       display: none;
       position: absolute;
-      top: 50px;
+      top: 25%;
       left: 50%;
+      border-radius: 10px;
       transform: translateX(-50%);
       background: black;
-      color: lime;
-      border: 2px solid lime;
+      text-align: center;
+      color: #83946B;
+      border: 3px dotted #83946B;
       padding: 10px;
-      width: 300px;
+      width: 200px;
+      z-index: 1001;
     }
     #build-menu div {
       padding: 5px;
       cursor: pointer;
     }
     #build-menu div:hover {
-      background: darkgreen;
+      background: #2A372C;
+      text-align: center;
     }
     #close-build-menu {
-      text-align: right;
       cursor: pointer;
       padding: 5px;
+      font-weight: bold;
     }
     #close-build-menu:hover {
-      background: darkred;
+      background: #2A372C;
     }
     /* --- New CSS for the date modal --- */
     #date-modal {
@@ -77,10 +107,11 @@
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: lime;
+      background: black;
+      color: #83946B;
+      font-weight: bold;
       padding: 10px;
-      border: 2px solid lime;
+      border: 3px dotted #83946B;
       font-family: "Courier New", monospace;
       z-index: 1000;
     }
@@ -90,13 +121,14 @@
   <div id="game-container">
     <div id="inventory"></div>
     <div id="message-log"></div>
+    <div id="action-log"></div>
   </div>
   <div id="build-menu">
     <h3>Build Menu</h3>
-    <div id="build-job-center">Job Placement Centre (200 Credits)</div>
-    <div id="build-lumber-camp">Lumber Camp (10 Wood)</div>
-    <div id="build-fish-market">Fish Market (150 Wood)</div>
-    <div id="build-hunting-lodge">Hunting Lodge (20 Wood)</div>
+    <div id="build-job-center"><b>Job Placement Centre<br>(200 Credits)</div>
+    <div id="build-lumber-camp"><b>Lumber Camp</b><br>(10 Wood)</div>
+    <div id="build-fish-market"><b>Fish Market</b><br>(150 Wood)</div>
+    <div id="build-hunting-lodge"><b>Hunting Lodge</b><br>(20 Wood)</div><br>
     <div id="close-build-menu">[x]</div>
   </div>
   <!-- --- Date Modal --- -->
@@ -110,6 +142,7 @@
       let inventory = {};
       const timeInterval = 5000; // 5 seconds per day
       const messageLog = document.getElementById("message-log");
+      const actionLog = document.getElementById("action-log");
       const inventoryList = document.getElementById("inventory");
       const buildMenu = document.getElementById("build-menu");
       const closeBuildMenu = document.getElementById("close-build-menu");
@@ -127,29 +160,35 @@
         messageLog.prepend(entry);
       }
 
+      function logAction(message) {
+        const entry = document.createElement("div");
+        entry.textContent = message;
+        actionLog.prepend(entry);
+      }
+
       function handleItemClick(item) {
         if (item === "Colonist") {
           buildMenu.style.display = "block";
         } else if (item === "Fish Market") {
           if (inventory["Freshwater Cod"] > 0) {
             inventory["Freshwater Cod"]--;
-            inventory["Credits"] = (inventory["Credits"] || 0) + 50;
-            logMessage("Fish Market converted 1 Freshwater Cod into 50 Credits.");
+            inventory["Credits"] = (inventory["Credits"] || 0) + 30;
+            logAction("Fish Market converted 1 Freshwater Cod into 30 Credits.");
             updateInventoryDisplay();
           } else {
-            logMessage("No Freshwater Cod available to sell at the Fish Market.");
+            logAction("No Freshwater Cod available to sell at the Fish Market.");
           }
         } else if (item === "Lumber Camp") {
           if (inventory["Dead Tree"] > 0) {
             inventory["Dead Tree"]--;
             inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-            logMessage("Lumber Camp milled 1 Dead Tree into 10 Wood.");
+            logAction("Lumber Camp milled 1 Dead Tree into 10 Wood.");
           } else if (inventory["Evergreen"] > 0) {
             inventory["Evergreen"]--;
             inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-            logMessage("Lumber Camp milled 1 Evergreen into 10 Wood.");
+            logAction("Lumber Camp milled 1 Evergreen into 10 Wood.");
           } else {
-            logMessage("No trees available to mill at the Lumber Camp.");
+            logAction("No trees available to mill at the Lumber Camp.");
           }
           updateInventoryDisplay();
         } else {
@@ -165,13 +204,13 @@
         if (inventory["Plump Hare"] > 0) {
           inventory["Plump Hare"]--;
           inventory["Food"] = (inventory["Food"] || 0) + 5;
-          logMessage("Hunting Lodge reports 1 Plump Hare processed into 5 Food.");
+          logAction("Hunting Lodge reports 1 Plump Hare processed into 5 Food.");
         } else if (inventory["White Elk"] > 0) {
           inventory["White Elk"]--;
           inventory["Food"] = (inventory["Food"] || 0) + 10;
-          logMessage("Hunting Lodge reports 1 White Elk processed into 10 Food.");
+          logAction("Hunting Lodge reports 1 White Elk processed into 10 Food.");
         } else {
-          logMessage("No animals available for processing at the Hunting Lodge.");
+          logAction("No animals available for processing at the Hunting Lodge.");
         }
         updateInventoryDisplay();
       }
@@ -180,11 +219,11 @@
         if (inventory[costType] >= cost) {
           inventory[costType] -= cost;
           inventory[item] = (inventory[item] || 0) + 1;
-          logMessage(`${item} added to inventory.`);
+          logAction(`${item} added to inventory.`);
           updateInventoryDisplay();
           closeBuildMenuFunction();
         } else {
-          logMessage(`Not enough ${costType} to build ${item}.`);
+          logAction(`Not enough ${costType} to build ${item}.`);
         }
       }
 
@@ -210,7 +249,7 @@
 
           inventory[newItem] = (inventory[newItem] || 0) + conversion[item];
           inventory[item] = Math.max(0, (inventory[item] || 0) - 1);
-          logMessage(`${item} converted into ${conversion[item]} ${newItem}`);
+          logAction(`${item} converted into ${conversion[item]} ${newItem}`);
           updateInventoryDisplay();
         }
       }
@@ -251,14 +290,14 @@
         events.forEach((event) => {
           if (Math.random() < event.chance) {
             inventory[event.name] = (inventory[event.name] || 0) + 1;
-            eventMessages.push(`- ${event.name} has appeared.`);
+            eventMessages.push(`${event.name} has appeared.`);
           }
         });
 
         if (inventory["Fish Market"] && inventory["Freshwater Cod"] > 0) {
           inventory["Freshwater Cod"]--;
           inventory["Credits"] = (inventory["Credits"] || 0) + 50;
-          eventMessages.push("- Fish Market converted 1 Freshwater Cod into 50 Credits.");
+          eventMessages.push("Fish Market converted 1 Freshwater Cod into 50 Credits.");
         }
 
         if (inventory["Lumber Camp"]) {
@@ -266,18 +305,16 @@
           if (inventory["Dead Tree"] > 0) {
             inventory["Dead Tree"]--;
             inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-            eventMessages.push("- Lumber Camp milled 1 Dead Tree into 10 Wood.");
+            eventMessages.push("Lumber Camp milled 1 Dead Tree into 10 Wood.");
             treesProcessed++;
           }
           if (inventory["Evergreen"] > 0) {
             inventory["Evergreen"]--;
             inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-            eventMessages.push("- Lumber Camp milled 1 Evergreen into 10 Wood.");
+            eventMessages.push("Lumber Camp milled 1 Evergreen into 10 Wood.");
             treesProcessed++;
           }
-          if (treesProcessed === 0) {
-            eventMessages.push("- No trees available to mill at the Lumber Camp.");
-          }
+
         }
 
         eventMessages.forEach((msg) => logMessage(msg));
@@ -286,11 +323,11 @@
 
       // Updated inventory display function that groups items by category.
       function updateInventoryDisplay() {
-        inventoryList.innerHTML = "";
+        inventoryList.innerHTML = "COLONIST CORPSE";
         const categories = {
-          "Stores": ["Credits", "Food", "Wood"],
-          "Census": ["Colonist", "Lumber Camp", "Hunting Lodge", "Fish Market", "Job Placement Centre"],
-          "Wilds": ["Evergreen", "Dead Tree", "Merchant", "Freshwater Cod", "White Elk", "Plump Hare"]
+          "Store Room": ["Credits", "Food", "Wood"],
+          "Colony": ["Colonist", "Lumber Camp", "Hunting Lodge", "Fish Market", "Job Placement Centre"],
+          "The Wilds": ["Evergreen", "Dead Tree", "Merchant", "Freshwater Cod", "White Elk", "Plump Hare"]
         };
 
         Object.keys(categories).forEach((category) => {
