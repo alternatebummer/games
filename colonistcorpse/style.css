@@ -70,9 +70,9 @@
   #build-menu {
     display: none;
     position: absolute;
-    font-size: 16px;
+    font-size: 14px;
     top: 10%;
-    left: 20%;
+    left: 50%;
     border-radius: 10px;
     transform: translateX(-50%);
     background: black;
@@ -104,7 +104,7 @@
   #date-modal {
     position: fixed;
     bottom: 0;
-    left: 20%;
+    left: 50%;
     bottom: 5%;
     transform: translateX(-50%);
     background: black;
