@@ -116,3 +116,17 @@
     font-family: "Courier New", monospace;
     z-index: 1000;
   }
+  
+  #result::-webkit-scrollbar {
+      width: .5em;
+      height: .2em;
+  }
+
+  #result::-webkit-scrollbar-track {
+      background: #777e55;
+  }
+
+  #result::-webkit-scrollbar-thumb {
+      background: #5d6342;
+      border-radius: 0px;
+  }
