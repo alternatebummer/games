@@ -327,7 +327,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateInventoryDisplay() {
-    inventoryList.innerHTML = "COLONIST CORPSE";
+    // Insert a special larger heading for COLONIST CORPSE
+    inventoryList.innerHTML = '<div id="corpse-title">COLONIST CORPSE</div>';
+
     const categories = {
       "Store Room": ["Work", "Food", "Wood", "Grave"],
       "Colony": [
