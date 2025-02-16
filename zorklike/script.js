@@ -27,10 +27,10 @@
 <span class='description'>The lobby of this ramshackle apartment complex is soggy and cold.</span><br>
 <span class='title'>Navigation</span>
 <span class='navigation'>South: An old staircase leading up to the units
-West : Turn around and return to the street</span>`,
+East : Turn around and return to the street</span>`,
                     exits: {
                         south: '2A2',
-                        west: '1B',
+                        east: '1B',
                     }
                 },
                 '2A2': {

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Score Attack Poker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      margin: 10px 0;
+    }
+    .cards {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .card {
+      width: 60px;
+      height: 90px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin: 5px;
+      line-height: 90px;
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+      background-color: #fff;
+      transition: transform 0.2s, background-color 0.2s, border 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.1);
+    }
+    .card.selected {
+      border: 2px solid red;
+      background-color: #ffe6e6;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .attempts {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .attempt {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 5px;
+    }
+    .result {
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    #controls {
+      margin: 20px 0;
+    }
+    #notification {
+      margin: 10px;
+      padding: 10px;
+      color: #fff;
+      display: none;
+      border-radius: 5px;
+    }
+    #notification.error {
+      background-color: #e74c3c;
+    }
+    #notification.success {
+      background-color: #2ecc71;
+    }
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .card {
+        width: 50px;
+        height: 75px;
+        line-height: 75px;
+        font-size: 20px;
+      }
+      .game-container {
+        padding: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Score Attack Poker</h1>
+    <div id="blind-info"></div>
+    <div id="attempt-info"></div>
+    <div class="cards" id="card-container"></div>
+    <div id="controls">
+      <button id="discard-btn">Discard Selected Cards</button>
+      <button id="finish-btn">Finish Blind</button>
+    </div>
+    <div id="notification"></div>
+    <div id="message"></div>
+    <div id="attempts-summary"></div>
+    <button id="next-btn" style="display:none;">Next Blind</button>
+  </div>
+
+  <script>
+    // --- Game Configuration ---
+    const blinds = [
+      { name: "Small Blind", threshold: 300 },
+      { name: "Big Blind", threshold: 450 },
+      { name: "Boss Blind", threshold: 600 }
+    ];
+
+    const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    const suits = ["hearts", "diamonds", "clubs", "spades"];
+    const suitSymbols = {
+      "hearts": "♥",
+      "diamonds": "♦",
+      "clubs": "♣",
+      "spades": "♠"
+    };
+    const rankValues = {
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 9,
+      "10": 10,
+      "J": 11,
+      "Q": 12,
+      "K": 13,
+      "A": 14
+    };
+
+    // --- Game State ---
+    let currentBlindIndex = 0;
+    let currentAttempt = 1; // 3 attempts total: initial hand + 2 discards
+    let discardsRemaining = 2; // allowed discard rounds per blind
+    let attemptsResults = [];
+    let currentHand = []; // always 8 cards
+    let deck = []; // remaining deck for drawing replacements
+    let selectedIndices = new Set(); // indices of cards selected for discard
+
+    // --- DOM Elements ---
+    const blindInfoEl = document.getElementById("blind-info");
+    const attemptInfoEl = document.getElementById("attempt-info");
+    const cardContainerEl = document.getElementById("card-container");
+    const discardBtn = document.getElementById("discard-btn");
+    const finishBtn = document.getElementById("finish-btn");
+    const notificationEl = document.getElementById("notification");
+    const messageEl = document.getElementById("message");
+    const attemptsSummaryEl = document.getElementById("attempts-summary");
+    const nextBtn = document.getElementById("next-btn");
+
+    // --- Notification Helper ---
+    function showNotification(message, type = "error", duration = 3000) {
+      notificationEl.innerText = message;
+      notificationEl.className = "";
+      notificationEl.classList.add(type);
+      notificationEl.style.display = "block";
+      setTimeout(() => {
+        notificationEl.style.display = "none";
+      }, duration);
+    }
+
+    // --- Initialization ---
+    function initGame() {
+      currentBlindIndex = 0;
+      startBlind();
+    }
+
+    function startBlind() {
+      currentAttempt = 1;
+      discardsRemaining = 2;
+      attemptsResults = [];
+      selectedIndices.clear();
+      attemptsSummaryEl.innerHTML = "";
+      messageEl.innerHTML = "";
+      nextBtn.style.display = "none";
+      discardBtn.disabled = false;
+      finishBtn.disabled = false;
+
+      // Create and shuffle a new deck; deal 8 cards for the hand
+      deck = createDeck();
+      shuffle(deck);
+      currentHand = deck.splice(0, 8);
+
+      updateBlindInfo();
+      updateAttemptInfo();
+      renderCards();
+
+      // Record the initial hand as attempt 1
+      recordCurrentAttempt();
+    }
+
+    function updateBlindInfo() {
+      const blind = blinds[currentBlindIndex];
+      blindInfoEl.innerHTML = `<h2>${blind.name} (Threshold: ${blind.threshold})</h2>`;
+    }
+
+    function updateAttemptInfo() {
+      attemptInfoEl.innerHTML = `<p>Attempt ${currentAttempt} of 3 | Discards remaining: ${discardsRemaining}</p>
+      <p>(Select up to 5 cards to discard, then click "Discard Selected Cards")</p>`;
+    }
+
+    // --- Deck & Hand Generation ---
+    function createDeck() {
+      let deck = [];
+      for (let suit of suits) {
+        for (let rank of ranks) {
+          deck.push({ rank: rank, suit: suit, value: rankValues[rank] });
+        }
+      }
+      return deck;
+    }
+
+    // Fisher-Yates shuffle
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // --- Render Cards ---
+    function renderCards() {
+      cardContainerEl.innerHTML = "";
+      currentHand.forEach((card, index) => {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card";
+        cardDiv.dataset.index = index;
+        cardDiv.innerText = card.rank + suitSymbols[card.suit];
+        if (selectedIndices.has(index)) {
+          cardDiv.classList.add("selected");
+        }
+        cardDiv.addEventListener("click", () => toggleSelect(index));
+        cardContainerEl.appendChild(cardDiv);
+      });
+    }
+
+    function toggleSelect(index) {
+      // Toggle card selection for discard.
+      if (selectedIndices.has(index)) {
+        selectedIndices.delete(index);
+      } else {
+        // Limit selection to 5 cards maximum.
+        if (selectedIndices.size >= 5) {
+          showNotification("You can select up to 5 cards only.", "error");
+          return;
+        }
+        selectedIndices.add(index);
+      }
+      renderCards();
+    }
+
+    // --- Attempt Recording & Evaluation ---
+    // Evaluates the current 8-card hand by finding the best 5-card combination.
+    function recordCurrentAttempt() {
+      const evalResult = getBestHandFromHand(currentHand);
+      attemptsResults.push({
+        attempt: currentAttempt,
+        evaluation: evalResult,
+        handSnapshot: currentHand.slice() // copy of current hand
+      });
+      displayAttemptResult(currentAttempt, evalResult);
+    }
+
+    function displayAttemptResult(attemptNumber, evalResult) {
+      const attemptDiv = document.createElement("div");
+      attemptDiv.className = "attempt";
+      attemptDiv.innerHTML = `<strong>Attempt ${attemptNumber}:</strong> Best 5-card hand: ${handToString(evalResult.bestHand)}<br>
+        Hand Type: ${evalResult.handType} (Base Score: ${evalResult.baseScore})<br>
+        Average Rank: ${evalResult.averageRank.toFixed(2)}<br>
+        Total Score: ${evalResult.totalScore.toFixed(2)}`;
+      attemptsSummaryEl.appendChild(attemptDiv);
+    }
+
+    // --- Discard & Draw Mechanism ---
+    discardBtn.addEventListener("click", () => {
+      if (selectedIndices.size === 0) {
+        showNotification("Please select some cards to discard.", "error");
+        return;
+      }
+      // Replace each selected card with a new one from the deck.
+      selectedIndices.forEach(index => {
+        if (deck.length > 0) {
+          currentHand[index] = deck.shift();
+        }
+      });
+      // Clear selection for the next attempt.
+      selectedIndices.clear();
+      discardsRemaining--;
+      currentAttempt++;
+      updateAttemptInfo();
+      renderCards();
+      recordCurrentAttempt();
+      if (discardsRemaining <= 0) {
+        discardBtn.disabled = true;
+      }
+    });
+
+    // --- Finish Blind (Lock in current hand) ---
+    finishBtn.addEventListener("click", () => {
+      finalizeBlind();
+    });
+
+    function finalizeBlind() {
+      // Determine best attempt among all recorded attempts.
+      const bestAttempt = attemptsResults.reduce((prev, curr) => {
+        return (prev.evaluation.totalScore > curr.evaluation.totalScore) ? prev : curr;
+      });
+      const blind = blinds[currentBlindIndex];
+      let resultMsg = `<p class="result">Best Score this Blind: ${bestAttempt.evaluation.totalScore.toFixed(2)}</p>`;
+      if (bestAttempt.evaluation.totalScore >= blind.threshold) {
+        resultMsg += `<p class="result">You beat the ${blind.name}!</p>`;
+      } else {
+        resultMsg += `<p class="result">You did not beat the ${blind.name}. Better luck next time!</p>`;
+      }
+      messageEl.innerHTML = resultMsg;
+      nextBtn.style.display = "inline-block";
+      discardBtn.disabled = true;
+      finishBtn.disabled = true;
+      // Disable further card selection.
+      document.querySelectorAll(".card").forEach(card => {
+        card.style.pointerEvents = "none";
+      });
+    }
+
+    // --- Evaluate Hands ---
+    // Get best evaluation from any 5-card combination within the given hand.
+    function getBestHandFromHand(cards) {
+      const combinations = getCombinations(cards, 5);
+      let bestEval = null;
+      combinations.forEach(combo => {
+        const evalResult = evaluateHand(combo);
+        if (!bestEval || evalResult.totalScore > bestEval.totalScore) {
+          bestEval = evalResult;
+          bestEval.bestHand = combo;
+        }
+      });
+      return bestEval;
+    }
+
+    // Helper: generate all combinations of k elements from an array.
+    function getCombinations(array, k) {
+      let results = [];
+      function helper(start, combo) {
+        if (combo.length === k) {
+          results.push(combo);
+          return;
+        }
+        for (let i = start; i < array.length; i++) {
+          helper(i + 1, combo.concat([array[i]]));
+        }
+      }
+      helper(0, []);
+      return results;
+    }
+
+    // Evaluate a 5-card hand according to poker rules.
+    // Total Score = Base Score × Average Rank.
+    function evaluateHand(hand) {
+      // Sort card values (for checking straights)
+      const values = hand.map(card => card.value).sort((a, b) => a - b);
+      const suitsInHand = hand.map(card => card.suit);
+      const isFlush = suitsInHand.every(s => s === suitsInHand[0]);
+
+      // Check for straight
+      let isStraight = false;
+      const distinctValues = [...new Set(values)];
+      if (distinctValues.length === 5 && (values[4] - values[0] === 4)) {
+        isStraight = true;
+      }
+      // Ace-low straight check (A,2,3,4,5)
+      let aceLow = false;
+      if (JSON.stringify(values) === JSON.stringify([2,3,4,5,14])) {
+        isStraight = true;
+        aceLow = true;
+      }
+      let averageRank;
+      if (aceLow) {
+        // Treat Ace as 1 for average calculation.
+        averageRank = (2 + 3 + 4 + 5 + 1) / 5;
+      } else {
+        averageRank = values.reduce((a, b) => a + b, 0) / 5;
+      }
+
+      // Count frequencies of each card value
+      const freq = {};
+      values.forEach(v => {
+        freq[v] = (freq[v] || 0) + 1;
+      });
+      const counts = Object.values(freq).sort((a, b) => b - a);
+      const maxCount = counts[0];
+
+      // Determine hand type
+      if (isStraight && isFlush) {
+        if (!aceLow && Math.min(...values) === 10) {
+          return { handType: "Royal Flush", baseScore: 1000, averageRank, totalScore: 1000 * averageRank };
+        }
+        return { handType: "Straight Flush", baseScore: 800, averageRank, totalScore: 800 * averageRank };
+      }
+      if (maxCount === 4) {
+        return { handType: "Four of a Kind", baseScore: 600, averageRank, totalScore: 600 * averageRank };
+      }
+      if (maxCount === 3 && counts.includes(2)) {
+        return { handType: "Full House", baseScore: 500, averageRank, totalScore: 500 * averageRank };
+      }
+      if (isFlush) {
+        return { handType: "Flush", baseScore: 400, averageRank, totalScore: 400 * averageRank };
+      }
+      if (isStraight) {
+        return { handType: "Straight", baseScore: 300, averageRank, totalScore: 300 * averageRank };
+      }
+      if (maxCount === 3) {
+        return { handType: "Three of a Kind", baseScore: 200, averageRank, totalScore: 200 * averageRank };
+      }
+      if (counts.filter(c => c === 2).length === 2) {
+        return { handType: "Two Pair", baseScore: 100, averageRank, totalScore: 100 * averageRank };
+      }
+      if (maxCount === 2) {
+        return { handType: "Pair", baseScore: 50, averageRank, totalScore: 50 * averageRank };
+      }
+      return { handType: "High Card", baseScore: 0, averageRank, totalScore: 0 };
+    }
+
+    function handToString(hand) {
+      return hand.map(card => card.rank + suitSymbols[card.suit]).join(" ");
+    }
+
+    // --- Next Blind ---
+    nextBtn.addEventListener("click", () => {
+      if (currentBlindIndex < blinds.length - 1) {
+        currentBlindIndex++;
+        startBlind();
+      } else {
+        showNotification("Game over! Thanks for playing.", "success", 5000);
+        initGame();
+      }
+    });
+
+    // --- Start the Game ---
+    initGame();
+  </script>
+</body>
+</html>
