@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inventory[item] > 0) {
           const entry = document.createElement("div");
           if (item === "Colonist") {
-            entry.textContent = `😐 ${item} (${inventory[item]})`;
+            entry.textContent = `😅 ${item} (${inventory[item]})`;
             entry.classList.add("emoji");
           } else if (item === "Food") {
             entry.textContent = `🍖 ${item} (${inventory[item]})`;
@@ -373,8 +373,47 @@ document.addEventListener("DOMContentLoaded", function () {
           } else if (item === "Colonist Corpse") {
             entry.textContent = `☠ ${item} (${inventory[item]})`;
             entry.classList.add("emoji");
+          } else if (item === "Starving Colonist") {
+            entry.textContent = `😐 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
           } else if (item === "Grave") {
             entry.textContent = `🕀 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Horned Tuna") {
+            entry.textContent = `🦈 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Monastery") {
+            entry.textContent = `🏘 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Fish Market") {
+            entry.textContent = `🏘 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Kelp Farm") {
+            entry.textContent = `🏘 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Lumber Camp") {
+            entry.textContent = `🏘 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Bonfire") {
+            entry.textContent = `🔥 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Freshwater Cod") {
+            entry.textContent = `🐟 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Plump Hare") {
+            entry.textContent = `🐇 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Hemlock") {
+            entry.textContent = `🌲 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Cache of Books") {
+            entry.textContent = `📚 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "White Elk") {
+            entry.textContent = `🦌 ${item} (${inventory[item]})`;
+            entry.classList.add("emoji");
+          } else if (item === "Lemon Tree") {
+            entry.textContent = `🌲 ${item} (${inventory[item]})`;
             entry.classList.add("emoji");
           } else if (item === "Wood") {
             entry.textContent = `🌲 ${item} (${inventory[item]})`;
