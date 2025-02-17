@@ -161,10 +161,15 @@ body {
   #build-menu,
   #date-modal {
     font-size: 13px;
+
+  }
+  #build-menu {
+    width: 270px;
   }
   #inventory div,
   #action-log div,
   #message-log div {
     font-size: 13px;
   }
-}
+
+  }
