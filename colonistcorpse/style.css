@@ -163,7 +163,7 @@ body {
   }
   #inventory {
     font-size: 14px;
-    letter-spacing: -.08vw;
+    letter-spacing: -1px;
     width: 45%;
 
   }
@@ -183,7 +183,7 @@ body {
   }
   #inventory div {
     font-size: 14px;
-    letter-spacing: -.1vw;
+    letter-spacing: - 1px;
   }
 
 
