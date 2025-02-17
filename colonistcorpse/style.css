@@ -159,25 +159,25 @@ body {
   #message-log,
   #action-log {
     font-size: 13px;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
   }
   #date-modal {
-    letter-spacing: -1px;
+    letter-spacing: -2px;
     font-size: 13px;
   }
   #build-menu {
     width: 270px;
     font-size: 13px;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
   }
   #action-log div,
   #message-log div {
     font-size: 13px;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
   }
   #inventory div {
     font-size: 12px;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
   }
 
 
