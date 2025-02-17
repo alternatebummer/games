@@ -161,7 +161,7 @@ body {
     letter-spacing: -1px;
   }
   #inventory {
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: -0px;
   }
   #date-modal {
@@ -176,10 +176,10 @@ body {
   #action-log div,
   #message-log div {
     font-size: 12px;
-    letter-spacing: -2px;
+    letter-spacing: -1px;
   }
   #inventory div {
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: -0px;
   }
 
