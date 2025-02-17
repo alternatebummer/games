@@ -158,11 +158,14 @@ body {
   #message-log,
   #action-log {
     font-size: 14px;
+    width: 55%;
     letter-spacing: -.2vw;
   }
   #inventory {
     font-size: 14px;
     letter-spacing: -.08vw;
+    width: 45%;
+
   }
   #date-modal {
     letter-spacing: -.05vw;
