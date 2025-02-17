@@ -159,7 +159,7 @@ body {
   #action-log {
     font-size: 14px;
     width: 55%;
-    letter-spacing: -.7vw;
+    letter-spacing: -.08vw;
   }
   #inventory {
     font-size: 14px;
@@ -168,7 +168,7 @@ body {
 
   }
   #date-modal {
-    letter-spacing: -.05vw;
+    letter-spacing: -.08vw;
     font-size: 14px;
   }
   #build-menu {
@@ -179,7 +179,7 @@ body {
   #action-log div,
   #message-log div {
     font-size: 14px;
-    letter-spacing: -.7vw;
+    letter-spacing: -.08vw;
   }
   #inventory div {
     font-size: 14px;
