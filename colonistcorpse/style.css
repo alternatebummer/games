@@ -157,7 +157,7 @@ body {
   body,
   #message-log,
   #action-log {
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: .5vw;
   }
   #inventory {
@@ -175,7 +175,7 @@ body {
   }
   #action-log div,
   #message-log div {
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: .5vw;
   }
   #inventory div {
