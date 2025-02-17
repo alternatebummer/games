@@ -160,6 +160,10 @@ body {
     font-size: 12px;
     letter-spacing: -1px;
   }
+  #inventory {
+    font-size: 14px;
+    letter-spacing: -0px;
+  }
   #date-modal {
     letter-spacing: -1px;
     font-size: 13px;
@@ -175,7 +179,7 @@ body {
     letter-spacing: -2px;
   }
   #inventory div {
-    font-size: 13px;
+    font-size: 14px;
     letter-spacing: -0px;
   }
 
