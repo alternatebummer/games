@@ -160,11 +160,11 @@ body {
   #action-log,
   #build-menu,
   #date-modal {
-    font-size: 14px;
+    font-size: 13px;
   }
   #inventory div,
   #action-log div,
   #message-log div {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
