@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "Colonist": "😅\uFE0E",
     "Food": "🍖\uFE0E",
     "Colonist Corpse": "☠\uFE0E",
+    "Enlightened Colonist Corpse": "☠\uFE0E",
     "Starving Colonist": "😐\uFE0E",
     "Grave": "🕀\uFE0E",
     "Horned Tuna": "🦈\uFE0E",
@@ -70,21 +71,19 @@ document.addEventListener("DOMContentLoaded", function () {
     } else if (item === "Fish Market") {
       if (inventory["Freshwater Cod"] > 0) {
         inventory["Freshwater Cod"]--;
-        inventory["Work"] = (inventory["Work"] || 0) + 30;
-        logAction("Fish Market converted 1 Freshwater Cod into 30 Work.");
+        inventory["Food"] = (inventory["Food"] || 0) + 10;
+        logAction("Fish Market: 1 Freshwater Cod into 10 Food.");
         updateInventoryDisplay();
-      } else {
-        logAction("No Freshwater Cod available to sell at the Fish Market.");
       }
     } else if (item === "Lumber Camp") {
       if (inventory["Lemon Tree"] > 0) {
         inventory["Lemon Tree"]--;
         inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-        logAction("Lumber Camp milled 1 Lemon Tree into 10 Wood.");
+        logAction("Lumber Camp: 1 Lemon Tree into 10 Wood.");
       } else if (inventory["Hemlock"] > 0) {
         inventory["Hemlock"]--;
-        inventory["Wood"] = (inventory["Wood"] || 0) + 25;
-        logAction("Lumber Camp milled 1 Hemlock into 10 Wood.");
+        inventory["Wood"] = (inventory["Wood"] || 0) + 10;
+        logAction("Lumber Camp: 1 Hemlock into 10 Wood.");
       } else {
         logAction("No trees available to mill at the Lumber Camp.");
       }
@@ -93,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
       inventory["Lemon Tree"]--;
       inventory["Wood"] = (inventory["Wood"] || 0) + 10;
       inventory["Food"] = (inventory["Food"] || 0) + 5;
-      logAction("Lemon Tree converted into 10 Wood and 5 Food.");
+      logAction("Lemon Tree harvested for 10 Wood and 5 Food.");
       updateInventoryDisplay();
     } else if (item === "Bonfire") {
       // Bonfire logic: burn up to the number of bonfires available
@@ -104,11 +103,11 @@ document.addEventListener("DOMContentLoaded", function () {
         inventory["Colonist Corpse"] -= corpsesToBurn;
         inventory["Grave"] = (inventory["Grave"] || 0) + corpsesToBurn;
         logAction(
-          `The bonfire burns ${corpsesToBurn} bod${corpsesToBurn === 1 ? "y" : "ies"}, converting them into ${corpsesToBurn} Grave${corpsesToBurn === 1 ? "" : "s"}.`
+          `The bonfire burns ${corpsesToBurn} bod${corpsesToBurn === 1 ? "y" : "ies"}, turning them into ${corpsesToBurn} Grave${corpsesToBurn === 1 ? "" : "s"}.`
         );
         updateInventoryDisplay();
       } else {
-        logAction("There is no Colonist Corpse to burn.");
+        logAction("There is nothing left to burn.");
       }
     } else if (item === "Monastery") {
       // Capacity-based meditation: allow up to inventory["Monastery"] colonists meditating.
@@ -119,9 +118,9 @@ document.addEventListener("DOMContentLoaded", function () {
           inventory["Colonist"]--;
           meditating.push({ days: 0 });
           if (currentMonks === 0) {
-            logAction("A colonist has begun meditating in the monastery.");
+            logAction("A colonist began meditating in the monastery.");
           } else {
-            logAction("Another colonist has begun meditating in the monastery.");
+            logAction("Another colonist is meditating in the monastery.");
           }
           updateInventoryDisplay();
         } else {
@@ -145,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (foodAvailable >= requiredFoodOld) {
         foodAvailable -= requiredFoodOld;
         inventory["Colonist"] = (inventory["Colonist"] || 0) + oldStarving;
-        logAction(`${oldStarving} Starving Colonists have recovered. What a relief!`);
+        logAction(`${oldStarving} Starving Colonists have recovered.`);
         inventory["Starving Colonist"] = 0;
       } else {
         let fedOld = Math.floor(foodAvailable / 2);
@@ -154,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inventory["Colonist"] = (inventory["Colonist"] || 0) + fedOld;
         inventory["Starving Colonist"] = 0;
         if (fedOld > 0) {
-          logAction(`${fedOld} Starving Colonists have recovered. Huzzah!`);
+          logAction(`${fedOld} Starving Colonists have recovered.`);
         }
         if (unfedOld > 0) {
           inventory["Colonist Corpse"] = (inventory["Colonist Corpse"] || 0) + unfedOld;
@@ -204,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "Horned Tuna": 15,
       "Cache of Books": 25,
       "Lemon Tree": 10,
-      "Hemlock": 25
+      "Hemlock": 15
     };
     if (conversion[item]) {
       let newItem;
@@ -233,20 +232,20 @@ document.addEventListener("DOMContentLoaded", function () {
       updateInventoryDisplay();
       closeBuildMenuFunction();
     } else {
-      logAction("Not enough Wood or Work to build Lumber Camp.");
+      logAction("Insufficient resources for Lumber Camp.");
     }
   });
 
   buildFishMarket.addEventListener("click", function () {
-    if ((inventory["Wood"] || 0) >= 150 && (inventory["Work"] || 0) >= 50) {
-      inventory["Wood"] -= 150;
+    if ((inventory["Wood"] || 0) >= 100 && (inventory["Work"] || 0) >= 50) {
+      inventory["Wood"] -= 100;
       inventory["Work"] -= 50;
       inventory["Fish Market"] = (inventory["Fish Market"] || 0) + 1;
       logAction("Fish Market added to inventory.");
       updateInventoryDisplay();
       closeBuildMenuFunction();
     } else {
-      logAction("Not enough Wood or Work to build Fish Market.");
+      logAction("Insufficient resources for Fish Market.");
     }
   });
 
@@ -259,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
       updateInventoryDisplay();
       closeBuildMenuFunction();
     } else {
-      logAction("Not enough Wood or Work to build Bonfire.");
+      logAction("Insufficient resources for Bonfire.");
     }
   });
 
@@ -273,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
       updateInventoryDisplay();
       closeBuildMenuFunction();
     } else {
-      logAction("Not enough Work, Wood, or Food to build Kelp Farm.");
+      logAction("Insufficient resources for Kelp Farm.");
     }
   });
 
@@ -287,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
       updateInventoryDisplay();
       closeBuildMenuFunction();
     } else {
-      logAction("Not enough Work, Wood, or Grave to build Monastery.");
+      logAction("Insufficient resources for Monastery.");
     }
   });
 
@@ -298,7 +297,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inventory["Wood"] -= requiredWoodForBonfires;
       } else {
         inventory["Bonfire"] = 0;
-        logAction("We have run out of wood and the bonfire(s) have gone out. Oh, bother.");
+        logAction("Ran out of wood! The Bonfire(s) have gone out.");
       }
     }
 
@@ -330,25 +329,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (inventory["Fish Market"] && inventory["Freshwater Cod"] > 0) {
       inventory["Freshwater Cod"]--;
-      inventory["Work"] = (inventory["Work"] || 0) + 50;
-      eventMessages.push("Fish Market converted 1 Freshwater Cod into 50 Work.");
+      inventory["Work"] = (inventory["Food"] || 0) + 10;
+      eventMessages.push("Fish Market: 1 Freshwater Cod into 10 Food.");
     }
     if (inventory["Fish Market"] && inventory["Horned Tuna"] > 0) {
       inventory["Horned Tuna"]--;
-      inventory["Work"] = (inventory["Work"] || 0) + 50;
-      eventMessages.push("Fish Market converted 1 Horned Tuna into 50 Work.");
+      inventory["Work"] = (inventory["Work"] || 0) + 20;
+      eventMessages.push("Fish Market: 1 Horned Tuna into 20 Food.");
     }
     if (inventory["Lumber Camp"]) {
       if (inventory["Lemon Tree"] > 0) {
         inventory["Lemon Tree"]--;
         inventory["Wood"] = (inventory["Wood"] || 0) + 10;
         inventory["Food"] = (inventory["Food"] || 0) + 5;
-        eventMessages.push("Lumber Camp milled 1 Lemon Tree into 10 Wood and 5 food.");
+        eventMessages.push("Lumber Camp: 1 Lemon Tree into 10 Wood, 5 Food.");
       }
       if (inventory["Hemlock"] > 0) {
         inventory["Hemlock"]--;
         inventory["Wood"] = (inventory["Wood"] || 0) + 10;
-        eventMessages.push("Lumber Camp milled 1 Hemlock into 10 Wood.");
+        eventMessages.push("Lumber Camp: 1 Hemlock into 10 Wood.");
       }
     }
 
@@ -431,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inventory["Enlightened Colonist Corpse"] =
           (inventory["Enlightened Colonist Corpse"] || 0) + 1;
         logAction(
-          "A colonist finished meditating for 10 days and has starved to become an Enlightened Colonist Corpse."
+          "Monastery: A colonist has become Enlightened (in death)!"
         );
       }
     }
