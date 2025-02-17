@@ -159,7 +159,7 @@ body {
   #action-log {
     font-size: 14px;
     width: 55%;
-    letter-spacing: -.2vw;
+    letter-spacing: -.3vw;
   }
   #inventory {
     font-size: 14px;
@@ -179,7 +179,7 @@ body {
   #action-log div,
   #message-log div {
     font-size: 14px;
-    letter-spacing: -.2vw;
+    letter-spacing: -.3vw;
   }
   #inventory div {
     font-size: 14px;
