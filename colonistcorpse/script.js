@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let inventory = {};
   inventory["Wood"] = 25;
   inventory["Food"] = 20;
+  inventory["Work"] = 0;
+  inventory["Grave"] = 0;
   inventory["Colonist"] = 1;
   const timeInterval = 5000;
   const messageLog = document.getElementById("message-log");
@@ -71,29 +73,39 @@ document.addEventListener("DOMContentLoaded", function () {
       logAction("Lemon Tree converted into 10 Wood and 5 Food.");
       updateInventoryDisplay();
     } else if (item === "Bonfire") {
-      if (inventory["Colonist Corpse"] > 0) {
-        inventory["Colonist Corpse"]--;
-        inventory["Grave"] = (inventory["Grave"] || 0) + 1;
-        logAction("The bonfire consumes a body, converting it into a Grave.");
+      // New Bonfire logic: burn up to the number of bonfires available
+      let bonfireCount = inventory["Bonfire"] || 0;
+      let corpsesAvailable = inventory["Colonist Corpse"] || 0;
+      if (corpsesAvailable > 0) {
+        let corpsesToBurn = Math.min(bonfireCount, corpsesAvailable);
+        inventory["Colonist Corpse"] -= corpsesToBurn;
+        inventory["Grave"] = (inventory["Grave"] || 0) + corpsesToBurn;
+        logAction(`The bonfire burns ${corpsesToBurn} bod${corpsesToBurn === 1 ? "y" : "ies"}, converting them into ${corpsesToBurn} Grave${corpsesToBurn === 1 ? "" : "s"}.`);
         updateInventoryDisplay();
       } else {
         logAction("There is no Colonist Corpse to burn.");
       }
     } else if (item === "Monastery") {
-      if (meditating.length > 0) {
-        let usedMonasteries = Math.min(inventory["Monastery"] || 0, meditating.length);
-        logAction(
-          `${meditating.length} colonist${meditating.length === 1 ? " is" : "s are"} meditating in ${usedMonasteries} out of ${inventory["Monastery"] || 0} Monaster${(inventory["Monastery"] || 0) === 1 ? "y" : "ies"}.`
-        );
-      } else {
+      // Capacity-based meditation: allow up to inventory["Monastery"] colonists meditating.
+      let maxMonks = inventory["Monastery"] || 0;
+      let currentMonks = meditating.length;
+      if (currentMonks < maxMonks) {
         if (inventory["Colonist"] > 0) {
           inventory["Colonist"]--;
           meditating.push({ days: 0 });
-          logAction("A colonist has begun meditating in the monastery.");
+          if (currentMonks === 0) {
+            logAction("A colonist has begun meditating in the monastery.");
+          } else {
+            logAction("Another colonist has begun meditating in the monastery.");
+          }
           updateInventoryDisplay();
         } else {
           logAction("No colonists available to meditate.");
         }
+      } else {
+        logAction(
+          `${currentMonks} colonist${currentMonks === 1 ? " is" : "s are"} meditating in ${maxMonks} out of ${maxMonks} Monaster${maxMonks === 1 ? "y" : "ies"}.`
+        );
       }
     } else {
       convertItem(item);
