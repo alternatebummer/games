@@ -157,19 +157,21 @@ body {
   body,
   #inventory,
   #message-log,
-  #action-log,
-  #build-menu,
+  #action-log {
+    font-size: 8px;
+  }
+
   #date-modal {
     font-size: 13px;
-
   }
   #build-menu {
     width: 270px;
+    font-size: 13px;
   }
   #inventory div,
   #action-log div,
   #message-log div {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   }
