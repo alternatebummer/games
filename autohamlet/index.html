@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTOHAMLET</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #container {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    #players-list {
+      min-width: 240px;
+      max-width: 300px;
+      background-color: #f0f0f5;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      font-size: 12px;
+    }
+    #players-list ul {
+      list-style-type: none;
+    }
+    #players-list li {
+      margin-bottom: 0.8em;
+      line-height: 1.3;
+    }
+
+    #scene-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #scene-display {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 15px;
+      min-height: 200px;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 0;
+      border: none;
+      border-radius: 6px;
+      background-color: #4a90e2;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #337ab7;
+    }
+  </style>
+</head>
+<body>
+  <h1>AUTOHAMLET</h1>
+
+  <div id="container">
+    <div id="players-list"></div>
+
+    <div id="scene-area">
+      <button id="start-btn">Start</button>
+      <div id="scene-display"></div>
+    </div>
+  </div>
+
+  <script>
+    let players = [
+      {
+        name: "Hamlet",
+        mood: "aggrieved",
+        strength: "strong",
+        alive: true,
+        loyalty: ["Horatio", "Laertes"],
+        grudges: []
+      },
+      {
+        name: "Claudius",
+        mood: "paranoid",
+        strength: "strong",
+        alive: true,
+        loyalty: ["Gertrude", "Polonius"],
+        grudges: []
+      },
+      {
+        name: "Gertrude",
+        mood: "happy",
+        strength: "fragile",
+        alive: true,
+        loyalty: [],
+        grudges: []
+      },
+      {
+        name: "Ophelia",
+        mood: "happy",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Laertes", "Polonius"],
+        grudges: []
+      },
+      {
+        name: "Laertes",
+        mood: "concerned",
+        strength: "strong",
+        alive: true,
+        loyalty: ["Ophelia", "Polonius"],
+        grudges: []
+      },
+      {
+        name: "Polonius",
+        mood: "paranoid",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Claudius", "Gertrude", "Ophelia", "Laertes"],
+        grudges: []
+      },
+      {
+        name: "Horatio",
+        mood: "peaceful",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Hamlet", "Laertes"],
+        grudges: []
+      },
+      {
+        name: "Rosencrantz",
+        mood: "paranoid",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Guildenstern", "Claudius", "Gertrude"],
+        grudges: []
+      },
+      {
+        name: "Guildenstern",
+        mood: "paranoid",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Rosencrantz", "Claudius", "Gertrude"],
+        grudges: []
+      },
+      {
+        name: "Fortinbras",
+        mood: "aggrieved",
+        strength: "strong",
+        alive: true,
+        loyalty: [],
+        grudges: []
+      },
+      {
+        name: "Ghost",
+        mood: "vengeful",
+        strength: "strong",
+        alive: true,
+        loyalty: [],
+        grudges: []
+      },
+      {
+        name: "Bernardo",
+        mood: "concerned",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Francisco", "Marcellus"],
+        grudges: []
+      },
+      {
+        name: "Francisco",
+        mood: "concerned",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Bernardo", "Marcellus"],
+        grudges: []
+      },
+      {
+        name: "Marcellus",
+        mood: "concerned",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Francisco", "Bernardo"],
+        grudges: []
+      },
+      {
+        name: "Osric",
+        mood: "organized",
+        strength: "strong",
+        alive: true,
+        loyalty: ["Claudius", "Gertrude", "Voltemand"],
+        grudges: []
+      },
+      {
+        name: "Priest",
+        mood: "pious",
+        strength: "strong",
+        alive: true,
+        loyalty: [],
+        grudges: []
+      },
+      {
+        name: "Reynaldo",
+        mood: "concerned",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Polonius", "Laertes", "Ophelia"],
+        grudges: []
+      },
+      {
+        name: "Voltemand",
+        mood: "concerned",
+        strength: "fragile",
+        alive: true,
+        loyalty: ["Osric", "Claudius", "Gertrude"],
+        grudges: []
+      }
+    ];
+
+    let running=false;
+    let actNumber=1;
+    let sceneNumber=0;
+    let maxScenesInAct=getMaxScenesForAct(actNumber);
+
+    const sceneDisplay=document.getElementById("scene-display");
+    const startBtn=document.getElementById("start-btn");
+    const playersList=document.getElementById("players-list");
+
+    function updatePlayersList(){
+      let html="<ul>";
+      for(let player of players){
+        let status=player.alive?"<span style='color:green'>Alive</span>":"<b>Dead</b>";
+        let grudgesDisplay=player.grudges.length>0?player.grudges.join(", "):"none";
+        html+=`<li><strong>${player.name}</strong><br>`+
+              `Mood: ${player.mood}, ${player.strength}<br>`+
+              `Status: ${status}<br>`+
+              `Loyal to: [${player.loyalty.join(", ")} ]<br>`+
+              `Grudges: [${grudgesDisplay}]</li>`;
+      }
+      html+="</ul>";
+      playersList.innerHTML=html;
+    }
+
+    function getRandomPlayers(){
+      let living=players.filter(p=>p.alive);
+      let numPlayers=Math.floor(Math.random()*3)+1;
+      let shuffled=living.sort(()=>0.5-Math.random());
+      return shuffled.slice(0,numPlayers);
+    }
+
+    function getMaxScenesForAct(act){
+      const ranges={
+        1:Math.floor(Math.random()*2)+3,
+        2:Math.floor(Math.random()*4)+2,
+        3:Math.floor(Math.random()*5)+2,
+        4:Math.floor(Math.random()*3)+2,
+        5:Math.floor(Math.random()*3)+1
+     };
+      return ranges[act];
+    }
+
+    function generateScene(){
+      if(actNumber>5){
+        sceneDisplay.innerHTML+="<p>The play ends.</p>";
+        running=false;
+        startBtn.innerText="Restart";
+        return;
+      }
+      if(sceneNumber===0){
+        sceneDisplay.innerHTML+=`<h2>Act ${actNumber}</h2>`;
+      }
+      sceneNumber++;
+      let sceneText=`<h3>Scene ${sceneNumber}</h3>`;
+
+      // do two mini-scenes in one official scene
+      sceneText+=doMiniScene();
+      sceneText+=doMiniScene();
+
+      sceneText+=`<p>[End Scene]</p>`;
+
+      sceneDisplay.innerHTML+=`<p>${sceneText}</p>`;
+      updatePlayersList();
+
+      if(sceneNumber>=maxScenesInAct){
+        actNumber++;
+        sceneNumber=0;
+        maxScenesInAct=getMaxScenesForAct(actNumber);
+      }
+
+      if(running){
+        setTimeout(generateScene,2000);
+      }
+    }
+
+    function doMiniScene(){
+      let group=getRandomPlayers();
+      if(!group.length){
+        return "";
+      }
+      let text="";
+      text+=`<p>[Enter ${group.map(p=>p.name).join(", ")}]</p>`;
+
+      // normal logic
+      let result=applySceneRules(group);
+      let grudgeResult=checkForGrudgeKillers(group);
+      if(grudgeResult){
+        result+=grudgeResult;
+      }
+
+      if(group.length===1){
+        // handle single player monologue or spooked flee
+        text+=handleSinglePlayer(group[0],result);
+      } else {
+        // if no result => fallback
+        if(!result){
+          text+=`<p>${group.map(p=>p.name).join(", ")} converse politely with no notable events.</p>`;
+        } else {
+          text+=result;
+        }
+
+        // 25% of the time, 1-2 players exit
+        let chance=Math.random();
+        if(chance<0.25){
+          let exitCount=Math.floor(Math.random()*2)+1; // 1 or 2
+          let exitingPlayers=[];
+          for(let i=0;i<exitCount;i++){
+            if(!group.length) break;
+            let idx=Math.floor(Math.random()*group.length);
+            exitingPlayers.push(group[idx]);
+            group.splice(idx,1);
+          }
+          text+=`<p>[Exit ${exitingPlayers.map(p=>p.name).join(", ")}]</p>`;
+        }
+      }
+
+      // at the end, exit whoever is left in group
+      if(group.length){
+        text+=`<p>[Exit ${group.map(p=>p.name).join(", ")}]</p>`;
+      }
+
+      return text;
+    }
+
+    function handleSinglePlayer(player,res){
+      let text="";
+      let fleeText=checkSpookedFlee(player);
+      if(fleeText){
+        text+=fleeText;
+      } else {
+        let moodList=["angry","happy","sad","concerned","paranoid","organized","peaceful","vengeful","aggrieved"];
+        player.mood=moodList[Math.floor(Math.random()*moodList.length)];
+        player.strength=Math.random()<0.5?"fragile":"strong";
+        if(player.mood==="sad"&&player.strength==="strong"){
+          killPlayer(player,"suicide");
+          text+=`<p>${player.name} commits suicide.</p>`;
+        } else {
+          text+=`<p>${player.name} monologues into a(n) ${player.mood}, ${player.strength} mood.</p>`;
+        }
+      }
+      // if no result => fallback
+      if(!res){
+        // already monologue
+      }
+      return text;
+    }
+
+    // placeholders
+    function applySceneRules(g){
+      return "";
+    }
+    function checkForGrudgeKillers(g){
+      return "";
+    }
+    function checkSpookedFlee(p){
+      return "";
+    }
+    function killPlayer(v,c,k=null){
+    }
+
+    startBtn.addEventListener("click",()=>{
+      if(!running){
+        sceneDisplay.innerHTML="";
+        actNumber=1;
+        sceneNumber=0;
+        maxScenesInAct=getMaxScenesForAct(actNumber);
+        players.forEach(p=>{
+          p.alive=true;
+          p.grudges=[];
+        });
+        updatePlayersList();
+        running=true;
+        startBtn.innerText="Pause";
+        generateScene();
+      } else {
+        running=false;
+        startBtn.innerText="Start";
+      }
+    });
+  </script>
+</body>
+</html>

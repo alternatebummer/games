@@ -1,0 +1,190 @@
+html {
+  font-variant-emoji: text;
+  font-family: "Courier New", monospace;
+}
+
+/*style.css*/
+body {
+  font-family: "Courier New", monospace;
+  background-color: black;
+  color: #83946B;
+  font-weight: bold;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+#game-container {
+  position: absolute;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+#inventory {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  border: 3px dotted #83946B;
+  padding: 10px;
+  color: #927951;
+  box-sizing: border-box;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+#message-log {
+  position: fixed;
+  text-align: right;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 50%;
+  border: 3px dotted #83946B;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+#action-log {
+  position: fixed;
+  text-align: right;
+  bottom: 0;
+  right: 0;
+  width: 60%;
+  height: 50%;
+  border: 3px dotted #83946B;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+#inventory div,
+#action-log div,
+#message-log div {
+  padding: 3px;
+  cursor: pointer;
+  color: #83946B;
+  font-size: 18px;
+  font-weight: normal;
+}
+#inventory div:hover {
+  background: #2A372C;
+}
+#build-menu {
+  display: none;
+  position: absolute;
+  font-size: 18px;
+  top: 10%;
+  left: 50%;
+  border-radius: 10px;
+  transform: translateX(-50%);
+  background: black;
+  text-align: center;
+  font-weight: lighter;
+  color: #83946B;
+  border: 3px dotted #83946B;
+  padding: 0px;
+  width: 350px;
+  z-index: 1001;
+}
+#build-menu div {
+  padding: 5px;
+  cursor: pointer;
+}
+#build-menu div:hover {
+  background: #2A372C;
+  text-align: center;
+}
+#close-build-menu {
+  cursor: pointer;
+  padding: 5px;
+  font-weight: bold;
+}
+#close-build-menu:hover {
+  background: #2A372C;
+}
+/* --- New CSS for the date modal --- */
+#date-modal {
+  position: fixed;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  border-radius: 10px;
+  color: #83946B;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 10px;
+  border: 3px dotted #83946B;
+  font-family: "Courier New", monospace;
+  z-index: 1000;
+}
+
+#result::-webkit-scrollbar {
+  width: .5em;
+  height: .2em;
+}
+
+#result::-webkit-scrollbar-track {
+  background: #777e55;
+}
+
+#result::-webkit-scrollbar-thumb {
+  background: #5d6342;
+  border-radius: 0px;
+}
+
+#message-log::-webkit-scrollbar,
+#action-log::-webkit-scrollbar {
+  width: 0.5em;
+  height: 0.5em;
+}
+
+#message-log::-webkit-scrollbar-track,
+#action-log::-webkit-scrollbar-track {
+  background: #777e55;
+}
+
+#message-log::-webkit-scrollbar-thumb,
+#action-log::-webkit-scrollbar-thumb {
+  background: #5d6342;
+  border-radius: 0;
+}
+
+/* Media Query for cell phones */
+@media only screen and (max-width: 600px) {
+  body,
+  #message-log,
+  #action-log {
+    font-size: 14px;
+    width: 55%;
+    letter-spacing: -.1vw;
+  }
+  #inventory {
+    font-size: 14px;
+    letter-spacing: -1px;
+    width: 45%;
+
+  }
+  #date-modal {
+    letter-spacing: -.08vw;
+    font-size: 14px;
+  }
+  #build-menu {
+    width: 270px;
+    font-size: 14px;
+    letter-spacing: -.05vw;
+  }
+  #action-log div,
+  #message-log div {
+    font-size: 14px;
+    letter-spacing: -.1vw;
+  }
+  #inventory div {
+    font-size: 14px;
+    letter-spacing: - 1px;
+  }
+
+
+  }
