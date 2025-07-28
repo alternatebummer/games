@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alternate Hamlet Act I – Revised with Scene 2 and Rumor Outcome</title>
+  <style>
+    /* Basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    #container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+    h1 {
+      text-align: center;
+    }
+    #sceneContainer {
+      margin-top: 20px;
+      padding: 10px;
+      border-top: 2px solid #ccc;
+      min-height: 150px;
+    }
+    .scene {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    button {
+      display: block;
+      margin: auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>AUTOHAMLET</h1>
+    <button id="startPauseBtn">Start</button>
+    <div id="sceneContainer"></div>
+  </div>
+
+  <script>
+    // Centralized state for branching decisions
+    const state = {
+      // Determines which character experiences the ghost:
+      // 'Hamlet', 'Gertrude', or 'Ophelia'
+      ghostEncounter: null,
+      // For future expansion (not used in these scenes)
+      laertesPermission: null,
+      // Whether a fog accident occurs on the platform (affects scene 1)
+      fogAccident: null,
+      // If ghostEncounter is 'Gertrude', this decides the branch outcome:
+      // 'murderedByClaudius' or 'killsClaudius'
+      gertrudeOutcome: null,
+      // For non-Gertrude ghost encounters, this random flag may trigger a rumor outcome in scene 2.
+      fortinbrasRumor: false
+    };
+
+    // Initialize state with random decisions
+    function initializeState() {
+      const encounters = ['Hamlet', 'Gertrude', 'Ophelia', 'Horatio'];
+      state.ghostEncounter = encounters[Math.floor(Math.random() * encounters.length)];
+      state.laertesPermission = Math.random() < 0.5 ? 'granted' : 'denied';
+      state.fogAccident = Math.random() < 0.5;
+      // If Gertrude sees the ghost, choose a branch for her outcome.
+      if (state.ghostEncounter === 'Gertrude') {
+        state.gertrudeOutcome = Math.random() < 0.5 ? 'murderedByClaudius' : 'killsClaudius';
+      } else {
+        // If ghost did not appear for Bernardo and Francisco, there is a chance for a rumor outcome.
+        state.fortinbrasRumor = Math.random() < 0.5;
+      }
+    }
+
+    // Scene 1: The Foggy Platform & Tragic Accident (plus Gertrude’s vision)
+    function scene1() {
+      let description = "Enter two Sentinels-[first,] Francisco, [who paces up and down at his post; then] Bernardo, [who approaches him].";
+      if (state.fogAccident) {
+        description += "Bernardo. Who's there? Francisco. Nay, answer me. Stand and unfold yourself! ";
+        description += "But before Bernardo can identify himself, Francisco runs him through with a lance.";
+      } else {
+        description += "Bernardo. Who's there? Francisco. Nay, answer me. Stand and unfold yourself! Bernardo. Long live the king! And so on...";
+      }
+      if (state.ghostEncounter === "Gertrude") {
+        description += "Suddenly, Gertrude alone witnesses a ghostly figure that convinces her that Hamlet killed his father.";
+      } else {
+        description += "The ghost remains elusive to Bernardo and Francisco.";
+      }
+      return description;
+      if (state.ghostEncounter === "Horatio") {
+        description += "Enter Horatio and Marcellus. Marcellus. Peace! break thee off! Look where it comes again! Enter Ghost. Horatio. Stay! Speak, speak! I charge thee speak!";
+      }
+    }
+
+    // Scene 2: Claudius's Royal Address & Hamlet's Monologue
+    function scene2() {
+      let description = "Scene 2: Claudius stands before the court and delivers a royal address. ";
+      if (state.ghostEncounter !== "Gertrude" && state.fortinbrasRumor) {
+        description += "He reports a curious rumor that Fortinbras has seen a ghost, and he demands that peace be brokered with Denmark. ";
+      }
+      description += "Later, in solitude, Hamlet delivers a mournful monologue. ";
+      if (state.ghostEncounter === "Hamlet") {
+        description += "Haunted by his own supernatural encounter, his words crack with suspicion and despair.";
+      } else {
+        description += "He laments his father's death and his mother's quick remarriage with deep sorrow.";
+      }
+      return description;
+    }
+
+    // Scene 3: Inside Polonius's House
+    function scene3() {
+      let description = "Scene 3: Within Polonius's house, tensions rise as Polonius counsels his family. ";
+      if (state.ghostEncounter === "Ophelia") {
+        description += "In a quiet corner, Ophelia is visited by a spectral apparition that ominously warns her: Hamlet will kill her father and brother.";
+      } else {
+        description += "The usual familial warnings and concerns fill the room.";
+      }
+      return description;
+    }
+
+    // Scene 4: The Platform Encounter (with alternative branches for Gertrude)
+    function scene4() {
+      let description = "Scene 4: ";
+      if (state.ghostEncounter === "Gertrude") {
+        if (state.gertrudeOutcome === "murderedByClaudius") {
+          description += "On the foggy platform, Gertrude and Claudius discover the ghost together. The revelation unsettles them, foreshadowing impending tragedy.";
+        } else if (state.gertrudeOutcome === "killsClaudius") {
+          description += "On the foggy platform, Gertrude convinces Claudius to pursue the ghost, arguing that its secrets may save the kingdom.";
+        }
+      } else {
+        description += "Hamlet, Horatio, and Marcellus gather as the ghost emerges from the mist, its presence both awe-inspiring and foreboding.";
+      }
+      return description;
+    }
+
+    // Scene 5: The Private Confrontation (with alternative branches for Gertrude)
+    function scene5() {
+      let description = "Scene 5: ";
+      if (state.ghostEncounter === "Gertrude") {
+        if (state.gertrudeOutcome === "murderedByClaudius") {
+          description += "In a private moment, compelled by the ghost’s call, Gertrude pursues a conversation with it—only to be abruptly murdered by Claudius, leaving the court in shock.";
+        } else if (state.gertrudeOutcome === "killsClaudius") {
+          description += "Empowered by the ghost’s revelations, Gertrude turns on Claudius and kills him in a stunning act of defiance that reshapes the fate of the kingdom.";
+        }
+      } else {
+        description += "In a private, tense moment, Hamlet confronts the ghost alone. Their conversation delves into dark secrets and the destiny of the kingdom, leaving Hamlet both enlightened and tormented.";
+      }
+      return description;
+    }
+
+    // Array of scene functions in the new order
+    const scenes = [scene1, scene2, scene3, scene4, scene5];
+
+    let currentSceneIndex = 0;
+    let intervalId = null;
+    let isPaused = true;
+
+    // Function to show the next scene
+    function showNextScene() {
+      if (currentSceneIndex < scenes.length) {
+        const sceneText = scenes[currentSceneIndex]();
+        const sceneDiv = document.createElement("div");
+        sceneDiv.className = "scene";
+        sceneDiv.textContent = sceneText;
+        document.getElementById("sceneContainer").appendChild(sceneDiv);
+        currentSceneIndex++;
+      } else {
+        clearInterval(intervalId);
+        document.getElementById("startPauseBtn").textContent = "Act Complete";
+      }
+    }
+
+    // Start/resume the act scenes
+    function startScenes() {
+      if (currentSceneIndex === 0) {
+        initializeState();
+        document.getElementById("sceneContainer").innerHTML = "";
+      }
+      intervalId = setInterval(showNextScene, 3000);
+      document.getElementById("startPauseBtn").textContent = "Pause";
+      isPaused = false;
+    }
+
+    // Pause the scene progression
+    function pauseScenes() {
+      clearInterval(intervalId);
+      document.getElementById("startPauseBtn").textContent = "Play";
+      isPaused = true;
+    }
+
+    // Button click event to toggle between start, pause, and play
+    document.getElementById("startPauseBtn").addEventListener("click", function() {
+      if (currentSceneIndex >= scenes.length) return;
+      if (isPaused) {
+        startScenes();
+      } else {
+        pauseScenes();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pachinko Game with Physics</title>
+    <style>
+        canvas {
+            border: 2px solid #333;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pachinkoCanvas" width="400" height="600"></canvas>
+    <div>
+        <button id="dropBtn">Drop Ball</button>
+        <button id="actionBtn">Action</button>
+        <button id="clearBtn">Clear Last Ball</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pachinkoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gravity = 0.4;
+        const bounceFactor = 0.6;
+
+        const balls = [];
+        const pegs = [];
+        const ballRadius = 6;
+        const pegRadius = 4;
+
+        const rows = 10;
+        const cols = 9;
+        const pointsArray = Array.from({length: cols + 1}, (_, i) => i);
+
+        function initPegs() {
+            const offsetX = canvas.width / (cols + 1);
+            const offsetY = 50;
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col <= cols; col++) {
+                    const x = offsetX * col + ((row % 2) * offsetX / 2);
+                    const y = offsetY + row * 50;
+                    pegs.push({x, y});
+                }
+            }
+        }
+
+        function drawPegs() {
+            ctx.fillStyle = '#333';
+            pegs.forEach(peg => {
+                ctx.beginPath();
+                ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function dropBall() {
+            balls.push({x: canvas.width / 2, y: ballRadius, vx: (Math.random() - 0.5) * 2, vy: 0});
+        }
+
+        function clearLastBall() {
+            balls.pop();
+        }
+
+        function moveBalls() {
+            balls.forEach(ball => {
+                ball.vy += gravity;
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                pegs.forEach(peg => {
+                    const dx = ball.x - peg.x;
+                    const dy = ball.y - peg.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < ballRadius + pegRadius) {
+                        const angle = Math.atan2(dy, dx);
+                        ball.vx = Math.cos(angle) * 3;
+                        ball.vy = Math.sin(angle) * 3;
+                    }
+                });
+
+                if (ball.y + ballRadius > canvas.height - 30) {
+                    ball.y = canvas.height - 30 - ballRadius;
+                    ball.vy *= -bounceFactor;
+                    ball.vx *= bounceFactor;
+                }
+
+                if (ball.x + ballRadius > canvas.width || ball.x - ballRadius < 0) {
+                    ball.vx *= -bounceFactor;
+                }
+            });
+        }
+
+        function drawBalls() {
+            ctx.fillStyle = 'blue';
+            balls.forEach(ball => {
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSlots() {
+            const slotWidth = canvas.width / pointsArray.length;
+            pointsArray.forEach((pts, index) => {
+                ctx.fillStyle = '#666';
+                ctx.fillRect(index * slotWidth, canvas.height - 30, slotWidth, 30);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(pts, index * slotWidth + slotWidth / 2 - 5, canvas.height - 10);
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPegs();
+            drawSlots();
+            drawBalls();
+        }
+
+        function animate() {
+            moveBalls();
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        document.getElementById('dropBtn').addEventListener('click', dropBall);
+        document.getElementById('clearBtn').addEventListener('click', clearLastBall);
+        document.getElementById('actionBtn').addEventListener('click', () => {
+            console.log('Action button clicked');
+        });
+
+        initPegs();
+        animate();
+    </script>
+</body>
+</html>

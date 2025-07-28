@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Delivery Game</title>
+  <style>
+    /* Reset & Global */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #87ceeb 0%, #f0f4f8 100%);
+      color: #2c3e50;
+      padding: 20px;
+      max-width: 100%;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    /* Horizontal grid container */
+    .grid {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+    /* Sections styled as panels */
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 16px;
+      border-left: 6px solid #3498db;
+      flex: 0 0 300px;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Lists of items */
+    .list {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    .item {
+      background: #ecf0f1;
+      border-radius: 4px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    .item:hover { background: #d0d7de; }
+
+    /* Buttons & controls */
+    label { font-weight: 600; margin-right: 8px; }
+    select {
+      padding: 6px 10px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      background: #fff;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+    button {
+      margin-top: 8px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #3498db;
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+    }
+    button:hover:not(:disabled) { background: #2980b9; transform: translateY(-1px); }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Stats display */
+    .stats {
+      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #7f8c8d;
+    }
+
+    /* Travel section alignment */
+    .section.travel select { margin-bottom: 0; }
+
+    /* Log styling */
+    .log-list {
+      list-style: none;
+      padding: 0;
+      flex-grow: 1;
+      overflow-y: auto;
+      font-family: 'Courier New', Courier, monospace;
+      background: #f7f9fa;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      padding: 8px;
+      margin-top: 8px;
+    }
+    .log-list li {
+      padding: 4px 0;
+      border-bottom: 1px dashed #bdc3c7;
+    }
+    .log-list li:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <h1>Package Delivery Simulator</h1>
+
+  <div class="grid">
+    <section class="section">
+      <h2>Current Location</h2>
+      <div id="current-depot" class="stats"></div>
+      <label for="depot-select">Pick Depot for Contracts:</label>
+      <select id="depot-select"></select>
+    </section>
+
+    <section class="section">
+      <h2>Depot Contracts</h2>
+      <ul id="depot-list" class="list"></ul>
+      <button id="accept-btn" disabled>Accept Contract(s)</button>
+    </section>
+
+    <section class="section">
+      <h2>Inventory (Max 12kg)</h2>
+      <ul id="inventory-list" class="list"></ul>
+      <div id="inventory-stats" class="stats">Packages: 0, Weight: 0/12kg, Value: $0</div>
+    </section>
+
+    <section class="section travel">
+      <h2>Travel</h2>
+      <label for="destination-select">Destination Depot:</label>
+      <select id="destination-select"></select>
+      <button id="travel-btn">Travel</button>
+      <button id="reset-btn">Reset Game</button>
+    </section>
+
+    <section class="section">
+      <h2>Delivery Log</h2>
+      <ul id="delivery-log" class="log-list"></ul>
+    </section>
+  </div>
+
+  <script>
+    const MAX_WEIGHT = 12;
+    const contractDepots = ["Central Depot", "North Depot", "South Depot", "East Depot", "West Depot"];
+
+    let depotPackages = {};
+    let acceptedContracts = [];
+    let inventory = [];
+    let selectedContracts = new Set();
+    let currentDepot = "Central Depot";
+
+    const currentDepotEl = document.getElementById('current-depot');
+    const depotSelectEl   = document.getElementById('depot-select');
+    const depotListEl     = document.getElementById('depot-list');
+    const acceptBtn       = document.getElementById('accept-btn');
+    const inventoryListEl = document.getElementById('inventory-list');
+    const inventoryStatsEl= document.getElementById('inventory-stats');
+    const destSelectEl    = document.getElementById('destination-select');
+    const travelBtn       = document.getElementById('travel-btn');
+    const resetBtn        = document.getElementById('reset-btn');
+    const logEl           = document.getElementById('delivery-log');
+
+    function resetDepotPackages() {
+      return {
+        "Central Depot": [
+          {id:1, weight:5, value:100, destination:"North Depot"},
+          {id:2, weight:10, value:200, destination:"South Depot"},
+          {id:3, weight:3, value:150, destination:"East Depot"},
+          {id:4, weight:8, value:90, destination:"West Depot"}
+        ],
+        "North Depot": [
+          {id:5, weight:6, value:130, destination:"South Depot"},
+          {id:6, weight:2, value:70, destination:"East Depot"}
+        ],
+        "South Depot": [
+          {id:7, weight:4, value:110, destination:"West Depot"},
+          {id:8, weight:5, value:95, destination:"North Depot"}
+        ],
+        "East Depot": [
+          {id:9, weight:7, value:180, destination:"West Depot"},
+          {id:10,weight:1, value:60, destination:"South Depot"}
+        ],
+        "West Depot": [
+          {id:11,weight:3, value:75, destination:"North Depot"},
+          {id:12,weight:8, value:160, destination:"East Depot"}
+        ]
+      };
+    }
+
+    function init() {
+      depotPackages = resetDepotPackages();
+      acceptedContracts = [];
+      inventory = [];
+      selectedContracts.clear();
+      currentDepot = "Central Depot";
+      logEl.innerHTML = '';
+
+      currentDepotEl.textContent = currentDepot;
+      depotSelectEl.innerHTML = contractDepots.map(d => `<option value="${d}">${d}</option>`).join('');
+      depotSelectEl.value = currentDepot;
+      depotSelectEl.addEventListener('change', renderDepot);
+
+      travelBtn.addEventListener('click', runTravel);
+      resetBtn.addEventListener('click', init);
+      acceptBtn.addEventListener('click', acceptContracts);
+      depotListEl.addEventListener('change', handleContractSelect);
+
+      updateTravelOptions();
+      renderDepot();
+      renderInventory();
+    }
+
+    function updateTravelOptions() {
+      destSelectEl.innerHTML = contractDepots
+        .filter(d => d !== currentDepot)
+        .map(d => `<option value="${d}">${d}</option>`)
+        .join('');
+    }
+
+    function renderDepot() {
+      const depot = depotSelectEl.value;
+      const list = depotPackages[depot] || [];
+      depotListEl.innerHTML = list.length
+        ? list.map(p => `<li class="item"><label><input type="checkbox" value="${p.id}"> Package ${p.id}: ${p.weight}kg, $${p.value}, to ${p.destination}</label></li>`).join('')
+        : '<li class="item">No contracts available.</li>';
+      selectedContracts.clear();
+      acceptBtn.disabled = true;
+    }
+
+    function handleContractSelect(e) {
+      if (e.target.matches('input[type=checkbox]')) {
+        const id = Number(e.target.value);
+        e.target.checked ? selectedContracts.add(id) : selectedContracts.delete(id);
+        acceptBtn.disabled = selectedContracts.size === 0 || !canAcceptSelected();
+      }
+    }
+
+    function canAcceptSelected() {
+      const depot = depotSelectEl.value;
+      const list = depotPackages[depot] || [];
+      const selW = list.filter(p => selectedContracts.has(p.id)).reduce((sum,p) => sum + p.weight, 0);
+      const curW = inventory.reduce((sum,p) => sum + p.weight, 0) + acceptedContracts.reduce((sum,p) => sum + p.weight, 0);
+      return curW + selW <= MAX_WEIGHT;
+    }
+
+    function acceptContracts() {
+      const depot = depotSelectEl.value;
+      const list = depotPackages[depot] || [];
+      const moving = list.filter(p => selectedContracts.has(p.id));
+      moving.forEach(p => {
+        if (depot === currentDepot) {
+          inventory.push(p);
+          logEvent(`Picked up Package ${p.id} at ${depot}`);
+        } else {
+          acceptedContracts.push({...p, origin: depot});
+          logEvent(`Accepted Contract for Package ${p.id} at ${depot}`);
+        }
+      });
+      depotPackages[depot] = list.filter(p => !selectedContracts.has(p.id));
+      selectedContracts.clear();
+      renderDepot(); renderInventory();
+    }
+
+    function renderInventory() {
+      inventoryListEl.innerHTML = inventory.length
+        ? inventory.map(p => `<li class="item">Package ${p.id}: ${p.weight}kg, $${p.value}, to ${p.destination}</li>`).join('')
+        : '<li class="item">Inventory is empty.</li>';
+      updateInventoryStats();
+    }
+
+    function updateInventoryStats() {
+      const count = inventory.length;
+      const weight = inventory.reduce((sum,p) => sum + p.weight, 0);
+      const value = inventory.reduce((sum,p) => sum + p.value, 0);
+      inventoryStatsEl.textContent = `Packages: ${count}, Weight: ${weight}/${MAX_WEIGHT}kg, Value: $${value}`;
+    }
+
+    function runTravel() {
+      const destination = destSelectEl.value;
+      const previous = currentDepot;
+      currentDepot = destination;
+      logEvent(`Traveled from ${previous} to ${currentDepot}`);
+      currentDepotEl.textContent = currentDepot;
+      depotSelectEl.value = currentDepot;
+
+      updateTravelOptions(); renderDepot();
+
+      const pickups = acceptedContracts.filter(c => c.origin === currentDepot);
+      pickups.forEach(p => { inventory.push(p); logEvent(`Picked up Package ${p.id} at ${currentDepot}`); });
+      acceptedContracts = acceptedContracts.filter(c => c.origin !== currentDepot);
+      renderInventory();
+
+      const delivered = inventory.filter(p => p.destination === currentDepot);
+      if (delivered.length) { delivered.forEach(p => logEvent(`Delivered Package ${p.id} to ${currentDepot}`)); inventory = inventory.filter(p => p.destination !== currentDepot); renderInventory(); }
+      else { logEvent(`No packages delivered at ${currentDepot}`); }
+
+      if (!inventory.length && Object.values(depotPackages).every(arr => arr.length === 0) && acceptedContracts.length===0) setTimeout(() => alert('Congratulations! All packages delivered!'),100);
+    }
+
+    function logEvent(text) { const li = document.createElement('li'); li.textContent = text; logEl.appendChild(li); }
+
+    init();
+  </script>
+</body>
+</html>

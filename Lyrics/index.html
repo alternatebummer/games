@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lyrics: Viridis Quo</title>
+  <style>
+    /* --- Base CSS --- */
+    body {
+      font-family: "Courier New", monospace;
+      background-color: black;
+      color: #83946B;
+      font-weight: bold;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    /* --- Fixed Header & Footer --- */
+    #book-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: black;
+      color: #83946B;
+      text-align: center;
+      line-height: 60px;
+      border-bottom: 2px dotted #83946B;
+      z-index: 1000;
+    }
+    #book-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: black;
+      color: #83946B;
+      text-align: center;
+      border-top: 2px dotted #83946B;
+      z-index: 1000;
+    }
+    #book-footer button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      background: none;
+      border: 2px dotted #83946B;
+      color: #83946B;
+      font-family: "Courier New", monospace;
+      cursor: pointer;
+    }
+    #book-footer button:hover {
+      background: #2A372C;
+    }
+    /* --- Main Content Container (leaves space for header & footer) --- */
+    #book-container {
+      position: absolute;
+      top: 60px;
+      bottom: 60px;
+      width: 100vw;
+      overflow: auto;
+    }
+    /* --- Page Styles --- */
+    .page {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .page.active {
+      display: flex;
+    }
+    /* --- Poem Wrapper --- */
+    /* This container holds the poem title and content, is centered by its parent flex container,
+       and its text is left-aligned so that the title and content share a common left margin */
+    .poem-wrapper {
+      max-width: 800px;
+      width: 80%;
+      margin: 0 auto;
+      text-align: left;
+    }
+    /* --- Navigation buttons (if needed within pages) --- */
+    button.nav-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: none;
+      border: 2px dotted #83946B;
+      color: #83946B;
+      font-family: "Courier New", monospace;
+      cursor: pointer;
+    }
+    button.nav-btn:hover {
+      background: #2A372C;
+    }
+    /* --- Hide unused elements from original CSS --- */
+    #game-container,
+    #inventory,
+    #message-log,
+    #action-log,
+    #build-menu,
+    #date-modal {
+      display: none;
+    }
+    /* --- Media Query for cell phones --- */
+    @media only screen and (max-width: 600px) {
+      body {
+        font-size: 14px;
+      }
+      button,
+      #book-footer button {
+        font-size: 14px;
+      }
+      .poem-wrapper {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Fixed Header -->
+  <header id="book-header">
+    <h1 style="margin:0; font-size: 24px;">Lyrics: Viridis Quo</h1>
+  </header>
+
+  <!-- Main Book Container -->
+  <div id="book-container">
+    <!-- Cover Page -->
+    <section id="cover" class="page active">
+      <h1>Lyrics: Viridis Quo</h1>
+      <p>Poetry Collection</p>
+    </section>
+
+    <!-- Title Page -->
+    <section id="title-page" class="page">
+      <h1>Lyrics: Viridis Quo</h1>
+      <h2>by Psalm Frond</h2>
+    </section>
+
+    <!-- Index Page (Poem Titles) -->
+    <section id="index" class="page">
+      <h2>Poem Titles</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li><a href="#" class="index-link" data-target="poem1" style="color: #83946B; text-decoration: none;">What You Do</a></li>
+        <li><a href="#" class="index-link" data-target="poem2" style="color: #83946B; text-decoration: none;">Hollow Sound</a></li>
+        <li><a href="#" class="index-link" data-target="poem3" style="color: #83946B; text-decoration: none;">Civilization</a></li>
+        <li><a href="#" class="index-link" data-target="poem4" style="color: #83946B; text-decoration: none;">The Weather</a></li>
+        <li><a href="#" class="index-link" data-target="poem5" style="color: #83946B; text-decoration: none;">What’s Common</a></li>
+        <li><a href="#" class="index-link" data-target="poem6" style="color: #83946B; text-decoration: none;">Wont You Let Me In</a></li>
+        <li><a href="#" class="index-link" data-target="poem7" style="color: #83946B; text-decoration: none;">Soft Green Landing</a></li>
+        <li><a href="#" class="index-link" data-target="poem8" style="color: #83946B; text-decoration: none;">We Know</a></li>
+        <li><a href="#" class="index-link" data-target="poem9" style="color: #83946B; text-decoration: none;">With Little Friends</a></li>
+        <li><a href="#" class="index-link" data-target="poem10" style="color: #83946B; text-decoration: none;">Way of the Dodo</a></li>
+      </ul>
+    </section>
+
+    <!-- Poem Pages -->
+    <section id="poem1" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem1-title">What You Do</h2>
+        <div class="poem-content" id="poem1-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem2" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem2-title">Hollow Sound</h2>
+        <div class="poem-content" id="poem2-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem3" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem3-title">Civilization</h2>
+        <div class="poem-content" id="poem3-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem4" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem4-title">The Weather</h2>
+        <div class="poem-content" id="poem4-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem5" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem5-title">What’s Common</h2>
+        <div class="poem-content" id="poem5-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem6" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem6-title">Wont You Let Me In</h2>
+        <div class="poem-content" id="poem6-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem7" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem7-title">Soft Green Landing</h2>
+        <div class="poem-content" id="poem7-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem8" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem8-title">We Know</h2>
+        <div class="poem-content" id="poem8-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem9" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem9-title">With Little Friends</h2>
+        <div class="poem-content" id="poem9-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="poem10" class="page">
+      <div class="poem-wrapper">
+        <h2 id="poem10-title">Way of the Dodo</h2>
+        <div class="poem-content" id="poem10-content">
+          <!-- Poem content loaded from poems.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Back Cover -->
+    <section id="back-cover" class="page">
+      <h2>Back Cover</h2>
+      <p>Thank you for exploring the verses of "Lyrics: Viridis Quo".</p>
+      <button id="restart" class="nav-btn">Restart</button>
+    </section>
+  </div>
+
+  <!-- Fixed Footer Navigation -->
+  <footer id="book-footer">
+    <button id="nav-cover">Cover</button>
+    <button id="nav-index">Index</button>
+    <button id="nav-back">Back</button>
+    <button id="nav-next">Next</button>
+  </footer>
+
+  <!-- Load the external poems.js file -->
+  <script src="poems.js"></script>
+  <script>
+    // Populate poem pages using data from poems.js
+    function populatePoemPages() {
+      if (typeof poems !== 'undefined') {
+        Object.keys(poems).forEach(function(key) {
+          var poemData = poems[key];
+          var titleEl = document.getElementById(key + '-title');
+          var contentEl = document.getElementById(key + '-content');
+          if (titleEl && contentEl) {
+            titleEl.innerText = poemData.title;
+            contentEl.innerHTML = poemData.content;
+          }
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      populatePoemPages();
+
+      // Define reading order.
+      var pagesOrder = [
+        "cover", "title-page", "index",
+        "poem1", "poem2", "poem3", "poem4", "poem5",
+        "poem6", "poem7", "poem8", "poem9", "poem10",
+        "back-cover"
+      ];
+
+      // Helper function to show a page.
+      function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(function(page) {
+          page.classList.remove('active');
+        });
+        var targetPage = document.getElementById(pageId);
+        if (targetPage) {
+          targetPage.classList.add('active');
+        }
+      }
+
+      // Get active page ID.
+      function getActivePageId() {
+        var active = document.querySelector('.page.active');
+        return active ? active.id : "";
+      }
+
+      // Index links.
+      document.querySelectorAll('.index-link').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          var target = e.target.getAttribute('data-target');
+          showPage(target);
+        });
+      });
+
+      // "Restart" button.
+      document.getElementById('restart').addEventListener('click', function() {
+        showPage('cover');
+      });
+
+      // Footer Navigation Buttons.
+      document.getElementById('nav-cover').addEventListener('click', function() {
+        showPage('cover');
+      });
+      document.getElementById('nav-index').addEventListener('click', function() {
+        showPage('index');
+      });
+      document.getElementById('nav-back').addEventListener('click', function() {
+        var currentIndex = pagesOrder.indexOf(getActivePageId());
+        if (currentIndex > 0) {
+          showPage(pagesOrder[currentIndex - 1]);
+        }
+      });
+      document.getElementById('nav-next').addEventListener('click', function() {
+        var currentIndex = pagesOrder.indexOf(getActivePageId());
+        if (currentIndex < pagesOrder.length - 1) {
+          showPage(pagesOrder[currentIndex + 1]);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
