@@ -3,7 +3,6 @@ html, body {
     height: 100vh;
     width: 100vw;
     margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 body {
@@ -13,7 +12,6 @@ body {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-
     font-size: 16px;
     line-height: 17px;
     text-align: left;
@@ -23,35 +21,38 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px;
     justify-content: flex-end;
     overflow-y: auto;
     white-space: pre-wrap;
-    width: 100%;
+    width: 95%;
 }
 #dialogue-options,
 #inventory {
-    padding: 20px;
     font-family: monospace;
     font-size: 16px;
     color: #919969;
     border-top: 1px solid #777e55;
-    width: 100%;
 }
 #input {
     width: 100%;
-    padding: 20px;
     border: 0px solid #7e5555;
     background-color: #1E1E28;
-    border-radius: 2px;
-    height: 50px;
+    border-radius: 0px;
+    height: 30px;
     font-family: monospace;
     font-size: 16px;
     color: #B2BD7E;
     outline: none;
     box-sizing: border-box;
-    margin-top: 10px;
+    margin-top: 0px;
 }
 #input:focus {
     border-color: #B2BD7E;
+}
+
+.details {
+    color: #7c9969;
+}
+.testimony {
+    color: #997669;
 }
