@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>The Cabin Defense</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  * { box-sizing:border-box; }
+  html,body {
+    margin:0;
+    padding:10;
+    height:100%;
+    background: black;
+    color: #e3e8ff;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 18px;
+    line-height:1.3;
+  }
+  body {
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  h1 {
+    margin:0;
+    padding:10px 16px;
+    background:black;
+    border-bottom:0px solid #576f9f;
+    font-size:22px;
+    letter-spacing:1px;
+    color: #f5f9ff;
+    text-align:left;
+  }
+  #game {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:10px;
+    gap:0px;
+    overflow:hidden;
+    width:100%;
+    max-width:100%;
+  }
+  .top {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .card {
+    background:black;
+    border:0px solid #576f9f;
+    padding:10px 12px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    border-radius:5px;
+    flex:1;
+    min-width:0;
+    font-size:18px;
+  }
+  .title {
+    font-weight:700;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .pill {
+    background:black;
+    border:1px solid white;
+    padding:4px 10px;
+    border-radius:4px;
+    display:inline-block;
+    margin-right:6px;
+    font-size:18px;
+  }
+  .status-line {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  #log {
+    background:black;
+    border:0px solid #576f9f;
+    flex:1;
+    padding:12px;
+    overflow-y:auto;
+    white-space: pre-wrap;
+    position:relative;
+    font-size:18px;
+    line-height:1.2;
+    border-radius:5px;
+    min-height:120px;
+  }
+  .flex-row {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .btn {
+    background: black;
+    border:1px solid white;
+    padding:10px 14px;
+    cursor:pointer;
+    font-family: inherit;
+    font-size:18px;
+    color: #f5f9ff;
+    letter-spacing:0.5px;
+    text-transform: uppercase;
+    flex:0 0 auto;
+    border-radius:4px;
+    position: relative;
+    min-width:90px;
+    text-align:center;
+  }
+  .btn:active { background:black; }
+  .btn:disabled {
+    opacity:.45;
+    cursor:not-allowed;
+    background: black;
+  }
+  .end-turn { margin-left:auto; }
+  .inventory {
+    display:flex;
+    gap:0px;
+    width:100%;
+  }
+  .inv-section {
+    background:black;
+    border:0px solid black;
+    flex:1;
+    min-width:0;
+    padding:6px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:0px;
+    border-radius:4px;
+  }
+  .inv-section h4 {
+    margin:4px 0;
+    font-size:18px;
+    border-bottom:1px solid grey;
+    padding-bottom:3px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .inv-item {
+    display:flex;
+    justify-content:space-between;
+    padding:5px 6px;
+    background:black;
+    border:0px solid #576f9f;
+    cursor:pointer;
+    font-size:18px;
+    border-radius:3px;
+    gap:0px;
+  }
+  .inv-item.committed { background: black; border-color:white; }
+  .inv-item.disabled {
+    opacity:.35;
+    cursor:not-allowed;
+  }
+  .inv-qty {
+    font-weight:600;
+  }
+  #actions {
+    margin-top:auto;
+  }
+  #actions .card {
+    display:flex;
+    flex-direction:column;
+  }
+  .muted {
+    color:#a0a9cc;
+  }
+  .highlight { color:gray; }
+  .danger { color:gray; }
+  .reward { color:gray; }
+
+  @media (max-width: 850px) {
+    .top {
+      flex-direction:column;
+    }
+    .flex-row {
+      justify-content:flex-start;
+    }
+    .btn {
+      min-width:70px;
+    }
+    .inventory {
+      flex-wrap:nowrap;
+      overflow-x:auto;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>KEEP GOING: Ghoul Survival</h1>
+  <div id="game">
+    <div class="top">
+      <div class="card" aria-label="Combined status">
+        <div class="title">
+          <div><strong>Day:</strong> <span id="wave-number">1</span></div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <div class="pill">Cabin: <span id="cabin-health">20</span>/20</div>
+            <div class="pill">Stamina: <span id="stamina-current">4</span>/<span id="stamina-max">4</span></div>
+            <div class="pill">Hunger: <span id="hunger-current">3</span>/<span id="hunger-max">3</span></div>
+            <div class="pill">Mood: <span id="mood">3</span>/3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1; display:flex; flex-direction:column; gap:10px;">
+      <div id="log"></div>
+      <div class="inventory">
+        <div class="inv-section" id="inv-items">
+          <h4>Items</h4>
+          <div id="items-list"></div>
+        </div>
+        <div class="inv-section" id="inv-food">
+          <h4>Food</h4>
+          <div id="food-list"></div>
+        </div>
+        <div class="inv-section" id="inv-survivors">
+          <h4>Survivors</h4>
+          <div id="survivors-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="actions">
+      <div class="card" aria-label="Actions">
+        <div class="title"><div><strong>Actions</strong></div></div>
+        <div class="flex-row">
+          <button id="repair-btn" class="btn">Repair 10 HP</button>
+          <button id="scavenge-btn" class="btn">Scavenge</button>
+          <button id="forage-btn" class="btn">Forage</button>
+          <button id="end-turn-btn" class="btn end-turn">End Turn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const MAX_HEALTH = 20;
+  const MAX_MOOD = 3;
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  // State
+  let cabin = { health: MAX_HEALTH };
+  let waveNumber = 1;
+  let lastWaveZombiesCount = 0;
+  let player = {
+    stamina: 4,
+    hunger: 0,
+    mood: 3,
+    maxStamina: 4,
+  };
+  const inventory = {
+    Book: 0,
+    Cigarette: 0,
+    'Scrap Wood': 0,
+    Mushroom: 0,
+    Berry: 0,
+    'Can of Beans': 0,
+  };
+  let survivors = []; // {id, hp, committed}
+
+  // DOM
+  const elCabinHealth = document.getElementById("cabin-health");
+  const elWaveNumber = document.getElementById("wave-number");
+  const elStaminaCurrent = document.getElementById("stamina-current");
+  const elStaminaMax = document.getElementById("stamina-max");
+  const elHungerCurrent = document.getElementById("hunger-current");
+  const elHungerMax = document.getElementById("hunger-max");
+  const elMood = document.getElementById("mood");
+  const logEl = document.getElementById("log");
+  const repairBtn = document.getElementById("repair-btn");
+  const scavengeBtn = document.getElementById("scavenge-btn");
+  const forageBtn = document.getElementById("forage-btn");
+  const endTurnBtn = document.getElementById("end-turn-btn");
+  const itemsListEl = document.getElementById("items-list");
+  const foodListEl = document.getElementById("food-list");
+  const survivorsListEl = document.getElementById("survivors-list");
+
+  function aliveSurvivors() {
+    return survivors;
+  }
+  function getHungerMax() {
+    return aliveSurvivors().length * 3;
+  }
+  function isGameOver() {
+    if (cabin.health <= 0) return true;
+    if (player.hunger <= 0) return true;
+    if (aliveSurvivors().length === 0) return true;
+    return false;
+  }
+  function canAct() {
+    return player.stamina > 0 && !isGameOver() && player.hunger > 0;
+  }
+
+  function appendLog(text, className="") {
+    const div = document.createElement("div");
+    if (className) div.className = className;
+    div.textContent = text;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function updateMood(newMood) {
+    const prevMood = player.mood;
+    newMood = Math.max(0, Math.min(MAX_MOOD, newMood));
+    const hadBonusBefore = prevMood === 3;
+    const hasBonusNow = newMood === 3;
+    player.mood = newMood;
+    if (!hadBonusBefore && hasBonusNow) {
+      player.maxStamina = 4;
+      if (player.stamina < 2) player.stamina = 2;
+      if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
+    } else if (hadBonusBefore && !hasBonusNow) {
+      player.maxStamina = 3;
+      if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
+    } else {
+      player.maxStamina = hasBonusNow ? 4 : 3;
+      if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
+    }
+  }
+
+  function updateInventoryUI() {
+    itemsListEl.innerHTML = "";
+    ['Book','Cigarette','Scrap Wood'].forEach(name => {
+      const qty = inventory[name];
+      if (qty <= 0) return;
+      const entry = document.createElement("div");
+      entry.className = "inv-item";
+      entry.dataset.item = name;
+      const left = document.createElement("div");
+      left.textContent = name;
+      const right = document.createElement("div");
+      right.innerHTML = `<span class="inv-qty">(${qty})</span>`;
+      entry.appendChild(left);
+      entry.appendChild(right);
+      if ((name === 'Book' || name === 'Cigarette' || name === 'Scrap Wood') && player.stamina <= 0) entry.classList.add("disabled");
+      entry.addEventListener("click", () => useItem(name));
+      itemsListEl.appendChild(entry);
+    });
+    foodListEl.innerHTML = "";
+    ['Mushroom','Berry','Can of Beans'].forEach(name => {
+      const qty = inventory[name];
+      if (qty <= 0) return;
+      const entry = document.createElement("div");
+      entry.className = "inv-item";
+      entry.dataset.item = name;
+      const left = document.createElement("div");
+      left.textContent = name;
+      const right = document.createElement("div");
+      right.innerHTML = `<span class="inv-qty">(${qty})</span>`;
+      entry.appendChild(left);
+      entry.appendChild(right);
+      if ((name === 'Mushroom' || name === 'Berry' || name === 'Can of Beans') && player.stamina <= 0) entry.classList.add("disabled");
+      entry.addEventListener("click", () => useItem(name));
+      foodListEl.appendChild(entry);
+    });
+  }
+
+  function updateSurvivorsUI() {
+    survivorsListEl.innerHTML = "";
+    aliveSurvivors().forEach(s => {
+      const entry = document.createElement("div");
+      entry.className = "inv-item";
+      if (s.committed) entry.classList.add("committed");
+      entry.dataset.id = s.id;
+      const left = document.createElement("div");
+      left.textContent = `Survivor ${s.id} ${s.committed ? "(committed)" : ""}`;
+      const right = document.createElement("div");
+      right.innerHTML = `<span class="inv-qty">${s.hp} HP</span>`;
+      entry.appendChild(left);
+      entry.appendChild(right);
+      entry.addEventListener("click", () => {
+        s.committed = !s.committed;
+        appendLog(`Survivor ${s.id} is now ${s.committed ? "committed" : "uncommitted"}.`);
+        updateSurvivorsUI();
+      });
+      survivorsListEl.appendChild(entry);
+    });
+  }
+
+  function updateUI() {
+    elCabinHealth.textContent = Math.max(0, cabin.health);
+    elWaveNumber.textContent = waveNumber;
+    const hungerMax = getHungerMax();
+    if (player.hunger > hungerMax) player.hunger = hungerMax;
+    elHungerCurrent.textContent = Math.max(0, player.hunger);
+    elHungerMax.textContent = hungerMax;
+    elMood.textContent = player.mood;
+    elStaminaMax.textContent = player.maxStamina;
+    elStaminaCurrent.textContent = player.stamina;
+
+    repairBtn.disabled = !canAct() || cabin.health >= MAX_HEALTH || player.stamina <= 0 || isGameOver();
+    scavengeBtn.disabled = !canAct() || player.stamina <= 0 || isGameOver();
+    forageBtn.disabled = !canAct() || player.stamina <= 0 || isGameOver();
+    endTurnBtn.disabled = isGameOver();
+    updateInventoryUI();
+    updateSurvivorsUI();
+  }
+
+  function beginPlayerTurn() {
+    if (isGameOver()) return;
+    if (lastWaveZombiesCount > 0) {
+      updateMood(player.mood - 1);
+    }
+    const aliveCount = aliveSurvivors().length;
+    player.hunger -= aliveCount;
+    appendLog(`--- Player turn begins: lost ${aliveCount} Hunger (survivors). ${ lastWaveZombiesCount > 0 ? "Mood decreased to "+player.mood : "Mood unchanged at "+player.mood}. Stamina reset. ---`);
+    player.maxStamina = player.mood === 3 ? 4 : 3;
+    player.stamina = player.maxStamina;
+    if (player.hunger <= 0) {
+      player.hunger = 0;
+      appendLog("You have starved. GAME OVER.", "danger");
+    }
+    if (!isGameOver()) {
+      const roll = Math.random() * 100;
+      if (roll < 20) {
+        const newId = survivors.length + 1;
+        const hp = randInt(5,15);
+        survivors.push({ id: newId, hp, committed: false });
+        appendLog(`A survivor has joined the cabin with ${hp} HP.`,"reward");
+      }
+    }
+    updateUI();
+    checkLoseConditions();
+  }
+
+  function checkLoseConditions() {
+    if (cabin.health <= 0) {
+      appendLog("*** THE CABIN HAS FALLEN ***", "danger");
+    }
+    if (aliveSurvivors().length === 0) {
+      appendLog("*** ALL SURVIVORS ARE GONE. GAME OVER. ***", "danger");
+    }
+    if (player.hunger <= 0) {
+      appendLog("*** STARVATION. GAME OVER. ***", "danger");
+    }
+  }
+
+  function performRepair() {
+    if (!canAct()) { appendLog("Cannot repair now.", "danger"); return; }
+    if (player.stamina <= 0) { appendLog("No stamina left to repair.", "danger"); return; }
+    if (cabin.health >= MAX_HEALTH) {
+      appendLog("The Cabin is already at full health.", "small");
+      return;
+    }
+    const heal = Math.min(10, MAX_HEALTH - cabin.health);
+    cabin.health += heal;
+    player.stamina -= 1;
+    appendLog(`Repaired ${heal} HP using 1 stamina. Cabin health: ${cabin.health}/${MAX_HEALTH}.`, "reward");
+    if (player.stamina === 0) appendLog("No stamina left this turn.", "small");
+    updateUI();
+  }
+
+  function performScavenge() {
+    if (!canAct()) { appendLog("Cannot scavenge now.", "danger"); return; }
+    if (player.stamina <= 0) { appendLog("No stamina left to scavenge.", "danger"); return; }
+    player.stamina -= 1;
+    appendLog("You scavenge the surroundings...", "");
+    const roll = Math.random() * 100;
+    let found = null;
+    if (roll < 20) found = "Book";
+    else if (roll < 40) found = "Can of Beans";
+    else if (roll < 55) found = "Cigarette";
+    else if (roll < 85) found = "Scrap Wood";
+    if (found) {
+      inventory[found] += 1;
+      appendLog(`  Found: ${found}.`, "reward");
+    } else {
+      appendLog("  Found nothing.");
+    }
+    if (player.stamina === 0) appendLog("No stamina left this turn.", "small");
+    updateUI();
+  }
+
+  function performForage() {
+    if (!canAct()) { appendLog("Cannot forage now.", "danger"); return; }
+    if (player.stamina <= 0) { appendLog("No stamina left to forage.", "danger"); return; }
+    player.stamina -= 1;
+    appendLog("You forage for food...", "");
+    const roll = Math.random() * 100;
+    let found = null;
+    if (roll < 50) found = "Mushroom";
+    else if (roll < 75) found = "Berry";
+    if (found) {
+      inventory[found] += 1;
+      appendLog(`  Found: ${found}.`, "reward");
+    } else {
+      appendLog("  Found nothing.");
+    }
+    if (player.stamina === 0) appendLog("No stamina left this turn.", "small");
+    updateUI();
+  }
+
+  function useItem(name) {
+    if (inventory[name] <= 0) return;
+    if (name === "Book") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to read the Book.", "danger"); return; }
+      inventory.Book -= 1;
+      updateMood(player.mood + 1);
+      player.stamina -=1;
+      appendLog("Read a Book: +1 Mood, -1 Stamina.", "reward");
+    } else if (name === "Cigarette") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to smoke the Cigarette.", "danger"); return; }
+      inventory.Cigarette -=1;
+      updateMood(player.mood + 1);
+      player.stamina -=1;
+      appendLog("Smoked a Cigarette: +1 Mood, -1 Stamina.", "reward");
+    } else if (name === "Scrap Wood") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to use Scrap Wood.", "danger"); return; }
+      inventory['Scrap Wood'] -=1;
+      const heal = Math.min(10, MAX_HEALTH - cabin.health);
+      cabin.health += heal;
+      player.stamina -=1;
+      appendLog(`Used Scrap Wood: repaired ${heal} HP, -1 Stamina.`, "reward");
+    } else if (name === "Mushroom") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to eat Mushroom.", "danger"); return; }
+      inventory.Mushroom -=1;
+      player.hunger = Math.min(getHungerMax(), player.hunger + 2);
+      player.stamina -=1;
+      appendLog("Ate Mushroom: +2 Hunger, -1 Stamina.", "reward");
+    } else if (name === "Berry") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to eat Berry.", "danger"); return; }
+      inventory.Berry -=1;
+      player.hunger = Math.min(getHungerMax(), player.hunger + 1);
+      player.stamina -=1;
+      appendLog("Ate Berry: +1 Hunger, -1 Stamina.", "reward");
+    } else if (name === "Can of Beans") {
+      if (player.stamina <= 0) { appendLog("Not enough stamina to eat Can of Beans.", "danger"); return; }
+      inventory['Can of Beans'] -=1;
+      player.hunger = Math.min(getHungerMax(), player.hunger + 2);
+      player.stamina -=1;
+      appendLog("Ate Can of Beans: +2 Hunger, -1 Stamina.", "reward");
+    }
+    player.hunger = Math.max(0, Math.min(getHungerMax(), player.hunger));
+    updateUI();
+  }
+
+  function simulateWave() {
+    if (isGameOver()) return;
+    appendLog(`=== Day ${waveNumber} of Ghouls begins! ===`);
+    const numGhouls = randInt(0,3);
+    lastWaveZombiesCount = numGhouls;
+    let ghouls = [];
+    for (let i = 1; i <= numGhouls; i++) {
+      ghouls.push({
+        hp: randInt(5,8),
+        damage: () => randInt(3,6),
+        id: i,
+        alive: true
+      });
+    }
+    if (ghouls.length === 0) {
+      appendLog("No ghouls appeared this day.");
+    } else {
+      appendLog(`Ghouls appear: ${ghouls.map(g => `Ghoul ${g.id} (HP: ${g.hp})`).join(", ")}`);
+
+      while (ghouls.some(g => g.alive) && aliveSurvivors().some(s => s.committed)) {
+        appendLog("  Committed survivors attack:");
+        aliveSurvivors().filter(s => s.committed).forEach(surv => {
+          if (!ghouls.some(g => g.alive)) return;
+          const target = ghouls.find(g => g.alive);
+          const dmg = randInt(3,5);
+          if (dmg >= target.hp) {
+            appendLog(`    Survivor ${surv.id} deals ${dmg} and kills Ghoul ${target.id}!`, "highlight");
+            target.hp = 0;
+            target.alive = false;
+          } else {
+            target.hp -= dmg;
+            appendLog(`    Survivor ${surv.id} deals ${dmg}. Ghoul ${target.id} now at ${target.hp} HP.`);
+          }
+        });
+
+        if (!ghouls.some(g => g.alive)) break;
+
+        appendLog("  Surviving ghouls retaliate:");
+        const committedAlive = aliveSurvivors().filter(s => s.committed);
+        if (committedAlive.length === 0) break;
+        ghouls.filter(g => g.alive).forEach(g => {
+          if (!aliveSurvivors().some(s => s.committed)) return;
+          const targetSurv = aliveSurvivors().find(s => s.committed);
+          const dmg = g.damage();
+          appendLog(`    Ghoul ${g.id} hits Survivor ${targetSurv.id} for ${dmg} damage.`);
+          targetSurv.hp -= dmg;
+          if (targetSurv.hp <= 0) {
+            appendLog(`      Survivor ${targetSurv.id} has fallen!`, "danger");
+            survivors = survivors.filter(s => s.id !== targetSurv.id);
+          }
+        });
+      }
+
+      if (ghouls.some(g => g.alive)) {
+        appendLog("  Ghouls attack the cabin:");
+        ghouls.filter(g => g.alive).forEach(g => {
+          if (cabin.health <= 0) return;
+          const dmg = g.damage();
+          appendLog(`    Ghoul ${g.id} hits the Cabin for ${dmg} damage.`);
+          cabin.health -= dmg;
+        });
+      }
+    }
+
+    if (cabin.health > 0) {
+      if (player.hunger > getHungerMax()) player.hunger = getHungerMax();
+      appendLog(`=== Day ${waveNumber} ended. Cabin health: ${Math.max(0,cabin.health)}/${MAX_HEALTH}. ===`);
+      waveNumber +=1;
+      updateUI();
+      beginPlayerTurn();
+    } else {
+      updateUI();
+      appendLog(`*** THE CABIN HAS FALLEN at day ${waveNumber} ***`, "danger");
+      appendLog("Refresh to try again.");
+    }
+    checkLoseConditions();
+  }
+
+  function resetGame() {
+    cabin.health = MAX_HEALTH;
+    waveNumber = 1;
+    player.mood = MAX_MOOD;
+    player.maxStamina = 4;
+    player.stamina = player.maxStamina;
+    lastWaveZombiesCount = 0;
+    survivors = [];
+    inventory.Book = 0;
+    inventory.Cigarette = 0;
+    inventory['Scrap Wood'] = 2;
+    inventory.Mushroom = 0;
+    inventory.Berry = 0;
+    inventory['Can of Beans'] = 2;
+    const initialHp = randInt(5,15);
+    survivors.push({ id:1, hp: initialHp, committed: false });
+    player.hunger = getHungerMax();
+    logEl.textContent = "";
+    appendLog("=== New Game Started ===");
+    appendLog("Keep the cabin standing. Starvation, losing all survivors, or cabin destruction ends the game. Keep going. Survivors may find you.");
+    appendLog(`Starting survivor has ${initialHp} HP. Hunger is ${player.hunger}/${getHungerMax()}.`,"reward");
+    updateUI();
+    beginPlayerTurn();
+  }
+
+  // Bindings
+  repairBtn.addEventListener("click", performRepair);
+  scavengeBtn.addEventListener("click", performScavenge);
+  forageBtn.addEventListener("click", performForage);
+  endTurnBtn.addEventListener("click", () => {
+    if (isGameOver()) return;
+    logEl.textContent = "";
+    simulateWave();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (isGameOver()) return;
+    if (e.key === "r" || e.key === "R") performRepair();
+    else if (e.key === "s" || e.key === "S") performScavenge();
+    else if (e.key === "f" || e.key === "F") performForage();
+    else if (e.key === "w" || e.key === "W") {
+      logEl.textContent = "";
+      simulateWave();
+    }
+  });
+
+  // Init
+  resetGame();
+})();
+</script>
+</body>
+</html>
