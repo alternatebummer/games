@@ -3,148 +3,142 @@
 <head>
 <meta charset="UTF-8" />
 <title>The Cabin Defense</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+  * { box-sizing:border-box; }
+  html,body {
+    margin:0;
+    padding:10;
+    height:100%;
     background: black;
     color: #e3e8ff;
     font-family: "Courier New", Courier, monospace;
     font-size: 16px;
-    line-height: 1.3;
+    line-height:1.3;
   }
   body {
-    display: flex;
-    flex-direction: column;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
   }
   h1 {
-    margin: 0;
-    padding: 10px 16px;
-    background: black;
-    font-size: 20px;
+    margin:0;
+    padding:10px 16px;
+    background:black;
+    font-size:20px;
     color: #f5f9ff;
-    flex: 0 0 auto;
+    text-align:left;
   }
   #game {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:10px;
+    overflow:hidden;
+    width:100%;
   }
-  .top {
-    flex: 0 0 auto;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding: 10px;
+  .top, #actions .card {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
   }
   .card {
-    background: black;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border-radius: 5px;
-    min-width: 0;
-  }
-  .card.battle {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 0;
-  }
-  #actions.card {
-    flex: 0 0 auto;
-    padding: 10px;
+    background:black;
+    padding:10px 12px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    border-radius:5px;
+    flex:0;
+    min-width:0;
   }
   .title {
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    font-weight:700;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .pill {
-    background: black;
-    border: 1px solid grey;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 16px;
+    background:black;
+    border:1px solid grey;
+    padding:4px 8px;
+    border-radius:4px;
+    font-size:14px;
   }
   #log {
-    flex: 1 1 auto;
-    padding: 12px;
-    overflow-y: auto;
+    background:black;
+    flex:1;
+    padding:12px;
+    overflow-y:auto;
     white-space: pre-wrap;
-    border-radius: 5px;
-    min-height: 0;
-  }
-  .inventory {
-    flex: 0 0 auto;
-    display: flex;
-    width: 100%;
-    gap: 0;
-    margin-top: 10px;
-  }
-  .inv-section {
-    background: black;
-    flex: 1 1 0;
-    padding: 4px 6px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .inv-section h4 {
-    margin: 0 0 4px;
-    font-size: 16px;
-    border-bottom: 1px solid grey;
-    padding-bottom: 2px;
-  }
-  .inv-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 6px;
-    cursor: pointer;
-    font-size: 16px;
-    gap: 4px;
-  }
-  .inv-item.disabled {
-    opacity: .35;
-    cursor: not-allowed;
+    font-size:14px;
+    line-height:1.2;
+    border-radius:5px;
+    min-height:120px;
   }
   .flex-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
   }
   .btn {
-    background: black;
-    border: 1px solid grey;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 16px;
-    color: #e3e8ff;
-    text-transform: uppercase;
-    border-radius: 4px;
-    min-width: 80px;
-    flex: 0 0 auto;
+    background:black;
+    border:1px solid grey;
+    padding:8px 12px;
+    cursor:pointer;
+    font-size:14px;
+    color:#e3e8ff;
+    text-transform:uppercase;
+    border-radius:4px;
+    min-width:80px;
   }
   .btn:disabled {
-    opacity: .45;
-    cursor: not-allowed;
+    opacity:.45;
+    cursor:not-allowed;
   }
-  .end-turn { margin-left: auto; }
-  @media (max-width: 850px) {
-    .top { flex-direction: column; }
-    .inventory { overflow-x: auto; }
-    .flex-row { justify-content: flex-start; }
-    .btn { min-width: 60px; }
+  .end-turn { margin-left:auto; }
+  .inventory {
+    display:flex;
+    width:100%;
+    gap:0;
+  }
+  .inv-section {
+    background:black;
+    flex:1;
+    min-width:0;
+    padding:4px 6px;
+    display:flex;
+    flex-direction:column;
+  }
+  .inv-section h4 {
+    margin:0 0 4px;
+    font-size:14px;
+    border-bottom:1px solid grey;
+    padding-bottom:2px;
+  }
+  .inv-item {
+    display:flex;
+    justify-content:space-between;
+    padding:4px 6px;
+    cursor:pointer;
+    font-size:14px;
+    gap:4px;
+  }
+  .inv-item.disabled {
+    opacity:.35;
+    cursor:not-allowed;
+  }
+  .inv-qty {
+    font-weight:600;
+  }
+  @media (max-width:850px) {
+    .top { flex-direction:column; }
+    .inventory { overflow-x:auto; }
+    .flex-row { justify-content:flex-start; }
+    .btn { min-width:60px; }
   }
 </style>
 </head>
@@ -155,7 +149,7 @@
       <div class="card">
         <div class="title">
           <div><strong>Day:</strong> <span id="day">1</span></div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <div class="pill">Cabin: <span id="cabin-health">20</span>/20</div>
             <div class="pill">Stamina: <span id="stamina-current">4</span>/<span id="stamina-max">4</span></div>
             <div class="pill">Hunger: <span id="hunger-current">3</span>/<span id="hunger-max">3</span></div>
@@ -164,7 +158,8 @@
         </div>
       </div>
     </div>
-    <div class="card battle">
+
+    <div class="card" style="flex:1;display:flex;flex-direction:column;">
       <div class="title"><strong>Battle Log:</strong></div>
       <div id="log"></div>
       <div class="inventory">
@@ -182,6 +177,7 @@
         </div>
       </div>
     </div>
+
     <div id="actions" class="card">
       <strong>Actions</strong>
       <div class="flex-row">
@@ -193,20 +189,31 @@
       </div>
     </div>
   </div>
+
 <script>
 (function(){
   const MAX_HEALTH=20, MAX_MOOD=3;
   let cabin={health:MAX_HEALTH}, day=1, lastCount=0, gameWon=false;
   let player={stamina:4,hunger:0,mood:3,maxStamina:4};
-  const inventory={Book:0,Cigarette:0,'Scrap Wood':2,Mushroom:0,Berries:2,Battery:0,Radio:1,'Water Bottle (Full)':1,'Water Bottle (Empty)':0};
+  const inventory={
+    Book:0,
+    Cigarette:0,
+    'Scrap Wood':2,
+    Mushroom:0,
+    Berries:2,
+    Battery:0,
+    Radio:1,
+    'Water Bottle (Full)':1,
+    'Water Bottle (Empty)':0
+  };
   let survivors=[];
 
-  // DOM
   const D=document, el=id=>D.getElementById(id);
   const logEl=el('log'), dayEl=el('day'), cabinEl=el('cabin-health'),
         stamEl=el('stamina-current'), stamMaxEl=el('stamina-max'),
         hungEl=el('hunger-current'), hungMaxEl=el('hunger-max'),
-        moodEl=el('mood'), itemsEl=el('items-list'), foodEl=el('food-list'), survEl=el('survivors-list'),
+        moodEl=el('mood'),
+        itemsEl=el('items-list'), foodEl=el('food-list'), survEl=el('survivors-list'),
         btns={repair:el('repair-btn'),scavenge:el('scavenge-btn'),forage:el('forage-btn'),help:el('help-btn'),end:el('end-turn-btn')};
 
   const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
@@ -215,41 +222,37 @@
   function isOver(){return gameWon||cabin.health<=0||player.hunger<=0||!aliveSurv().length;}
   function canAct(){return player.stamina>0&&!isOver();}
 
-  function appendLog(t,c=''){const d=D.createElement('div'); if(c)d.className=c; d.textContent=t; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;}
+  function appendLog(t,c=''){let d=D.createElement('div'); if(c) d.className=c; d.textContent=t; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;}
 
-  function updateMood(n){n=Math.max(0,Math.min(MAX_MOOD,n)); player.mood=n; player.maxStamina=(n===3?4:3); player.stamina=Math.min(player.stamina,player.maxStamina);}
+  function updateMood(n){ n=Math.max(0,Math.min(MAX_MOOD,n)); player.mood=n; player.maxStamina=(n===3?4:3); if(player.stamina>player.maxStamina) player.stamina=player.maxStamina; }
 
   function updateInvUI(){
     itemsEl.innerHTML=''; ['Book','Cigarette','Scrap Wood','Battery','Radio','Water Bottle (Empty)'].forEach(name=>{
-      const q=inventory[name]; if(!q) return;
+      const q=inventory[name]; if(q<=0) return;
       const e=D.createElement('div'); e.className='inv-item'+(canAct()?'':' disabled');
-      e.innerHTML=`<div>${name}</div><div>(${q})</div>`; e.onclick=()=>useItem(name);
+      e.innerHTML=`<div>${name}</div><div>(${q})</div>`;
+      e.onclick=()=>useItem(name);
       itemsEl.appendChild(e);
     });
     foodEl.innerHTML=''; ['Mushroom','Berries','Water Bottle (Full)'].forEach(name=>{
-      const q=inventory[name]; if(!q) return;
-      const disabledClass=name==='Water Bottle (Full)'?'':(!canAct()?' disabled':'');
+      const q=inventory[name]; if(q<=0) return;
+      const disabledClass = name==='Water Bottle (Full)' ? '' : (!canAct() ? ' disabled' : '');
       const e=D.createElement('div'); e.className='inv-item'+disabledClass;
-      e.innerHTML=`<div>${name}</div><div>(${q})</div>`; e.onclick=()=>useItem(name);
+      e.innerHTML=`<div>${name}</div><div>(${q})</div>`;
+      e.onclick=()=>useItem(name);
       foodEl.appendChild(e);
     });
   }
 
-  function updateSurvUI(){
-    survEl.innerHTML='';
-    aliveSurv().forEach(s=>{
-      const e=D.createElement('div'); e.className='inv-item';
-      e.innerHTML=`<div>Survivor ${s.id}${s.committed?' (✔)':''}</div><div>${s.hp}HP</div>`;
-      e.onclick=()=>{if(isOver())return; s.committed=!s.committed; appendLog(`Survivor ${s.id} ${s.committed?'committed':'uncommitted'}.`); updateSurvUI();};
-      survEl.appendChild(e);
-    });
-  }
+  function updateSurvUI(){ survEl.innerHTML=''; aliveSurv().forEach(s=>{ const e=D.createElement('div'); e.className='inv-item'; e.innerHTML=`<div>Survivor ${s.id}${s.committed?' (✔)':''}</div><div>${s.hp}HP</div>`; e.onclick=()=>{ if(isOver()) return; s.committed=!s.committed; appendLog(`Survivor ${s.id} ${s.committed?'committed':'uncommitted'}.`); updateSurvUI();}; survEl.appendChild(e); }); }
 
   function updateUI(){
     dayEl.textContent=day;
     cabinEl.textContent=Math.max(0,cabin.health);
-    stamEl.textContent=player.stamina; stamMaxEl.textContent=player.maxStamina;
-    hungEl.textContent=Math.max(0,player.hunger); hungMaxEl.textContent=hungerMax();
+    stamEl.textContent=player.stamina;
+    stamMaxEl.textContent=player.maxStamina;
+    hungEl.textContent=Math.max(0,player.hunger);
+    hungMaxEl.textContent=hungerMax();
     moodEl.textContent=player.mood;
     Object.values(btns).forEach(b=>b.disabled=(b!==btns.end&&!canAct())||(b===btns.end&&isOver()));
     updateInvUI(); updateSurvUI();
@@ -258,11 +261,13 @@
   function beginTurn(){
     if(isOver()) return;
     if(lastCount>0){ updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood."); }
-    const loss=aliveSurv().length; player.hunger-=loss;
+    const loss=aliveSurv().length;
+    player.hunger-=loss;
     appendLog(`--- Turn start: -${loss} Hunger. Mood: ${player.mood}. Stamina reset. ---`);
-    player.maxStamina=player.mood===3?4:3; player.stamina=player.maxStamina;
+    player.maxStamina=player.mood===3?4:3;
+    player.stamina=player.maxStamina;
     if(player.hunger<=0) appendLog("Starved. GAME OVER.","danger");
-    if(!isOver() && Math.random()<0.2){ const id=survivors.length+1, hp=randInt(5,15); survivors.push({id,hp,committed:false}); appendLog(`A survivor joined with ${hp} HP.`); }
+    if(!isOver()&&Math.random()<0.2){ const id=survivors.length+1, hp=randInt(5,15); survivors.push({id,hp,committed:false}); appendLog(`A survivor joined with ${hp} HP.`); }
     updateUI();
   }
 
@@ -272,13 +277,17 @@
       return;
     }
     if(!canAct()) return;
+    if(player.stamina<=0) return;
     switch(name){
       case 'Book': inventory.Book--; updateMood(player.mood+2); player.stamina--; appendLog("Book: +2 Mood, -1 Stamina."); break;
       case 'Cigarette': inventory.Cigarette--; updateMood(player.mood+1); player.stamina--; appendLog("Cigarette: +1 Mood, -1 Stamina."); break;
       case 'Scrap Wood': inventory['Scrap Wood']--; const heal=Math.min(5,MAX_HEALTH-cabin.health); cabin.health+=heal; player.stamina--; appendLog(`Scrap Wood: +${heal} Cabin, -1 Stamina.`); break;
       case 'Mushroom': inventory.Mushroom--; player.hunger=Math.min(hungerMax(),player.hunger+2); player.stamina--; appendLog("Mushroom: +2 Hunger, -1 Stamina."); break;
       case 'Berries': inventory.Berries--; player.hunger=Math.min(hungerMax(),player.hunger+1); player.stamina--; appendLog("Berries: +1 Hunger, -1 Stamina."); break;
-      case 'Radio': if(inventory.Battery>0){ inventory.Battery--; player.stamina--; appendLog("You use the Radio..."); if(Math.random()<0.02){ appendLog("Contact made! You WIN!","reward"); gameWon=true; } else appendLog("No response."); } else appendLog("No Battery to power the Radio."); break;
+      case 'Radio':
+        if(inventory.Battery>0){ inventory.Battery--; player.stamina--; appendLog("You use the Radio..."); if(Math.random()<0.02){ appendLog("Contact made! You WIN!","reward"); gameWon=true; } else appendLog("No response."); }
+        else appendLog("No Battery to power the Radio.");
+        break;
     }
     updateUI();
   }
@@ -289,20 +298,39 @@
     const num=randInt(0,3); lastCount=num;
     let ghouls=[];
     for(let i=1;i<=num;i++) ghouls.push({id:i,hp:randInt(5,8),damage:()=>randInt(3,6),alive:true});
-    if(!ghouls.length) appendLog("No ghouls today."); else{
-      appendLog(`Ghouls: ${ghouls.map(z=>`Ghoul ${z.id}(${z.hp})`).join(", ")}`);
-      while(ghouls.some(z=>z.alive) && aliveSurv().some(s=>s.committed)){
-        appendLog("  Survivors attack:"); aliveSurv().filter(s=>s.committed).forEach(s=>{ const tgt=ghouls.find(z=>z.alive), dmg=randInt(3,5); if(dmg>=tgt.hp){ appendLog(`    Survivor ${s.id} kills Ghoul ${tgt.id}!`); tgt.alive=false; } else { tgt.hp-=dmg; appendLog(`    Survivor ${s.id}→Ghoul ${tgt.id} ${dmg} (${tgt.hp}HP)`); } });
-        if(!ghouls.some(z=>z.alive)) break;
-        appendLog("  Ghouls hit back:"); ghouls.filter(z=>z.alive).forEach(z=>{ const s=aliveSurv().find(s=>s.committed), dmg=z.damage(); appendLog(`    Ghoul ${z.id}→Survivor ${s.id} ${dmg}`); s.hp-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood."); if(s.hp<=0){ appendLog(`      Survivor ${s.id} fell!`); survivors=survivors.filter(x=>x.id!==s.id); } });
+    if(!ghouls.length) appendLog("No ghouls today.");
+    else{
+      appendLog(`Ghouls: ${ghouls.map(g=>`Ghoul ${g.id}(${g.hp})`).join(", ")}`);
+      while(ghouls.some(g=>g.alive)&&aliveSurv().some(s=>s.committed)){
+        appendLog("  Survivors attack:");
+        aliveSurv().filter(s=>s.committed).forEach(s=>{
+          const tgt=ghouls.find(g=>g.alive); const dmg=randInt(3,5);
+          if(dmg>=tgt.hp){ appendLog(`    Survivor ${s.id} kills Ghoul ${tgt.id}!`); tgt.alive=false; }
+          else{ tgt.hp-=dmg; appendLog(`    Survivor ${s.id}→Ghoul ${tgt.id} ${dmg} (${tgt.hp}HP)`); }
+        });
+        if(!ghouls.some(g=>g.alive)) break;
+        appendLog("  Ghouls hit back:");
+        ghouls.filter(g=>g.alive).forEach(g=>{
+          const s=aliveSurv().find(s=>s.committed);
+          if(!s) return;
+          const dmg=g.damage(); appendLog(`    Ghoul ${g.id}→Survivor ${s.id} ${dmg}`);
+          s.hp-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood.");
+          if(s.hp<=0){ appendLog(`      Survivor ${s.id} fell!`); survivors=survivors.filter(x=>x.id!==s.id); }
+        });
       }
-      if(ghouls.some(z=>z.alive)){
-        appendLog("  Ghouls attack cabin:"); ghouls.filter(z=>z.alive).forEach(z=>{ const dmg=z.damage(); appendLog(`    Ghoul ${z.id}→Cabin ${dmg}`); cabin.health-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood."); });
+      if(ghouls.some(g=>g.alive)){
+        appendLog("  Ghouls attack cabin:");
+        ghouls.filter(g=>g.alive).forEach(g=>{
+          const dmg=g.damage(); appendLog(`    Ghoul ${g.id}→Cabin ${dmg}`); cabin.health-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood.");
+        });
       }
     }
-    // refill water
-    if(inventory['Water Bottle (Empty)']>0 && Math.random()<0.25){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog("You refilled your Water Bottle while foraging."); }
-    if(cabin.health>0){ if(player.hunger>humidityMax()) player.hunger=hungerMax(); appendLog(`=== End of Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH} ===`); day++; updateUI(); beginTurn(); } else appendLog("*** CABIN FALLEN. Game Over. ***","danger");
+    if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.25){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog("You refilled your Water Bottle while foraging."); }
+    if(cabin.health>0){
+      if(player.hunger>hungerMax()) player.hunger=hungerMax();
+      appendLog(`=== End of Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH} ===`);
+      day++; updateUI(); beginTurn();
+    } else appendLog("*** CABIN FALLEN. Game Over. ***","danger");
   }
 
   function helpText(){
@@ -320,16 +348,51 @@
     Object.keys(inventory).forEach(k=>inventory[k]=0);
     inventory['Scrap Wood']=2; inventory.Berries=2; inventory['Water Bottle (Full)']=1; inventory.Radio=1;
     survivors=[{id:1,hp:randInt(5,15),committed:false}];
-    player.hunger=hungerMax(); logEl.textContent='';
-    appendLog("=== New Game ==="); appendLog(`Survivor starts with ${survivors[0].hp}HP. Hunger ${player.hunger}/${hungerMax()}.`);
+    player.hunger=hungerMax();
+    logEl.textContent='';
+    appendLog("=== New Game ===");
+    appendLog(`Survivor starts with ${survivors[0].hp}HP. Hunger ${player.hunger}/${hungerMax()}.`);
     updateUI(); beginTurn();
   }
 
-  btns.repair.onclick=()=>{ if(canAct()){ cabin.health=Math.min(MAX_HEALTH,cabin.health+10); player.stamina--; appendLog("Repaired +10 Cabin, -1 Stamina."); updateUI(); }};
-  btns.scavenge.onclick=()=>{ if(!canAct())return; player.stamina--; appendLog("Scavenging..."); const r=Math.random()*100; let found=null; if(r<20) found="Book"; else if(r<30) found="Battery"; else if(r<45) found="Cigarette"; else if(r<75) found="Scrap Wood"; if(found){inventory[found]++; appendLog(` Found: ${found}.`);} else appendLog(" Found nothing."); updateUI(); };
-  btns.forage.onclick=()=>{ if(!canAct())return; player.stamina--; appendLog("Foraging..."); const r=Math.random()*100; let found=null; if(r<50) found="Mushroom"; else if(r<75) found="Berries"; if(found){inventory[found]++; appendLog(` Found: ${found}.`);} else appendLog(" Found nothing."); if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.25){inventory['Water Bottle (Empty)']--;inventory['Water Bottle (Full)']++;appendLog("You refilled your Water Bottle while foraging.");} updateUI(); };
-  btns.help.onclick=()=>helpText(); btns.end.onclick=()=>{ if(!isOver()){ logEl.textContent=''; simulateDay(); }};
-  document.addEventListener('keydown',e=>{ if(isOver())return; if(e.key==='r') btns.repair.click(); if(e.key==='s') btns.scavenge.click(); if(e.key==='f') btns.forage.click(); if(e.key==='h') btns.help.click(); if(e.key==='e') btns.end.click(); });
+  btns.repair.onclick = () => { if(canAct()){ cabin.health = Math.min(MAX_HEALTH, cabin.health + 10); player.stamina--; appendLog("Repaired +10 Cabin, -1 Stamina."); updateUI(); }};
+  btns.scavenge.onclick = () => {
+    if(!canAct()) return;
+    player.stamina--;
+    appendLog("Scavenging...");
+    const r = Math.random() * 100;
+    let found = null;
+    if(r < 20) found = "Book";
+    else if(r < 30) found = "Battery";
+    else if(r < 45) found = "Cigarette";
+    else if(r < 75) found = "Scrap Wood";
+    if(found){ inventory[found]++; appendLog(` Found: ${found}.`); }
+    else appendLog(" Found nothing.");
+    updateUI();
+  };
+  btns.forage.onclick = () => {
+    if(!canAct()) return;
+    player.stamina--;
+    appendLog("Foraging...");
+    const r = Math.random() * 100;
+    let found = null;
+    if(r < 50) found = "Mushroom";
+    else if(r < 75) found = "Berries";
+    if(found){ inventory[found]++; appendLog(` Found: ${found}.`); }
+    else appendLog(" Found nothing.");
+    updateUI();
+  };
+  btns.help.onclick = () => helpText();
+  btns.end.onclick = () => { if(!isOver()){ logEl.textContent = ''; simulateDay(); }};
+
+  document.addEventListener('keydown', e => {
+    if(isOver()) return;
+    if(e.key === 'r') btns.repair.click();
+    if(e.key === 's') btns.scavenge.click();
+    if(e.key === 'f') btns.forage.click();
+    if(e.key === 'h') btns.help.click();
+    if(e.key === 'e') btns.end.click();
+  });
 
   reset();
 })();
