@@ -5,141 +5,163 @@
 <title>The Cabin Defense</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  * { box-sizing:border-box; }
-  html,body {
-    margin:0;
-    padding:10;
-    height:100%;
-    background: black;
-    color: #e3e8ff;
-    font-family: "Courier New", Courier, monospace;
-    font-size: 16px;
-    line-height:1.3;
-  }
-  body {
-    display:flex;
-    flex-direction:column;
-    min-height:100vh;
-  }
-  h1 {
-    margin:0;
-    padding:10px 16px;
-    background:black;
-    font-size:20px;
-    color: #f5f9ff;
-    text-align:left;
-  }
-  #game {
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    padding:10px;
-    overflow:hidden;
-    width:100%;
-  }
-  .top, #actions .card {
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-  }
-  .card {
-    background:black;
-    padding:10px 12px;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    border-radius:5px;
-    flex:0;
-    min-width:0;
-  }
-  .title {
-    font-weight:700;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .pill {
-    background:black;
-    border:1px solid grey;
-    padding:4px 8px;
-    border-radius:4px;
-    font-size:14px;
-  }
-  #log {
-    background:black;
-    flex:1;
-    padding:12px;
-    overflow-y:auto;
-    white-space: pre-wrap;
-    font-size:14px;
-    line-height:1.2;
-    border-radius:5px;
-    min-height:120px;
-  }
-  .flex-row {
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    align-items:center;
-  }
-  .btn {
-    background:black;
-    border:1px solid grey;
-    padding:8px 12px;
-    cursor:pointer;
-    font-size:14px;
-    color:#e3e8ff;
-    text-transform:uppercase;
-    border-radius:4px;
-    min-width:80px;
-  }
-  .btn:disabled {
-    opacity:.45;
-    cursor:not-allowed;
-  }
-  .end-turn { margin-left:auto; }
-  .inventory {
-    display:flex;
-    width:100%;
-    gap:0;
-  }
-  .inv-section {
-    background:black;
-    flex:1;
-    min-width:0;
-    padding:4px 6px;
-    display:flex;
-    flex-direction:column;
-  }
-  .inv-section h4 {
-    margin:0 0 4px;
-    font-size:14px;
-    border-bottom:1px solid grey;
-    padding-bottom:2px;
-  }
-  .inv-item {
-    display:flex;
-    justify-content:space-between;
-    padding:4px 6px;
-    cursor:pointer;
-    font-size:14px;
-    gap:4px;
-  }
-  .inv-item.disabled {
-    opacity:.35;
-    cursor:not-allowed;
-  }
-  .inv-qty {
-    font-weight:600;
-  }
-  @media (max-width:850px) {
-    .top { flex-direction:column; }
-    .inventory { overflow-x:auto; }
-    .flex-row { justify-content:flex-start; }
-    .btn { min-width:60px; }
-  }
+  * { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: black;
+  color: #e3d7c1;           /* very pale brown for other text */
+  font-family: "Courier New", Courier, monospace;
+  font-size: 16px;
+  line-height: 1.3;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+h1,
+.title {
+  color: #a8d5ba;           /* light, pale forest green for titles */
+}
+#game {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.top {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+}
+.card {
+  background: black;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 5px;
+  min-width: 0;
+  border: 0px solid #ffffcc; /* very pale yellow for card borders */
+}
+.card.battle {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.card.battle #log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-bottom: 120px; /* reserve space */
+}
+#actions.card {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background: black;
+  z-index: 100;
+  border-top: 0px solid #ffffcc; /* very pale yellow line */
+}
+.inventory {
+  position: fixed;
+  bottom: 70px; /* height of actions bar */
+  left: 0;
+  width: 100%;
+  display: flex;
+  background: black;
+  z-index: 100;
+  border-top: 1px dashed #ffffcc; /* very pale yellow line */
+}
+.pill {
+  background: black;
+  border: 1px dashed #ffffcc; /* very pale yellow */
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+#log {
+  background: black;
+  flex: 1 1 auto;
+  padding: 12px;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.2;
+  border-radius: 5px;
+  min-height: 0;
+}
+.flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.btn {
+  background: black;
+  border: 1px dashed #ffffcc; /* very pale yellow */
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e3d7c1;           /* very pale brown */
+  text-transform: uppercase;
+  border-radius: 4px;
+  min-width: 80px;
+}
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.end-turn { margin-left: auto; }
+.inv-section {
+  background: black;
+  flex: 1;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  border-left: 0px solid #ffffcc; /* very pale yellow */
+}
+.inv-section h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #a8d5ba;           /* pale forest green */
+  border-bottom: 1px dashed #ffffcc; /* very pale yellow */
+  padding-bottom: 2px;
+}
+.inv-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 14px;
+  gap: 4px;
+  color: #e3d7c1;           /* very pale brown */
+}
+.inv-item.disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+/* Pale red for ghoul-death messages */
+.danger, .highlight {
+  color: #f4cccc;
+}
+/* Pale blue for action/item results */
+.reward {
+  color: #cfe2f3;
+}
+.inv-qty { font-weight: 600; }
+@media (max-width:850px) {
+  .top { flex-direction: column; }
+  .inventory { overflow-x: auto; }
+  .flex-row { justify-content: flex-start; }
+  .btn { min-width: 60px; }
+}
+
 </style>
 </head>
 <body>
@@ -181,7 +203,6 @@
     <div id="actions" class="card">
       <strong>Actions</strong>
       <div class="flex-row">
-        <button id="repair-btn" class="btn">REPAIR CABIN</button>
         <button id="scavenge-btn" class="btn">SCAVENGE</button>
         <button id="forage-btn" class="btn">FORAGE</button>
         <button id="help-btn" class="btn">HELP</button>
@@ -189,7 +210,6 @@
       </div>
     </div>
   </div>
-
 <script>
 (function(){
   const MAX_HEALTH=20, MAX_MOOD=3;
@@ -214,7 +234,7 @@
         hungEl=el('hunger-current'), hungMaxEl=el('hunger-max'),
         moodEl=el('mood'),
         itemsEl=el('items-list'), foodEl=el('food-list'), survEl=el('survivors-list'),
-        btns={repair:el('repair-btn'),scavenge:el('scavenge-btn'),forage:el('forage-btn'),help:el('help-btn'),end:el('end-turn-btn')};
+        btns={scavenge:el('scavenge-btn'),forage:el('forage-btn'),help:el('help-btn'),end:el('end-turn-btn')};
 
   const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
   function aliveSurv(){return survivors;}
@@ -259,16 +279,34 @@
   }
 
   function beginTurn(){
-    if(isOver()) return;
-    if(lastCount>0){ updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood."); }
-    const loss=aliveSurv().length;
-    player.hunger-=loss;
+    if (gameWon) return;
+    if (lastCount > 0) {
+      updateMood(player.mood - 1);
+      appendLog("A ghoul attack inflicted -1 Mood.", "danger");
+    }
+    const loss = aliveSurv().length;
+    player.hunger -= loss;
     appendLog(`--- Turn start: -${loss} Hunger. Mood: ${player.mood}. Stamina reset. ---`);
-    player.maxStamina=player.mood===3?4:3;
-    player.stamina=player.maxStamina;
-    if(player.hunger<=0) appendLog("Starved. GAME OVER.","danger");
-    if(!isOver()&&Math.random()<0.2){ const id=survivors.length+1, hp=randInt(5,15); survivors.push({id,hp,committed:false}); appendLog(`A survivor joined with ${hp} HP.`); }
+    player.maxStamina = (player.mood === MAX_MOOD ? 4 : 3);
+    player.stamina = player.maxStamina;
+    if (player.hunger <= 0) {
+      appendLog("Starved. GAME OVER.", "danger");
+      updateUI();
+      return;
+    }
+    if (survivors.length === 0) {
+      appendLog("All survivors have fallen. GAME OVER.", "danger");
+      updateUI();
+      return;
+    }
+    if (!isOver() && Math.random() < 0.2) {
+      const id = survivors.length + 1;
+      const hp = randInt(5, 15);
+      survivors.push({ id, hp, committed: false });
+      appendLog(`A survivor joined with ${hp} HP.`);
+    }
     updateUI();
+
   }
 
   function useItem(name){
@@ -306,22 +344,26 @@
         aliveSurv().filter(s=>s.committed).forEach(s=>{
           const tgt=ghouls.find(g=>g.alive); const dmg=randInt(3,5);
           if(dmg>=tgt.hp){ appendLog(`    Survivor ${s.id} kills Ghoul ${tgt.id}!`); tgt.alive=false; }
-          else{ tgt.hp-=dmg; appendLog(`    Survivor ${s.id}→Ghoul ${tgt.id} ${dmg} (${tgt.hp}HP)`); }
+          else{ tgt.hp-=dmg; appendLog(`    Survivor ${s.id} attacks Ghoul ${tgt.id}, -${dmg} HP (Ghoul now ${tgt.hp}HP).`); }
         });
         if(!ghouls.some(g=>g.alive)) break;
-        appendLog("  Ghouls hit back:");
-        ghouls.filter(g=>g.alive).forEach(g=>{
-          const s=aliveSurv().find(s=>s.committed);
-          if(!s) return;
-          const dmg=g.damage(); appendLog(`    Ghoul ${g.id}→Survivor ${s.id} ${dmg}`);
-          s.hp-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood.");
-          if(s.hp<=0){ appendLog(`      Survivor ${s.id} fell!`); survivors=survivors.filter(x=>x.id!==s.id); }
-        });
+        appendLog("  Ghouls counter-attack:");
+        ghouls.filter(g => g.alive).forEach(g => {
+  const s = aliveSurv().find(s => s.committed);
+  if (!s) return;
+  const dmg = g.damage();
+  s.hp -= dmg;
+  appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg} HP (now ${s.hp}HP).`);
+  if (s.hp <= 0) {
+    appendLog(`      Survivor ${s.id} fell!`);
+    survivors = survivors.filter(x => x.id !== s.id);
+  }
+});
       }
       if(ghouls.some(g=>g.alive)){
         appendLog("  Ghouls attack cabin:");
         ghouls.filter(g=>g.alive).forEach(g=>{
-          const dmg=g.damage(); appendLog(`    Ghoul ${g.id}→Cabin ${dmg}`); cabin.health-=dmg; updateMood(player.mood-1); appendLog("A ghoul attack inflicted -1 Mood.");
+          const dmg=g.damage(); appendLog(`    Ghoul ${g.id} attacks the cabin, -${dmg} CP.`); cabin.health-=dmg;
         });
       }
     }
@@ -336,7 +378,6 @@
   function helpText(){
     appendLog("=== The Basics ===");
     appendLog("- Clicking on an action or an item consumes 1 Stamina point.");
-    appendLog("- REPAIR CABIN is +10 CP (Cabin Points).");
     appendLog("- A Ghoul attack results in -1 Mood point.");
     appendLog("- Use Books (+2 Mood) and Cigarettes to restore Mood.");
     appendLog("- 3/3 Mood gives +1 bonus Stamina, starting next turn at 4/4 (if no ghoul attack overnight).");
@@ -355,7 +396,6 @@
     updateUI(); beginTurn();
   }
 
-  btns.repair.onclick = () => { if(canAct()){ cabin.health = Math.min(MAX_HEALTH, cabin.health + 10); player.stamina--; appendLog("Repaired +10 Cabin, -1 Stamina."); updateUI(); }};
   btns.scavenge.onclick = () => {
     if(!canAct()) return;
     player.stamina--;
@@ -387,7 +427,6 @@
 
   document.addEventListener('keydown', e => {
     if(isOver()) return;
-    if(e.key === 'r') btns.repair.click();
     if(e.key === 's') btns.scavenge.click();
     if(e.key === 'f') btns.forage.click();
     if(e.key === 'h') btns.help.click();
