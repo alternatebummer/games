@@ -2,176 +2,178 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>The Cabin Defense</title>
+<title>CABIN: Ghoul Survival</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   * { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: black;
-  color: #e3d7c1;           /* very pale brown for other text */
-  font-family: "Courier New", Courier, monospace;
-  font-size: 16px;
-  line-height: 1.3;
-}
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-h1,
-.title {
-  color: #a8d5ba;           /* light, pale forest green for titles */
-}
-#game {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.top {
-  flex: 0 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-}
-.card {
-  background: black;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-radius: 5px;
-  min-width: 0;
-  border: 0px solid #ffffcc; /* very pale yellow for card borders */
-}
-.card.battle {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.card.battle #log {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding-bottom: 120px; /* reserve space */
-}
-#actions.card {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 10px;
-  background: black;
-  z-index: 100;
-  border-top: 0px solid #ffffcc; /* very pale yellow line */
-}
-.inventory {
-  position: fixed;
-  bottom: 70px; /* height of actions bar */
-  left: 0;
-  width: 100%;
-  display: flex;
-  background: black;
-  z-index: 100;
-  border-top: 1px dashed #ffffcc; /* very pale yellow line */
-}
-.pill {
-  background: black;
-  border: 1px dashed #ffffcc; /* very pale yellow */
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-#log {
-  background: black;
-  flex: 1 1 auto;
-  padding: 12px;
-  white-space: pre-wrap;
-  font-size: 14px;
-  line-height: 1.2;
-  border-radius: 5px;
-  min-height: 0;
-}
-.flex-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-.btn {
-  background: black;
-  border: 1px dashed #ffffcc; /* very pale yellow */
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #e3d7c1;           /* very pale brown */
-  text-transform: uppercase;
-  border-radius: 4px;
-  min-width: 80px;
-}
-.btn:disabled {
-  opacity: .45;
-  cursor: not-allowed;
-}
-.end-turn { margin-left: auto; }
-.inv-section {
-  background: black;
-  flex: 1;
-  padding: 4px 6px;
-  display: flex;
-  flex-direction: column;
-  border-left: 0px solid #ffffcc; /* very pale yellow */
-}
-.inv-section h4 {
-  margin: 0 0 4px;
-  font-size: 14px;
-  color: #a8d5ba;           /* pale forest green */
-  border-bottom: 1px dashed #ffffcc; /* very pale yellow */
-  padding-bottom: 2px;
-}
-.inv-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 6px;
-  cursor: pointer;
-  font-size: 14px;
-  gap: 4px;
-  color: #e3d7c1;           /* very pale brown */
-}
-.inv-item.disabled {
-  opacity: .35;
-  cursor: not-allowed;
-}
-/* Pale red for ghoul-death messages */
-.danger, .highlight {
-  color: #f4cccc;
-}
-/* Pale blue for action/item results */
-.reward {
-  color: #cfe2f3;
-}
-.inv-qty { font-weight: 600; }
-@media (max-width:850px) {
-  .top { flex-direction: column; }
-  .inventory { overflow-x: auto; }
-  .flex-row { justify-content: flex-start; }
-  .btn { min-width: 60px; }
-}
-
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: black;
+    color: #e3d7c1;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  h1,
+  .title {
+    color: #a8d5ba;
+    text-align: center;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+  }
+  #game {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .top {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+  }
+  .card {
+    background: black;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-radius: 5px;
+    min-width: 0;
+    border: 0px solid #ffffcc;
+  }
+  .card.battle {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .card.battle #log {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-bottom: 120px;
+  }
+  #actions.card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background: black;
+    z-index: 100;
+    border-top: 0px solid #ffffcc;
+  }
+  .inventory {
+    position: fixed;
+    bottom: 70px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    background: black;
+    z-index: 100;
+    border-top: 1px dashed #ffffcc;
+  }
+  .pill {
+    background: black;
+    border: 1px dashed #ffffcc;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  #log {
+    background: black;
+    flex: 1 1 auto;
+    padding: 12px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.2;
+    border-radius: 5px;
+    min-height: 0;
+  }
+  .flex-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: black;
+    border: 1px dashed #ffffcc;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e3d7c1;
+    text-transform: uppercase;
+    border-radius: 4px;
+    min-width: 80px;
+  }
+  .btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+  .end-turn { margin-left: auto; }
+  .inv-section {
+    background: black;
+    flex: 1;
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    border-left: 0px solid #ffffcc;
+  }
+  .inv-section h4 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    color: #a8d5ba;
+    border-bottom: 1px dashed #ffffcc; 
+    padding-bottom: 2px;
+  }
+  .inv-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 6px;
+    cursor: pointer;
+    font-size: 14px;
+    gap: 4px;
+    color: #e3d7c1;
+  }
+  .inv-item.disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+  .danger, .highlight {
+    color: #f4cccc;
+  }
+  .reward {
+    color: #cfe2f3;
+  }
+  .inv-qty { font-weight: 600; }
+  @media (max-width:850px) {
+    .top { flex-direction: column; }
+    .inventory { overflow-x: auto; }
+    .flex-row { justify-content: flex-start; }
+    .btn { min-width: 60px; }
+  }
 </style>
 </head>
 <body>
-  <h1>KEEP GOING: Ghoul Survival</h1>
+  <h1>CABIN: Ghoul Survival</h1>
   <div id="game">
     <div class="top">
       <div class="card">
         <div class="title">
           <div><strong>Day:</strong> <span id="day">1</span></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
             <div class="pill">Cabin: <span id="cabin-health">20</span>/20</div>
             <div class="pill">Stamina: <span id="stamina-current">4</span>/<span id="stamina-max">4</span></div>
             <div class="pill">Hunger: <span id="hunger-current">3</span>/<span id="hunger-max">3</span></div>
@@ -180,9 +182,7 @@ h1,
         </div>
       </div>
     </div>
-
     <div class="card" style="flex:1;display:flex;flex-direction:column;">
-      <div class="title"><strong>Battle Log:</strong></div>
       <div id="log"></div>
       <div class="inventory">
         <div class="inv-section" id="inv-items">
@@ -201,7 +201,6 @@ h1,
     </div>
 
     <div id="actions" class="card">
-      <strong>Actions</strong>
       <div class="flex-row">
         <button id="scavenge-btn" class="btn">SCAVENGE</button>
         <button id="forage-btn" class="btn">FORAGE</button>
@@ -286,20 +285,20 @@ h1,
     }
     const loss = aliveSurv().length;
     player.hunger -= loss;
-    appendLog(`--- Turn start: -${loss} Hunger. Mood: ${player.mood}. Stamina reset. ---`);
+    appendLog(`--- Turn start: -${loss} Hunger. Mood: ${player.mood}. Stamina reset.`);
+    appendLog(" ");
     player.maxStamina = (player.mood === MAX_MOOD ? 4 : 3);
     player.stamina = player.maxStamina;
-    if (player.hunger <= 0) {
-      appendLog("Starved. GAME OVER.", "danger");
-      updateUI();
-      return;
-    }
     if (survivors.length === 0) {
       appendLog("All survivors have fallen. GAME OVER.", "danger");
       updateUI();
       return;
     }
-    if (!isOver() && Math.random() < 0.2) {
+    if (player.hunger <= 0) {
+      appendLog("Starved. GAME OVER.", "danger");
+      updateUI();
+      return;
+    }    if (!isOver() && Math.random() < 0.2) {
       const id = survivors.length + 1;
       const hp = randInt(5, 15);
       survivors.push({ id, hp, committed: false });
@@ -332,7 +331,7 @@ h1,
 
   function simulateDay(){
     if(isOver()) return;
-    appendLog(`=== Day ${day} of Ghouls begins! ===`);
+    appendLog(`=== Day ${day} of Ghouls begins!`);
     const num=randInt(0,3); lastCount=num;
     let ghouls=[];
     for(let i=1;i<=num;i++) ghouls.push({id:i,hp:randInt(5,8),damage:()=>randInt(3,6),alive:true});
@@ -367,20 +366,21 @@ h1,
         });
       }
     }
-    if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.25){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog("You refilled your Water Bottle while foraging."); }
     if(cabin.health>0){
       if(player.hunger>hungerMax()) player.hunger=hungerMax();
-      appendLog(`=== End of Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH} ===`);
+      appendLog(`=== End of Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH}`);
+      appendLog(" ");
       day++; updateUI(); beginTurn();
     } else appendLog("*** CABIN FALLEN. Game Over. ***","danger");
   }
 
   function helpText(){
-    appendLog("=== The Basics ===");
+    appendLog("=== The Basics");
     appendLog("- Clicking on an action or an item consumes 1 Stamina point.");
     appendLog("- A Ghoul attack results in -1 Mood point.");
     appendLog("- Use Books (+2 Mood) and Cigarettes to restore Mood.");
     appendLog("- 3/3 Mood gives +1 bonus Stamina, starting next turn at 4/4 (if no ghoul attack overnight).");
+    appendLog(" ");
   }
 
   function reset(){
@@ -391,8 +391,9 @@ h1,
     survivors=[{id:1,hp:randInt(5,15),committed:false}];
     player.hunger=hungerMax();
     logEl.textContent='';
-    appendLog("=== New Game ===");
+    appendLog("=== New Game");
     appendLog(`Survivor starts with ${survivors[0].hp}HP. Hunger ${player.hunger}/${hungerMax()}.`);
+    appendLog(" ");
     updateUI(); beginTurn();
   }
 
@@ -420,6 +421,7 @@ h1,
     else if(r < 75) found = "Berries";
     if(found){ inventory[found]++; appendLog(` Found: ${found}.`); }
     else appendLog(" Found nothing.");
+    if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.15){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog("You refilled your Water Bottle while foraging."); }
     updateUI();
   };
   btns.help.onclick = () => helpText();
