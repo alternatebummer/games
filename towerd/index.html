@@ -328,58 +328,103 @@
   }
 
   function simulateDay(){
-    if(isOver()) return;
-    appendLog(`=== Day ${day} begins...`);
-    const num=randInt(0,3); lastCount=num;
-    let ghouls=[];
-    for(let i=1;i<=num;i++) ghouls.push({id:i,hp:randInt(5,8),damage:()=>randInt(3,6),alive:true});
-    if(!ghouls.length) appendLog("No ghouls today.");
-    else{
-      appendLog(`Ghouls: ${ghouls.map(g=>`Ghoul ${g.id}(${g.hp})`).join(", ")}`);
-      while(ghouls.some(g=>g.alive)&&aliveSurv().some(s=>s.committed)){
-        appendLog("  Survivors attack:");
-        aliveSurv().filter(s=>s.committed).forEach(s=>{
-          const tgt=ghouls.find(g=>g.alive); const dmg=randInt(3,5);
-          if(dmg>=tgt.hp){ appendLog(`    Survivor ${s.id} kills Ghoul ${tgt.id}!`); tgt.alive=false; }
-          else{ tgt.hp-=dmg; appendLog(`    Survivor ${s.id} attacks Ghoul ${tgt.id}, -${dmg} HP (Ghoul now ${tgt.hp}HP).`); }
-        });
-        if(!ghouls.some(g=>g.alive)) break;
-        appendLog("  Ghouls counter-attack:");
-        ghouls.filter(g => g.alive).forEach(g => {
-  const s = aliveSurv().find(s => s.committed);
-  if (!s) return;
-  const dmg = g.damage();
-  s.hp -= dmg;
-  appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg} HP (now ${s.hp}HP).`);
-  if (s.hp <= 0) {
-    appendLog(`      Survivor ${s.id} fell!`);
-    survivors = survivors.filter(x => x.id !== s.id);
-  }
-});
-      }
-      if(ghouls.some(g=>g.alive)){
-        appendLog("  Ghouls attack cabin:");
-        ghouls.filter(g=>g.alive).forEach(g=>{
-          const dmg=g.damage(); appendLog(`    Ghoul ${g.id} attacks the cabin, -${dmg} CP.`); cabin.health-=dmg;
-        });
-      }
-    }
-    if(cabin.health>0){
-      if(player.hunger>hungerMax()) player.hunger=hungerMax();
-      appendLog(" ");
-      appendLog(`=== Player Turn for Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH}, -${loss} Hunger. Mood: ${player.mood}. Stamina reset.`);
-      appendLog(" ");
-      day++; updateUI(); beginTurn();
-    } else appendLog("*** CABIN FALLEN. Game Over. ***","danger");
+  if (isOver()) return;
+
+  appendLog(`=== Night falls on Day ${day}... The ghouls are out...`);
+  // spawn ghouls
+  lastCount = randInt(0, 3);
+  const ghouls = [];
+  for (let i = 1; i <= lastCount; i++) {
+    ghouls.push({
+      id: i,
+      hp: randInt(5, 8),
+      damage: () => randInt(3, 6),
+      alive: true
+    });
   }
 
+  if (!ghouls.length) {
+    appendLog("No ghouls today.");
+  } else {
+    appendLog(`Ghouls: ${ghouls.map(g => `Ghoul ${g.id}(${g.hp})`).join(", ")}`);
+
+    // survivors attack loop
+    while (ghouls.some(g => g.alive) && aliveSurv().some(s => s.committed)) {
+      appendLog("  Survivors attack:");
+      aliveSurv().filter(s => s.committed).forEach(s => {
+        const tgt = ghouls.find(g => g.alive);
+        const dmg = randInt(3, 5);
+        if (dmg >= tgt.hp) {
+          appendLog(`    Survivor ${s.id} kills Ghoul ${tgt.id}!`);
+          tgt.alive = false;
+        } else {
+          tgt.hp -= dmg;
+          appendLog(`    Survivor ${s.id} attacks Ghoul ${tgt.id}, -${dmg} HP (now ${tgt.hp}HP).`);
+        }
+      });
+
+      if (!ghouls.some(g => g.alive)) break;
+
+      // ghouls counter-attack survivors
+      appendLog("  Ghouls counter-attack:");
+      ghouls.filter(g => g.alive).forEach(g => {
+        const s = aliveSurv().find(s => s.committed);
+        if (!s) return;
+        const dmg = g.damage();
+        s.hp -= dmg;
+        appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg} HP (now ${s.hp}HP).`);
+        if (s.hp <= 0) {
+          appendLog(`      Survivor ${s.id} fell!`);
+          survivors = survivors.filter(x => x.id !== s.id);
+        }
+      });
+
+      // if no survivors left, stop right here
+      if (!survivors.length) {
+        appendLog("All survivors have fallen. GAME OVER.", "danger");
+        updateUI();
+        return;
+      }
+    }
+
+    // ghouls attack cabin if any still alive
+    if (ghouls.some(g => g.alive)) {
+      appendLog("  Ghouls attack cabin:");
+      ghouls.filter(g => g.alive).forEach(g => {
+        const dmg = g.damage();
+        cabin.health -= dmg;
+        appendLog(`    Ghoul ${g.id} attacks the cabin, -${dmg} CP (now ${cabin.health}CP).`);
+      });
+    }
+  }
+
+  // day wrap-up
+  if (cabin.health > 0) {
+    if (player.hunger > hungerMax()) player.hunger = hungerMax();
+    appendLog(` `);
+    appendLog(`=== Start of Day ${day + 1}: Cabin ${cabin.health}/${MAX_HEALTH}`);
+    day++;
+    updateUI();
+    beginTurn();
+  } else {
+    appendLog("*** CABIN FALLEN. Game Over.", "danger");
+    updateUI();
+  }
+}
+
+
   function helpText(){
-    appendLog("=== The Basics");
-    appendLog("- Clicking on an action or an item consumes 1 Stamina point.");
-    appendLog("- A Ghoul attack results in -1 Mood point.");
-    appendLog("- Use Books (+2 Mood) and Cigarettes to restore Mood.");
-    appendLog("- 3/3 Mood gives +1 bonus Stamina, starting next turn at 4/4 (if no ghoul attack overnight).");
     appendLog(" ");
+    appendLog("=== Survivor's Guide");
+    appendLog(" - Each Survivor costs -1/x Food point at the start of each day.")
+    appendLog(" - Forage to potentially find food and refill your Water Bottle.");
+    appendLog(" - Scavenge to potentially find useful items that make life bearable.");
+    appendLog(" - Generally, clicking on an action or an item costs -1/x Stamina point.");
+    appendLog(" - Clicking a Survivor sets them to 'Defender' mode.");
+    appendLog(" - 3/3 Mood gives a bonus to Stamina (x/+1).");
+    appendLog(" - Water Bottle restores +1/x Stamina.");
+    appendLog(" - Books (+2/x) and Cigarettes (+1/x) restore Mood.");
+    appendLog(" - Batteries power the Radio.");
   }
 
   function reset(){
@@ -390,12 +435,10 @@
     survivors=[{id:1,hp:randInt(5,15),committed:false}];
     player.hunger=hungerMax();
     logEl.textContent='';
-    appendLog("=== New Game");
-    appendLog(`Society has collapsed. No one knows why, but flesh hungry ghouls now stalk the night in wandering groups. All you can do now is manage this off-grid cabin and take it day-by-day.`);
+    appendLog("=== Start of Day 1: Cabin 20/20");
+    appendLog(`Society has collapsed. No one knows why, but flesh-hungry Ghouls now stalk the night in small hordes. Survival is all that's left, one day at a time.`);
     appendLog(' ');
-    appendLog('The most important thing: make contact with groups of survivors over the radio, but, in the meantime, you may form a group of your own. Do your best. Stay alive. Use your radio.');
-    appendLog(" ");
-    appendLog("Better get to work before the sun sets...");
+    appendLog('You heard from a wasteland wanderer that a sanctuary from the Ghouls is reaching out over amateur Radio with their location. Use your Radio as often as you can. Okay, better get to work before the sun sets. Always lots to do...');
     updateUI(); beginTurn();
   }
 
