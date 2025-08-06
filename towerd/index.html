@@ -40,7 +40,6 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
     padding: 10px;
   }
   .card {
@@ -135,13 +134,14 @@
     margin: 0 0 4px;
     font-size: 14px;
     color: #a8d5ba;
-    border-bottom: 1px dashed #ffffcc; 
+    border-bottom: 1px dashed #ffffcc;
     padding-bottom: 2px;
   }
   .inv-item {
     display: flex;
     justify-content: space-between;
-    padding: 4px 6px;
+    padding: 0px 0px;
+    letter-spacing: -1px;
     cursor: pointer;
     font-size: 14px;
     gap: 4px;
@@ -285,8 +285,6 @@
     }
     const loss = aliveSurv().length;
     player.hunger -= loss;
-    appendLog(`--- Turn start: -${loss} Hunger. Mood: ${player.mood}. Stamina reset.`);
-    appendLog(" ");
     player.maxStamina = (player.mood === MAX_MOOD ? 4 : 3);
     player.stamina = player.maxStamina;
     if (survivors.length === 0) {
@@ -331,7 +329,7 @@
 
   function simulateDay(){
     if(isOver()) return;
-    appendLog(`=== Day ${day} of Ghouls begins!`);
+    appendLog(`=== Day ${day} begins...`);
     const num=randInt(0,3); lastCount=num;
     let ghouls=[];
     for(let i=1;i<=num;i++) ghouls.push({id:i,hp:randInt(5,8),damage:()=>randInt(3,6),alive:true});
@@ -368,7 +366,8 @@
     }
     if(cabin.health>0){
       if(player.hunger>hungerMax()) player.hunger=hungerMax();
-      appendLog(`=== End of Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH}`);
+      appendLog(" ");
+      appendLog(`=== Player Turn for Day ${day}: Cabin ${cabin.health}/${MAX_HEALTH}, -${loss} Hunger. Mood: ${player.mood}. Stamina reset.`);
       appendLog(" ");
       day++; updateUI(); beginTurn();
     } else appendLog("*** CABIN FALLEN. Game Over. ***","danger");
@@ -392,8 +391,11 @@
     player.hunger=hungerMax();
     logEl.textContent='';
     appendLog("=== New Game");
-    appendLog(`Survivor starts with ${survivors[0].hp}HP. Hunger ${player.hunger}/${hungerMax()}.`);
+    appendLog(`Society has collapsed. No one knows why, but flesh hungry ghouls now stalk the night in wandering groups. All you can do now is manage this off-grid cabin and take it day-by-day.`);
+    appendLog(' ');
+    appendLog('The most important thing: make contact with groups of survivors over the radio, but, in the meantime, you may form a group of your own. Do your best. Stay alive. Use your radio.');
     appendLog(" ");
+    appendLog("Better get to work before the sun sets...");
     updateUI(); beginTurn();
   }
 
