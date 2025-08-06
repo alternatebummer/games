@@ -85,9 +85,9 @@
   }
   .pill {
     background: black;
-    border: 1px dashed #ffffcc;
+    border-top: 1px dashed #ffffcc;
+    border-bottom: 1px dashed #ffffcc;
     padding: 2px 4px;
-    border-radius: 4px;
     font-size: 14px;
   }
   #log {
@@ -103,7 +103,7 @@
   .flex-row {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 4px;
     flex-wrap: wrap;
   }
   .btn {
@@ -173,7 +173,7 @@
       <div class="card">
         <div class="title">
           <div><strong>Day:</strong> <span id="day">1</span></div>
-          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">
             <div class="pill">Cabin: <span id="cabin-health">20</span>/20</div>
             <div class="pill">Stamina: <span id="stamina-current">4</span>/<span id="stamina-max">4</span></div>
             <div class="pill">Hunger: <span id="hunger-current">3</span>/<span id="hunger-max">3</span></div>
