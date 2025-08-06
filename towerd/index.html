@@ -38,6 +38,7 @@
   }
   #game {
     flex: 1 1 auto;
+    min-height: 0;          /* <-- allow it to shrink below its content height */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -50,17 +51,15 @@
     padding: 10px;
   }
   .card {
-    background: black;
-    padding: 10px 12px;
+    flex: 1 1 auto;        /* inline style in your markup */
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    border-radius: 5px;
-    min-width: 0;
-    border: 0px solid #ffffcc;
   }
   .card.battle {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -95,14 +94,16 @@
     border-top: 0px dashed #ffffcc;
     border: 1px dashed #ffffcc;
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 4px 12px;
     font-size: 16px;
     font-weight: bold;
   }
   #log {
     background: black;
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    overflow-y: hidden;
     padding: 12px;
+    padding-bottom: 200px;
     white-space: pre-wrap;
     font-size: 16px;
     line-height: 1.2;
@@ -167,7 +168,7 @@
     color: #cfe2f3;
   }
   .inv-qty { font-weight: 600; }
-  @media (max-width:850px) {
+  @media (max-width:1000px) {
     .top { flex-direction: column; }
     .inventory { overflow-x: auto; }
     .flex-row { justify-content: flex-start; }
