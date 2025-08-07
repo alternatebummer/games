@@ -293,7 +293,7 @@
     });
   }
 
-  function updateSurvUI(){ survEl.innerHTML=''; aliveSurv().forEach(s=>{ const e=D.createElement('div'); e.className='inv-item'; e.innerHTML=`<div>Survivor ${s.id}${s.committed?' (✔)':''}</div><div>${s.hp}HP</div>`; e.onclick=()=>{ if(isOver()) return; s.committed=!s.committed; appendLog(`Survivor ${s.id} ${s.committed?'committed':'uncommitted'}.`); updateSurvUI();}; survEl.appendChild(e); }); }
+  function updateSurvUI(){ survEl.innerHTML=''; aliveSurv().forEach(s=>{ const e=D.createElement('div'); e.className='inv-item'; e.innerHTML=`<div>Survivor ${s.id}${s.committed?' (Def.)':''}</div><div>${s.hp}HP</div>`; e.onclick=()=>{ if(isOver()) return; s.committed=!s.committed; appendLog(`Survivor ${s.id} ${s.committed?'committed':'uncommitted'}.`); updateSurvUI();}; survEl.appendChild(e); }); }
 
   function updateUI(){
     dayEl.textContent=day;
@@ -468,6 +468,7 @@
     appendLog(`Society has collapsed. No one knows why, but flesh-hungry Ghouls now stalk the night in small hordes. Survival is all that's left, one day at a time.`);
     appendLog(' ');
     appendLog('You heard from a wasteland wanderer that a sanctuary from the Ghouls is reaching out over amateur Radio with their location. Use your Radio as often as you can. Okay, better get to work before the sun sets. Always lots to do...');
+    appendLog(' ');
     updateUI(); beginTurn();
   }
 
