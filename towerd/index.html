@@ -16,12 +16,12 @@
     line-height: 1.3;
   }
   @font-face {
-  font-family: 'PixelFont';
-  src: url('https://reptileroom.netlify.app/towerd/PerfectDOSVGA437.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+    font-family: 'PixelFont';
+    src: url('https://reptileroom.netlify.app/towerd/PerfectDOSVGA437.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
   body {
     display: flex;
     font-family: 'PixelFont', monospace;
@@ -32,16 +32,19 @@
   .title {
     color: #a8d5ba;
     text-align: center;
-    flex-direction: column;
     display: flex;
+    flex-direction: column;
     align-items: center;
   }
   #game {
     flex: 1 1 auto;
-    min-height: 0;          /* <-- allow it to shrink below its content height */
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
   }
   .top {
     flex: 0 0 auto;
@@ -51,11 +54,15 @@
     padding: 10px;
   }
   .card {
-    flex: 1 1 auto;        /* inline style in your markup */
+    flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    gap: 6px;
+    background: black;
+    border-radius: 5px;
+    padding: 10px 12px;
   }
   .card.battle {
     flex: 1 1 0;
@@ -64,16 +71,25 @@
     flex-direction: column;
     overflow: hidden;
   }
-  .card.battle #log {
-    flex: 1 1 auto;
+  #log {
+    background: black;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
-    padding-bottom: 120px;
+    padding: 12px;
+    padding-bottom: 200px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.2;
+    border-radius: 5px;
   }
   #actions.card {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
+    max-width: 1000px;
+    min-width: 500px;
+    margin: 0 auto;
     padding: 10px;
     background: black;
     z-index: 100;
@@ -82,33 +98,21 @@
   .inventory {
     position: fixed;
     bottom: 70px;
-    left: 0;
     width: 100%;
+    max-width: 1000px;
+    min-width: 500px;
     display: flex;
     background: black;
     z-index: 100;
-    border-top: 1px dashed #ffffcc;
+    border-top: 0px dashed #ffffcc;
   }
   .pill {
     background: black;
-    border-top: 0px dashed #ffffcc;
     border: 1px dashed #ffffcc;
     border-radius: 4px;
-    padding: 4px 12px;
+    padding: 2px 8px;
     font-size: 16px;
     font-weight: bold;
-  }
-  #log {
-    background: black;
-    flex: 1 1 0;
-    overflow-y: hidden;
-    padding: 12px;
-    padding-bottom: 200px;
-    white-space: pre-wrap;
-    font-size: 14px;
-    line-height: 1.2;
-    border-radius: 5px;
-    min-height: 0;
   }
   .flex-row {
     display: flex;
@@ -131,12 +135,15 @@
     opacity: .45;
     cursor: not-allowed;
   }
-  .end-turn { margin-left: auto; }
+  .end-turn {
+    margin-left: auto;
+  }
   .inv-section {
     background: black;
     flex: 1;
     padding: 4px 6px;
     display: flex;
+    margin-right: 25px;
     flex-direction: column;
     border-left: 0px solid #ffffcc;
   }
@@ -150,7 +157,7 @@
   .inv-item {
     display: flex;
     justify-content: space-between;
-    padding: 0px 0px;
+    padding: 0;
     letter-spacing: -1.5px;
     cursor: pointer;
     font-size: 14px;
@@ -167,12 +174,22 @@
   .reward {
     color: #cfe2f3;
   }
-  .inv-qty { font-weight: 600; }
+  .inv-qty {
+    font-weight: 600;
+  }
   @media (max-width:1000px) {
-    .top { flex-direction: column; }
-    .inventory { overflow-x: auto; }
-    .flex-row { justify-content: flex-start; }
-    .btn { min-width: 60px; }
+    .top {
+      flex-direction: column;
+    }
+    .inventory {
+      overflow-x: auto;
+    }
+    .flex-row {
+      justify-content: flex-start;
+    }
+    .btn {
+      min-width: 60px;
+    }
   }
 </style>
 </head>
@@ -291,26 +308,26 @@
     if (gameWon) return;
     if (lastCount > 0) {
       updateMood(player.mood - 1);
-      appendLog("A ghoul attack inflicted -1 Mood.", "danger");
+      appendLog(" Ghoul attack costs -1 Mood.", "danger");
     }
     const loss = aliveSurv().length;
     player.hunger -= loss;
     player.maxStamina = (player.mood === MAX_MOOD ? 4 : 3);
     player.stamina = player.maxStamina;
     if (survivors.length === 0) {
-      appendLog("All survivors have fallen. GAME OVER.", "danger");
+      appendLog(" All survivors have fallen. GAME OVER.", "danger");
       updateUI();
       return;
     }
     if (player.hunger <= 0) {
-      appendLog("Starved. GAME OVER.", "danger");
+      appendLog(" Starved. GAME OVER.", "danger");
       updateUI();
       return;
     }    if (!isOver() && Math.random() < 0.2) {
       const id = survivors.length + 1;
       const hp = randInt(5, 15);
       survivors.push({ id, hp, committed: false });
-      appendLog(`A survivor joined with ${hp} HP.`);
+      appendLog(` A survivor joined with ${hp} HP.`);
     }
     updateUI();
 
@@ -324,14 +341,14 @@
     if(!canAct()) return;
     if(player.stamina<=0) return;
     switch(name){
-      case 'Book': inventory.Book--; updateMood(player.mood+2); player.stamina--; appendLog("Book: +2 Mood, -1 Stamina."); break;
-      case 'Cigarette': inventory.Cigarette--; updateMood(player.mood+1); player.stamina--; appendLog("Cigarette: +1 Mood, -1 Stamina."); break;
+      case 'Book': inventory.Book--; updateMood(player.mood+2); player.stamina--; appendLog(" Book: +2 Mood, -1 Stamina."); break;
+      case 'Cigarette': inventory.Cigarette--; updateMood(player.mood+1); player.stamina--; appendLog(" Cigarette: +1 Mood, -1 Stamina."); break;
       case 'Scrap Wood': inventory['Scrap Wood']--; const heal=Math.min(5,MAX_HEALTH-cabin.health); cabin.health+=heal; player.stamina--; appendLog(`Scrap Wood: +${heal} Cabin, -1 Stamina.`); break;
-      case 'Mushroom': inventory.Mushroom--; player.hunger=Math.min(hungerMax(),player.hunger+2); player.stamina--; appendLog("Mushroom: +2 Hunger, -1 Stamina."); break;
-      case 'Berries': inventory.Berries--; player.hunger=Math.min(hungerMax(),player.hunger+1); player.stamina--; appendLog("Berries: +1 Hunger, -1 Stamina."); break;
+      case 'Mushroom': inventory.Mushroom--; player.hunger=Math.min(hungerMax(),player.hunger+2); player.stamina--; appendLog(" Mushroom: +2 Hunger, -1 Stamina."); break;
+      case 'Berries': inventory.Berries--; player.hunger=Math.min(hungerMax(),player.hunger+1); player.stamina--; appendLog(" Berries: +1 Hunger, -1 Stamina."); break;
       case 'Radio':
-        if(inventory.Battery>0){ inventory.Battery--; player.stamina--; appendLog("You use the Radio..."); if(Math.random()<0.02){ appendLog("Contact made! You WIN!","reward"); gameWon=true; } else appendLog("No response."); }
-        else appendLog("No Battery to power the Radio.");
+        if(inventory.Battery>0){ inventory.Battery--; player.stamina--; appendLog(" You use the Radio..."); if(Math.random()<0.02){ appendLog(" Contact made! You WIN!","reward"); gameWon=true; } else appendLog("No response."); }
+        else appendLog(" No Battery to power the Radio.");
         break;
     }
     updateUI();
@@ -354,10 +371,9 @@
   }
 
   if (!ghouls.length) {
-    appendLog("No ghouls today.");
+    appendLog(" No ghouls today.");
   } else {
-    appendLog(`Ghouls: ${ghouls.map(g => `Ghoul ${g.id}(${g.hp})`).join(", ")}`);
-
+    appendLog(` Ghoul horde: ${ghouls.map(g => `Ghoul ${g.id}(${g.hp})`).join(", ")}`);
     // survivors attack loop
     while (ghouls.some(g => g.alive) && aliveSurv().some(s => s.committed)) {
       appendLog("  Survivors attack:");
@@ -376,13 +392,13 @@
       if (!ghouls.some(g => g.alive)) break;
 
       // ghouls counter-attack survivors
-      appendLog("  Ghouls counter-attack:");
+      appendLog("  Ghoul counter-attack:");
       ghouls.filter(g => g.alive).forEach(g => {
         const s = aliveSurv().find(s => s.committed);
         if (!s) return;
         const dmg = g.damage();
         s.hp -= dmg;
-        appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg} HP (now ${s.hp}HP).`);
+        appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg}HP (now ${s.hp}HP).`);
         if (s.hp <= 0) {
           appendLog(`      Survivor ${s.id} fell!`);
           survivors = survivors.filter(x => x.id !== s.id);
@@ -391,7 +407,7 @@
 
       // if no survivors left, stop right here
       if (!survivors.length) {
-        appendLog("All survivors have fallen. GAME OVER.", "danger");
+        appendLog(" All survivors have fallen. GAME OVER.", "danger");
         updateUI();
         return;
       }
@@ -399,11 +415,11 @@
 
     // ghouls attack cabin if any still alive
     if (ghouls.some(g => g.alive)) {
-      appendLog("  Ghouls attack cabin:");
+      appendLog("  Ghouls vs. Cabin:");
       ghouls.filter(g => g.alive).forEach(g => {
         const dmg = g.damage();
         cabin.health -= dmg;
-        appendLog(`    Ghoul ${g.id} attacks the cabin, -${dmg} CP (now ${cabin.health}CP).`);
+        appendLog(`    Ghoul ${g.id} attacks Cabin, -${dmg}CP (now ${cabin.health}CP).`);
       });
     }
   }
@@ -476,7 +492,7 @@
     else if(r < 75) found = "Berries";
     if(found){ inventory[found]++; appendLog(` Found: ${found}.`); }
     else appendLog(" Found nothing.");
-    if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.15){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog("You refilled your Water Bottle while foraging."); }
+    if(inventory['Water Bottle (Empty)']>0&&Math.random()<0.15){ inventory['Water Bottle (Empty)']--; inventory['Water Bottle (Full)']++; appendLog(" Water Bottle refilled while foraging."); }
     updateUI();
   };
   btns.help.onclick = () => helpText();
