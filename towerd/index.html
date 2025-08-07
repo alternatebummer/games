@@ -388,7 +388,7 @@
           tgt.alive = false;
         } else {
           tgt.hp -= dmg;
-          appendLog(`    Survivor ${s.id} attacks Ghoul ${tgt.id}, -${dmg} HP (now ${tgt.hp}HP).`);
+          appendLog(`    Survivor ${s.id} attacks Ghoul ${tgt.id}, -${dmg} HP.`);
         }
       });
 
@@ -401,7 +401,7 @@
         if (!s) return;
         const dmg = g.damage();
         s.hp -= dmg;
-        appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg}HP (now ${s.hp}HP).`);
+        appendLog(`    Ghoul ${g.id} attacks Survivor ${s.id}, -${dmg}HP.`);
         if (s.hp <= 0) {
           appendLog(`      Survivor ${s.id} fell!`);
           survivors = survivors.filter(x => x.id !== s.id);
@@ -422,7 +422,7 @@
       ghouls.filter(g => g.alive).forEach(g => {
         const dmg = g.damage();
         cabin.health -= dmg;
-        appendLog(`    Ghoul ${g.id} attacks Cabin, -${dmg}CP (now ${cabin.health}CP).`);
+        appendLog(`    Ghoul ${g.id} attacks Cabin, -${dmg}CP.`);
       });
     }
   }
