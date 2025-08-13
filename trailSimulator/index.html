@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hiking Trail Generator</title>
+<style>
+  :root{
+    --bg:#0e1117;
+    --panel:#161b22;
+    --ink:#e6edf3;
+    --muted:#9da7b3;
+    --accent:#62d0ff;
+    --btn:#1f6feb;
+    --btnText:#fff;
+    --btnAlt:#2ea043;
+    --card:#0b1220;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,var(--bg),#0b1321 60%, #0b0f18);
+    color:var(--ink);
+    font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial;
+    display:flex;align-items:stretch;justify-content:center;
+  }
+  .wrap{width:min(1000px,95vw); padding:28px 20px 36px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+  h1{font-size:clamp(20px,4vw,28px);margin:0}
+  .panel{
+    background:rgba(22,27,34,.7);
+    border:1px solid #222c3a;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    padding:16px;
+  }
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  button{
+    appearance:none;border:0;cursor:pointer;border-radius:12px;
+    padding:12px 16px;font-weight:600;letter-spacing:.2px
+  }
+  .primary{background:var(--btn);color:var(--btnText)}
+  .primary:disabled{opacity:.5;cursor:not-allowed}
+  .alt{background:var(--btnAlt);color:var(--btnText)}
+  .ghost{background:#1b2333;color:var(--ink);border:1px solid #2b3650}
+  .grid{
+    display:grid; gap:14px; margin-top:10px;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+  }
+  .card{
+    background:var(--card);
+    border:1px solid #1e2636; border-radius:16px; padding:14px 14px 12px;
+    position:relative; overflow:hidden;
+  }
+  .card h3{margin:0 0 8px 0; font-size:18px}
+  .kv{display:grid;grid-template-columns:120px 1fr; gap:6px 8px; font-size:14px}
+  .kv div:nth-child(odd){color:var(--muted)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{background:#22304b; color:#cfe6ff; padding:4px 8px; border-radius:999px; font-size:12px}
+  .radioRow{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .sep{height:1px;background:#1e2636;margin:12px 0}
+  .muted{color:var(--muted)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .progress{height:10px;background:#182235;border-radius:999px;overflow:hidden;border:1px solid #22324d}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,#41c4ff,#7ae2ff); transition:width .3s ease}
+  .notice{font-size:13px;color:#b2c5ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Hiking Trail Generator</h1>
+    <div class="controls">
+      <button id="btnGenerate" class="primary">Generate Hiking Trails</button>
+      <button id="btnStart" class="alt" disabled>Start</button>
+      <button id="btnRestart" class="ghost" style="display:none">Restart Trail Generator</button>
+    </div>
+  </header>
+
+  <section id="optionsPanel" class="panel" aria-live="polite">
+    <div id="optionsGrid" class="grid"></div>
+  </section>
+
+  <div style="height:14px"></div>
+
+  <section id="runPanel" class="panel" style="display:none" aria-live="polite">
+    <div class="row">
+      <div>
+        <h3 id="trailTitle" style="margin:0">Chosen Trail</h3>
+        <div id="trailSummary" style="color:#9da7b3;font-size:14px"></div>
+      </div>
+      <div style="min-width:220px">
+        <div class="progress" aria-hidden="true"><div id="progressBar" class="bar"></div></div>
+        <div id="progressText" style="color:#9da7b3;text-align:right;margin-top:4px;font-size:13px">0 / 0</div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div id="stopInfo" class="grid">
+      <div class="card">
+        <h3>Current Stop</h3>
+        <div class="kv">
+          <div>Stop #</div><div id="stopIndex">–</div>
+          <div>Elevation (1–6)</div><div id="stopElevation">–</div>
+          <div>Weather</div><div id="stopWeather">–</div>
+          <div>Weather Aspect</div><div id="stopAspect">–</div>
+        </div>
+        <div class="chips" id="stopChips"></div>
+      </div>
+      <div class="card">
+        <h3>Trail Constants</h3>
+        <div class="kv">
+          <div>Biome</div><div id="constBiome">–</div>
+          <div>Aspect</div><div id="constAspect">–</div>
+          <div>Distance</div><div id="constDistance">–</div>
+          <div>Stops</div><div id="constStops">–</div>
+          <div>Terrain</div><div id="constTerrain">–</div>
+          <div>Difficulty</div><div id="constDifficulty">–</div>
+        </div>
+      </div>
+    </div>
+      <div>
+        <button id="btnNext" class="primary">Next</button>
+      </div>
+      <div class="notice" id="endNotice" style="display:none">Destination reached. You can restart the generator.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+const BIOMES = [
+  { id:1, name:'Coastal Forest', difficulty:[1,4], aspect:'Dense' },
+  { id:2, name:'Alpine',          difficulty:[4,6], aspect:'Rough' },
+  { id:3, name:'Grassland / Meadow', difficulty:[1,2], aspect:'Soft' },
+  { id:4, name:'Wetland / Marsh', difficulty:[1,3], aspect:'Wet' },
+  { id:5, name:'Desert Canyon',   difficulty:[2,4], aspect:'Dry' },
+  { id:6, name:'Endless Dunes',   difficulty:[3,6], aspect:'Very Dry' },
+];
+
+const DISTANCES = [
+  { id:1, name:'Re-Roll', stops:null },
+  { id:2, name:'Re-Roll', stops:null },
+  { id:3, name:'Short',   stops:3 },
+  { id:4, name:'Moderate',stops:4 },
+  { id:5, name:'Long',    stops:5 },
+  { id:6, name:'Expedition', stops:6 },
+];
+
+const TERRAINS = [
+  { id:1, name:'Flat',           elev:[1,2], disallow:['Alpine','Desert Canyon'] },
+  { id:2, name:'Gentle Rolling', elev:[1,3], disallow:['Alpine','Desert Canyon'] },
+  { id:3, name:'Hills',          elev:[1,4], disallow:['Alpine','Desert Canyon'] },
+  { id:4, name:'Steady Climb',   elev:[3,6], disallow:['Wetland / Marsh'] },
+  { id:5, name:'Steep Climb',    elev:[3,6], disallow:['Wetland / Marsh','Grassland / Meadow','Endless Dunes'] },
+  { id:6, name:'High Alpine',    elev:[5,6], disallow:['Wetland / Marsh','Grassland / Meadow','Endless Dunes','Desert Canyon'] },
+];
+
+const WEATHER = [
+  { id:1, name:'Clear & Calm',         aspect:'Safe',                    rerollIf:[] },
+  { id:2, name:'Heat Wave',            aspect:'Hot',                     rerollIf:[] },
+  { id:3, name:'Light Rain / Drizzle', aspect:'Charming + Wet',          rerollIf:['Dry','Very Dry'] },
+  { id:4, name:'Heavy Rain / Storm',   aspect:'Depressing + Wet',        rerollIf:['Very Dry'] },
+  { id:5, name:'Windy',                aspect:'Unbalanced',              rerollIf:[] },
+  { id:6, name:'Snow / Sleet',         aspect:'Cold & Wet & Unbalanced', rerollIf:['Very Dry'] },
+];
+
+const $ = sel => document.querySelector(sel);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const rollD6 = () => randInt(1,6);
+function rollWithReRoll(fn){ for(let i=0;i<100;i++){ const v=fn(); if(v!==null) return v; } throw new Error('Re-roll loop exceeded'); }
+
+function rollBiome(){ const side=rollD6(); const b=BIOMES[side-1]; const difficulty=randInt(b.difficulty[0], b.difficulty[1]); return { ...b, difficulty }; }
+function rollDistance(){ let d; do { d = DISTANCES[rollD6()-1]; } while (d.stops == null); return d; }
+function rollTerrain(biomeName){ const allowed=TERRAINS.filter(t=>!t.disallow.includes(biomeName)); if(!allowed.length) throw new Error('No terrain allowed for biome '+biomeName); return allowed[randInt(0,allowed.length-1)]; }
+
+function makeTrail(){
+  const biome = rollBiome();
+  const distance = rollDistance();
+  const terrain  = rollTerrain(biome.name);
+  return {
+    biome: biome.name,
+    aspect: biome.aspect,
+    difficulty: biome.difficulty,
+    distanceName: distance.name,
+    stops: distance.stops,
+    terrain: terrain.name,
+    elevRange: terrain.elev
+  };
+}
+
+function rollWeatherForAspect(biomeAspect){
+  return rollWithReRoll(()=>{
+    const w = WEATHER[rollD6()-1];
+    if (w.rerollIf.includes(biomeAspect)) return null;
+    return w;
+  });
+}
+function rollElevation(range){ return randInt(range[0], range[1]); }
+
+let options = [];
+let selectedIndex = null;
+let run = null;
+
+function renderOptions(){
+  const grid = $('#optionsGrid');
+  grid.innerHTML = '';
+  options.forEach((t, idx) => {
+    const card = el('div','card');
+    const h = el('h3',null,`Trail Option ${idx===0?'A':'B'}`);
+    const kv = el('div','kv');
+    kv.innerHTML = `
+      <div>Biome</div><div>${t.biome}</div>
+      <div>Aspect</div><div>${t.aspect}</div>
+      <div>Distance</div><div>${t.distanceName}</div>
+      <div>Stops</div><div>${t.stops}</div>
+      <div>Terrain</div><div>${t.terrain} <span class="muted">(elev ${t.elevRange[0]}–${t.elevRange[1]})</span></div>
+      <div>Difficulty</div><div>${'◆'.repeat(t.difficulty)}<span class="muted">${'◇'.repeat(6 - t.difficulty)} (${t.difficulty}/6)</span></div>
+    `;
+    const chips = el('div','chips');
+    ['D6 Biome','D6 Distance','D6 Terrain'].forEach(label => chips.appendChild(el('span','chip',label)));
+    const choose = el('label','radioRow');
+    const radio = el('input'); radio.type='radio'; radio.name='trailChoice'; radio.value=idx;
+    radio.addEventListener('change',()=>{ selectedIndex = idx; $('#btnStart').disabled = false; });
+    const txt = el('span',null,'Select this trail');
+    choose.append(radio, txt);
+    card.append(h, kv, chips, choose);
+    grid.appendChild(card);
+  });
+}
+
+function startRun(){
+  if (selectedIndex == null) return;
+  const t = options[selectedIndex];
+  run = { ...t, current: 0 };
+  $('#trailTitle').textContent = `Chosen Trail: ${selectedIndex===0?'A':'B'}`;
+  $('#trailSummary').textContent = `${t.biome} (${t.aspect}) • ${t.distanceName} • ${t.terrain} • Difficulty ${t.difficulty}/6`;
+  $('#constBiome').textContent = t.biome;
+  $('#constAspect').textContent = t.aspect;
+  $('#constDistance').textContent = t.distanceName;
+  $('#constStops').textContent = t.stops;
+  $('#constTerrain').textContent = `${t.terrain} (elev ${t.elevRange[0]}–${t.elevRange[1]})`;
+  $('#constDifficulty').textContent = `${t.difficulty}/6`;
+  $('#optionsPanel').style.display = 'none';
+  $('#runPanel').style.display = '';
+  $('#btnGenerate').disabled = true;
+  $('#btnStart').disabled = true;
+  $('#btnRestart').style.display = 'none';
+  $('#endNotice').style.display = 'none';
+  $('#btnNext').textContent = 'Next';
+  $('#progressBar').style.width = '0%';
+  $('#progressText').textContent = `0 / ${t.stops}`;
+  updateStop();
+}
+
+function updateStop(){
+  if (!run) return;
+  if (run.current >= run.stops) {
+    $('#endNotice').style.display = '';
+    $('#btnNext').style.display = 'none';
+    $('#btnRestart').style.display = '';
+    return;
+  }
+  const stopNumber = run.current + 1;
+  const elev = rollElevation(run.elevRange);
+  const w = rollWeatherForAspect(run.aspect);
+  $('#stopIndex').textContent = `${stopNumber} of ${run.stops}`;
+  $('#stopElevation').textContent = `${elev}`;
+  $('#stopWeather').textContent = `${w.name}`;
+  $('#stopAspect').textContent = `${w.aspect}`;
+  const chips = $('#stopChips');
+  chips.innerHTML = '';
+  chips.appendChild(el('span','chip',`Elevation d6 in ${run.elevRange[0]}–${run.elevRange[1]}`));
+  chips.appendChild(el('span','chip',`Weather d6${w.rerollIf.length?' (+reroll rules)':''}`));
+  const pct = Math.round((stopNumber / run.stops) * 100);
+  $('#progressBar').style.width = `${pct}%`;
+  $('#progressText').textContent = `${stopNumber} / ${run.stops}`;
+  $('#btnNext').textContent = (stopNumber === run.stops) ? 'Destination' : 'Next';
+  run.current++;
+}
+
+$('#btnGenerate').addEventListener('click', () => {
+  selectedIndex = null;
+  $('#btnStart').disabled = true;
+  options = [makeTrail(), makeTrail()];
+  if (JSON.stringify(options[0]) === JSON.stringify(options[1])) options[1] = makeTrail();
+  renderOptions();
+});
+
+$('#btnStart').addEventListener('click', startRun);
+
+$('#btnNext').addEventListener('click', () => {
+  if ($('#btnNext').textContent === 'Destination') { updateStop(); return; }
+  updateStop();
+});
+
+$('#btnRestart').addEventListener('click', () => {
+  run = null; options = []; selectedIndex = null;
+  $('#optionsPanel').style.display = '';
+  $('#runPanel').style.display = 'none';
+  $('#btnGenerate').disabled = false;
+  $('#btnStart').disabled = true;
+  $('#btnRestart').style.display = 'none';
+  $('#optionsGrid').innerHTML = '';
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.activeElement?.name === 'trailChoice'){ $('#btnStart').click(); }
+});
+</script>
+</body>
+</html>
