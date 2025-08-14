@@ -27,7 +27,7 @@
       --hover: rgba(255,255,255,0.09); /* subtle overlay highlight */
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
+    html, body { height: 100%; width: 100%; margin: 0; }
     body {
       display: grid;
       place-items: center;
@@ -48,7 +48,7 @@
       grid-auto-rows: 1em;
       gap: 0;
       /* Make the grid fit the screen width/height dynamically */
-      font-size: min(3vw, 3vh); /* scales with viewport */
+      font-size: min(22px); /* scales with viewport */
       line-height: 1;
       user-select: none;
       border: 1px solid var(--border);
