@@ -135,7 +135,7 @@
     let overlay = { open: false, x: 0, y: 0, w: SIZE, h: SIZE, type: 'engines', textLines: [] };
 
     // Hover state for subtle highlight & pointer cursor (engines overlay only)
-    let hover = { x: -1, y: -1, overClickable: false, overOff: false };
+    let hover = { x: -1, y: -1, overClickable: false, overOff: true };
 
     const player = { x: Math.floor(SIZE/2), y: Math.floor(SIZE/2) };
 
@@ -280,7 +280,7 @@
               const line = overlay.textLines[contentY];
               const idx = relX - 1;
               const ch = (idx >= 0 && idx < line.length) ? line[idx] : '';
-              return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--reddish-grey')}">${ch}</span>`;
+              return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--dark-yellow')}">${ch}</span>`;
             }
             return `<span data-x="${x}" data-y="${y}"> </span>`;
           }
@@ -302,7 +302,7 @@
             const inOn  = relX >= onMin  && relX < onMax;
             // If hovering any part of a band, highlight that whole band
             const shouldHighlight = hover.overClickable && ((hover.overOff && inOff) || (!hover.overOff && inOn));
-            const bg = shouldHighlight ? `;background:${getCSS('--hover')}` : '';
+            const bg = shouldHighlight ? `` : '';
 
             // draw OFF letters
             if (relX >= offStart && relX < offStart + OFF.length) {
@@ -314,7 +314,7 @@
             }
             // inside clickable padding area: show highlight when hovered
             if (inOff || inOn) {
-              return `<span data-x="${x}" data-y="${y}" style="${shouldHighlight ? `background:${getCSS('--hover')}` : ''}"> </span>`;
+              return `<span data-x="${x}" data-y="${y}"> </span>`;
             }
           }
           return `<span data-x="${x}" data-y="${y}"> </span>`;
@@ -380,7 +380,7 @@
         openOverlay('engines');
       } else if (ch === '▨') {
         openOverlay('message', {
-          text: "You peer into the endless expanse. Sensors normal, but none of these star systems appear on the Orkney's charts."
+          text: "You peer into the endless expanse. Sensors read as normal, but none of these star systems appear on the ship's many star charts."
         });
       }
     }
@@ -434,7 +434,7 @@
         if (relY === mid) {
           const OFF = 'OFF', ON = 'ON';
           const offStart = 3;
-          const onStart = overlay.w - ON.length - 3;
+          const onStart = overlay.w - ON.length - 2;
           const offMin = Math.max(1, offStart - 2);
           const offMax = Math.min(overlay.w - 2, offStart + OFF.length + 2);
           const onMin  = Math.max(1, onStart  - 2);
@@ -447,7 +447,7 @@
     });
 
     gridEl.addEventListener('mouseleave', () => {
-      hover = { x:-1, y:-1, overClickable:false, overOff:false };
+      hover = { x:-1, y:-1, overClickable:false, overOff:true };
       render();
     });
 
