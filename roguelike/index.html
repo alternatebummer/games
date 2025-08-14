@@ -19,9 +19,12 @@
       --dark-yellow:#a39e5f;
       --gunmetal:#6f818f;
       --reddish-grey:#a46b6b;
+      --blueish-grey:#6b7ca4;
+      --purplish-grey:#8c6ba4;
       --dark-sky:#5bc0eb;
       --floor-grey:#383d42;
       --kitchen-green:#6ba46b;
+      --hover: rgba(255,255,255,0.09); /* subtle overlay highlight */
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
@@ -56,9 +59,9 @@
     .player { color: var(--player); font-weight: bold; }
 
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
-    .dpad { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); gap: 6px; width: max-content; }
+    .dpad { display: grid; grid-template-columns: repeat(3, 48px); margin-left: 20px; grid-template-rows: repeat(3, 48px); gap: 3px; font-size: 25px; width: max-content; }
     .dpad .spacer { visibility: hidden; }
-    .actions { display: flex; justify-content: flex-end; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 50px; margin-right: 20px; align-items: flex-start; gap: 10px; flex-wrap: wrap; font-size: 20px; }
 
     button { background: var(--btn); color: var(--fg); border: 1px solid var(--btnBorder); border-radius: 10px; padding: 10px 14px; cursor: pointer; font: inherit; touch-action: manipulation; }
     button:hover { background: var(--btnHover); }
@@ -99,11 +102,11 @@
       "       ◢▦▣▦◣       ",
       "       ║▦□▦║       ",
       "       ║▦□▦║       ",
-      "       ║▦□▣║       ",
+      "       ║▦□▨║       ",
       "       ║▦□▦║       ",
       "       ◢◩□▦◣       ",
       "      ◢▦□□□▦◣      ",
-      "      ║▣□□□▤║      ",
+      "      ║▩□□□▤║      ",
       "      ◥▦▦▦▦▦◤      ",
       "       ◥☰☰☰◤       ",
       "        ☶ ☶        ",
@@ -112,18 +115,25 @@
       "                   "
     ];
 
-    // Animation frames for blue glyphs at the bottom row
+    // Exhaust animation frames (blue)
     const ANIM_FRAMES = ['☶', '☵', '☳'];
     let animIndex = 0;
-    const animCoords = []; // list of {x, y}
 
     // Starfield (white '.') in columns 1-6 and 14-19 (1-indexed)
     const STAR_COLS = [0,1,2,3,4,5,13,14,15,16,17,18];
     const STAR_SPEED_MAP = new Map(); // col -> 3 or 4 cells/sec
     const STARS_PER_COL = 1;
-    let stars = new Map(); // col -> array of y positions
+    let stars = new Map();            // col -> array<number> y positions
 
     let grid = [];
+    let enginesOn = true; // starfield + exhaust animation state
+
+    // Overlay prompt state (centered dashed box)
+    let overlay = { open: false, x: 1, y: 6, w: 17, h: 6 };
+
+    // Hover state for subtle highlight & pointer cursor
+    let hover = { x: -1, y: -1, overClickable: false, overOff: false };
+
     const player = { x: Math.floor(SIZE/2), y: Math.floor(SIZE/2) };
 
     const getCSS = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -135,30 +145,27 @@
       if (ch === '◩') return getCSS('--kitchen-green');
       if (ch === '▦') return getCSS('--gunmetal');
       if (ch === '▣') return getCSS('--reddish-grey');
+      if (ch === '▨') return getCSS('--blueish-grey');
+      if (ch === '▩') return getCSS('--purplish-grey');
       if ("◢◣◥◤║═".includes(ch)) return getCSS('--gunmetal');
       if ("☰☶☵☳".includes(ch)) return getCSS('--dark-sky');
       return getCSS('--floor-grey');
     };
 
     // Passability rules
-    const isPassable = (ch) => ch === '.' || ch === '□' || ch === '▣' || ch === '◩' || ch === '▤';
+    const isPassable = (ch) =>
+      ch === '.' || ch === '□' || ch === '▣' || ch === '◩' || ch === '▤' || ch === '▩' || ch === '▨';
 
     function loadMap() {
       grid = MAP_TEXT.map(row => row.padEnd(SIZE, ' ').slice(0, SIZE).split(''));
-
-      // Record animated cell coordinates (any of the anim set)
-      for (let y = 0; y < SIZE; y++) {
-        for (let x = 0; x < SIZE; x++) {
-          if ('☶☵☳'.includes(grid[y][x])) animCoords.push({ x, y });
-        }
-      }
-      // Normalize starting frame
-      for (const {x, y} of animCoords) grid[y][x] = ANIM_FRAMES[0];
-
-      // Init starfield
       initStars();
+      ensurePlayerOnPassable();
+      render();
+      startBlueAnim();
+      startStarfield();
+    }
 
-      // Ensure player starts on a passable tile; if center blocked, find nearest
+    function ensurePlayerOnPassable() {
       if (!isPassable(grid[player.y][player.x])) {
         outer: for (let r = 0; r < SIZE; r++) {
           for (let dy = -r; dy <= r; dy++) {
@@ -169,17 +176,13 @@
           }
         }
       }
-      render();
-      startBlueAnim();
-      startStarfield();
     }
 
     function initStars() {
-      // assign speeds alternating 3 and 4 cells/sec
+      // Alternate speeds: 3 and 4 cells/sec
       STAR_COLS.forEach((col, i) => {
-        STAR_SPEED_MAP.set(col, (i % 2 === 0) ? 2 : 4);
+        STAR_SPEED_MAP.set(col, (i % 2 === 0) ? 3 : 4);
         const ys = [];
-        // seed a few star rows randomly where background is space
         while (ys.length < STARS_PER_COL) {
           const y = Math.floor(Math.random() * SIZE);
           if (grid[y][col] === ' ' && !ys.includes(y)) ys.push(y);
@@ -190,20 +193,20 @@
 
     function startBlueAnim() {
       setInterval(() => {
+        if (overlay.open || !enginesOn) return; // pause while overlay open
         animIndex = (animIndex + 1) % ANIM_FRAMES.length;
-        for (const {x, y} of animCoords) grid[y][x] = ANIM_FRAMES[animIndex];
         render();
       }, 1000);
     }
 
     function startStarfield() {
-      // timer for columns at 4 cells/sec
+      // 4 cells/sec -> tick every 250ms
       setInterval(() => {
-        advanceStars((col) => STAR_SPEED_MAP.get(col) === 4);
+        if (!overlay.open && enginesOn) advanceStars(col => STAR_SPEED_MAP.get(col) === 4);
       }, 250);
-      // timer for columns at 3 cells/sec
+      // 3 cells/sec -> tick every ~333ms
       setInterval(() => {
-        advanceStars((col) => STAR_SPEED_MAP.get(col) === 2);
+        if (!overlay.open && enginesOn) advanceStars(col => STAR_SPEED_MAP.get(col) === 3);
       }, 333);
     }
 
@@ -213,9 +216,8 @@
         if (!predicate(col)) continue;
         const ys = stars.get(col) || [];
         for (let i = 0; i < ys.length; i++) {
-          // move down one row; wrap; keep to space-only lanes
-          let ny = (ys[i] + 1) % SIZE;
-          // if wrapped or blocked by hull, try to find next space row
+          let ny = (ys[i] + 1) % SIZE; // move down, wrap
+          // keep to space lanes (skip hull)
           let guard = 0;
           while (grid[ny][col] !== ' ' && guard++ < SIZE) ny = (ny + 1) % SIZE;
           ys[i] = ny;
@@ -226,22 +228,88 @@
       if (moved) render();
     }
 
-    function cellHTML(x, y) {
-      if (player.x === x && player.y === y) return '<span class="player">@</span>';
+    // Helper: ranges for OFF/ON clickable areas (include surrounding spaces)
+    function getOverlayRanges() {
+      const OFF = 'OFF', ON = 'ON';
+      const offStart = 3;
+      const onStart = overlay.w - ON.length - 3;
+      const offMin = Math.max(1, offStart - 2);
+      const offMax = Math.min(overlay.w - 2, offStart + OFF.length + 2);
+      const onMin  = Math.max(1, onStart  - 2);
+      const onMax  = Math.min(overlay.w - 2, onStart  + ON.length  + 2);
+      return { offMin, offMax, onMin, onMax, offStart, onStart, OFF, ON };
+    }
 
-      // Star overlay: if this coordinate is a star (and base is space), draw white '.'
-      if (grid[y][x] === ' ' && STAR_COLS.includes(x)) {
-        const ys = stars.get(x);
-        if (ys && ys.includes(y)) return `<span style="color:${getCSS('--fg')}">.</span>`;
+    function cellHTML(x, y) {
+      // 1) Overlay prompt overrides everything in its rect
+      if (overlay.open) {
+        if (x >= overlay.x && x < overlay.x + overlay.w && y >= overlay.y && y < overlay.y + overlay.h) {
+          const relX = x - overlay.x, relY = y - overlay.y;
+          const isBorder = (relY === 0 || relY === overlay.h - 1 || relX === 0 || relX === overlay.w - 1);
+          if (isBorder) {
+            const corner = (relX === 0 || relX === overlay.w - 1) && (relY === 0 || relY === overlay.h - 1);
+            if (corner) return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--fg')}">□</span>`;
+            const dash = (relY === 0 || relY === overlay.h - 1)
+              ? (relX % 2 === 0 ? '─' : ' ')
+              : (relY % 2 === 0 ? '│' : ' ');
+            return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--fg')}">□</span>`;
+          }
+          const mid = Math.floor(overlay.h/2);
+          if (relY === mid) {
+            const { offMin, offMax, onMin, onMax, offStart, onStart, OFF, ON } = getOverlayRanges();
+
+            const inOff = relX >= offMin && relX < offMax;
+            const inOn  = relX >= onMin  && relX < onMax;
+            // If hovering any part of a band, highlight that whole band cell-by-cell
+            const shouldHighlight = hover.overClickable && (
+              (hover.overOff && inOff) || (!hover.overOff && inOn)
+            );
+            const bg = shouldHighlight ? `;background:${getCSS('--hover')}` : '';
+
+            // draw OFF letters
+            if (relX >= offStart && relX < offStart + OFF.length) {
+              return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--fg')}${bg}">${OFF[relX - offStart]}</span>`;
+            }
+            // draw ON letters
+            if (relX >= onStart && relX < onStart + ON.length) {
+              return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--fg')}${bg}">${ON[relX - onStart]}</span>`;
+            }
+            // inside clickable padding area: show highlight when hovered
+            if (inOff || inOn) {
+              return `<span data-x="${x}" data-y="${y}" style="${shouldHighlight ? `background:${getCSS('--hover')}` : ''}"> </span>`;
+            }
+          }
+          return `<span data-x="${x}" data-y="${y}"> </span>`;
+        }
       }
 
-      const ch = grid[y][x];
-      const color = colorFor(ch);
-      const glyph = ch === ' ' ? ' ' : ch;
-      return `<span style="color:${color}">${glyph}</span>`;
+      // 2) Player
+      if (player.x === x && player.y === y) return `<span data-x="${x}" data-y="${y}" class="player">@</span>`;
+
+      // 3) Stars overlay: only on empty space cells
+      if (grid[y][x] === ' ' && STAR_COLS.includes(x)) {
+        const ys = stars.get(x);
+        if (ys && ys.includes(y)) return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--fg')}">.</span>`;
+      }
+
+      // 4) Engine exhaust overlay (animate when engines ON, blank when OFF)
+      const baseCh = grid[y][x];
+      if ('☶☵☳'.includes(baseCh)) {
+        if (enginesOn) {
+          const ch = ANIM_FRAMES[animIndex];
+          return `<span data-x="${x}" data-y="${y}" style="color:${getCSS('--dark-sky')}">${ch}</span>`;
+        }
+        return `<span data-x="${x}" data-y="${y}"> </span>`;
+      }
+
+      // 5) Base map
+      const color = colorFor(baseCh);
+      const glyph = baseCh === ' ' ? ' ' : baseCh;
+      return `<span data-x="${x}" data-y="${y}" style="color:${color}">${glyph}</span>`;
     }
 
     function tryMove(dx, dy) {
+      if (overlay.open) return; // ignore movement while prompt is open
       const nx = player.x + dx, ny = player.y + dy;
       if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
       const target = grid[ny][nx];
@@ -257,19 +325,96 @@
         for (let x = 0; x < SIZE; x++) out.push(cellHTML(x, y));
       }
       el.innerHTML = out.join('');
+
+      // Cursor feedback
+      if (overlay.open && hover.overClickable) {
+        el.style.cursor = 'pointer';
+      } else {
+        el.style.cursor = '';
+      }
     }
 
-    function doAction() { /* placeholder */ }
+    function doAction() {
+      // Standing on control tile ▩ opens OFF/ON prompt
+      const ch = grid[player.y][player.x];
+      if (ch === '▩') { overlay.open = true; render(); }
+    }
 
     // Input
     document.addEventListener('keydown', e => {
-      const keyMap = { 'ArrowUp':[0,-1], 'ArrowDown':[0,1], 'ArrowLeft':[-1,0], 'ArrowRight':[1,0], 'w':[0,-1], 'a':[-1,0], 's':[0,1], 'd':[1,0], 'W':[0,-1], 'A':[-1,0], 'S':[0,1], 'D':[1,0] };
+      if (overlay.open) {
+        if (e.key === 'Escape') { overlay.open = false; render(); return; }
+        if (e.key.toLowerCase() === 'o') { enginesOn = false; overlay.open = false; render(); return; }
+        if (e.key.toLowerCase() === 'n') { enginesOn = true; overlay.open = false; render(); return; }
+        return; // ignore other keys while overlay is open
+      }
+      const keyMap = {
+        'ArrowUp':[0,-1], 'ArrowDown':[0,1], 'ArrowLeft':[-1,0], 'ArrowRight':[1,0],
+        'w':[0,-1], 'a':[-1,0], 's':[0,1], 'd':[1,0],
+        'W':[0,-1], 'A':[-1,0], 'S':[0,1], 'D':[1,0]
+      };
       if (keyMap[e.key]) { e.preventDefault(); const [dx, dy] = keyMap[e.key]; tryMove(dx, dy); }
       else if (e.key === ' ') { e.preventDefault(); doAction(); }
     });
 
-    document.getElementById('dpad').addEventListener('click', e => { const btn = e.target.closest('button[data-dx]'); if (!btn) return; tryMove(parseInt(btn.dataset.dx, 10), parseInt(btn.dataset.dy, 10)); });
+    // D-pad & Action button
+    document.getElementById('dpad').addEventListener('click', e => {
+      if (overlay.open) return;
+      const btn = e.target.closest('button[data-dx]');
+      if (!btn) return;
+      tryMove(parseInt(btn.dataset.dx, 10), parseInt(btn.dataset.dy, 10));
+    });
     document.getElementById('actionBtn').addEventListener('click', doAction);
+
+    // Hover highlight & selection inside overlay
+    const gridEl = document.getElementById('grid');
+
+    gridEl.addEventListener('mousemove', (e) => {
+      const span = e.target.closest('span[data-x]');
+      if (!span) { hover = { x:-1, y:-1, overClickable:false, overOff:false }; render(); return; }
+      const x = parseInt(span.getAttribute('data-x'), 10);
+      const y = parseInt(span.getAttribute('data-y'), 10);
+      hover.x = x; hover.y = y; hover.overClickable = false; hover.overOff = false;
+
+      if (overlay.open && x >= overlay.x && x < overlay.x + overlay.w && y >= overlay.y && y < overlay.y + overlay.h) {
+        const relX = x - overlay.x, relY = y - overlay.y;
+        const mid = Math.floor(overlay.h/2);
+        if (relY === mid) {
+          const { offMin, offMax, onMin, onMax } = getOverlayRanges();
+          if (relX >= offMin && relX < offMax) { hover.overClickable = true; hover.overOff = true; }
+          else if (relX >= onMin  && relX < onMax)  { hover.overClickable = true; hover.overOff = false; }
+        }
+      }
+      render();
+    });
+
+    gridEl.addEventListener('mouseleave', () => {
+      hover = { x:-1, y:-1, overClickable:false, overOff:false };
+      render();
+    });
+
+    // Use pointerdown so we act before any repaint
+    gridEl.addEventListener('pointerdown', (e) => {
+      if (!overlay.open) return;
+      const span = e.target.closest('span[data-x]');
+      if (!span) return;
+      const x = parseInt(span.getAttribute('data-x'), 10);
+      const y = parseInt(span.getAttribute('data-y'), 10);
+      if (!(x >= overlay.x && x < overlay.x + overlay.w && y >= overlay.y && y < overlay.y + overlay.h)) return;
+
+      const relX = x - overlay.x, relY = y - overlay.y;
+      const mid = Math.floor(overlay.h/2);
+      if (relY !== mid) return; // only middle line clickable
+
+      const { offMin, offMax, onMin, onMax } = getOverlayRanges();
+      // Treat the whole padded bands as triggers
+      if (relX >= offMin && relX < offMax) { enginesOn = false; overlay.open = false; render(); return; }
+      if (relX >= onMin  && relX < onMax)  { enginesOn = true;  overlay.open = false; render(); return; }
+
+      // Fallback by side if between bands
+      if (relX < Math.floor(overlay.w / 2)) { enginesOn = false; overlay.open = false; render(); }
+      else { enginesOn = true; overlay.open = false; render(); }
+    });
 
     loadMap();
   </script>
