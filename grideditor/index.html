@@ -20,6 +20,7 @@
     --reddish-grey:#a46b6b;
     --dark-sky:#5bc0eb;
     --floor-grey:#383d42;
+    --kitchen-green:#6ba46b;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; margin:0; }
@@ -92,7 +93,7 @@
     "       ║▦□▦║       ",
     "       ║▦□▣║       ",
     "       ║▦□▦║       ",
-    "       ◢▦□▦◣       ",
+    "       ◢◩□▦◣       ",
     "      ◢▦□□□▦◣      ",
     "      ║▣□□□▤║      ",
     "      ◥▦▦▦▦▦◤      ",
@@ -108,6 +109,7 @@
     if (ch === ".") return getCSS("--dark-grey");
     if (ch === "▤") return getCSS("--dark-yellow");
     if (ch === "□") return getCSS("--floor-grey");
+    if (ch === "◩") return getCSS("--kitchen-green");
     if (ch === "▦") return getCSS("--gunmetal");
     if (ch === "▣") return getCSS("--reddish-grey");
     if ("◢◣◥◤║═".includes(ch)) return getCSS("--gunmetal");
