@@ -19,6 +19,7 @@
     --gunmetal:#6f818f;
     --reddish-grey:#a46b6b;
     --dark-sky:#5bc0eb;
+    --floor-grey:#383d42;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; margin:0; }
@@ -87,13 +88,13 @@
     "                   ",
     "        ◢═◣        ",
     "       ◢▦▣▦◣       ",
-    "       ║▦.▦║       ",
-    "       ║▦.▦║       ",
-    "       ║▦.▣║       ",
-    "       ║▦.▦║       ",
-    "       ◢▦.▦◣       ",
-    "      ◢▦...▦◣      ",
-    "      ║▣...▤║      ",
+    "       ║▦□▦║       ",
+    "       ║▦□▦║       ",
+    "       ║▦□▣║       ",
+    "       ║▦□▦║       ",
+    "       ◢▦□▦◣       ",
+    "      ◢▦□□□▦◣      ",
+    "      ║▣□□□▤║      ",
     "      ◥▦▦▦▦▦◤      ",
     "       ◥☰☰☰◤       ",
     "        ☶ ☶        ",
@@ -106,6 +107,7 @@
   const colorFor = ch => {
     if (ch === ".") return getCSS("--dark-grey");
     if (ch === "▤") return getCSS("--dark-yellow");
+    if (ch === "□") return getCSS("--floor-grey");
     if (ch === "▦") return getCSS("--gunmetal");
     if (ch === "▣") return getCSS("--reddish-grey");
     if ("◢◣◥◤║═".includes(ch)) return getCSS("--gunmetal");
