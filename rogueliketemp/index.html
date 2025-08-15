@@ -24,7 +24,7 @@
     body{ margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:16px; }
 
     /* Board */
-    #grid{ --size:19; display:grid; grid-template-columns:repeat(var(--size), 1em); grid-auto-rows:1em; font-size:clamp(14px, min(3.6vw, 3.6vh), 22px); line-height:1; user-select:none; border:1px dashed var(--accent); border-radius:14px; background:#111; padding:5px; gap:0; width:fit-content; }
+    #grid{ --size:19; display:grid; grid-template-columns:repeat(var(--size), 1em); grid-auto-rows:1em; font-size:clamp(14px, min(4vw, 4vh), 22px); line-height:1; user-select:none; border:1px dashed var(--accent); border-radius:14px; background:#111; padding:5px; gap:0; width:fit-content; }
     #grid span{ width:1em; height:1em; display:inline-grid; place-items:center; }
     .player{ color:var(--dark-sky); font-weight:700; }
     .floor{ color:var(--dark-grey); }
@@ -33,7 +33,7 @@
     .teleport{ color:var(--kitchen-green); }
 
     /* Controls */
-    .controls{ width:min(850px, 100vw); display:flex; gap:50px; justify-content:center; align-items:flex-start; }
+    .controls{ width:min(800px, 96vw); display:flex; gap:50px; justify-content:center; align-items:flex-start; }
     .dpad{ display:grid; grid-template-areas: ". up ." "left down right"; gap:12px; }
     .btn{ width:64px; height:64px; display:grid; place-items:center; background:#151515; color:var(--accent); border:1px dashed var(--accent); border-radius:10px; font-weight:600; user-select:none; cursor:pointer; }
     .btn:active{ transform:translateY(1px); }
