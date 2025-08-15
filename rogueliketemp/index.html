@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ASCII UI Starter — Two Maps with Warps</title>
+  <style>
+    :root{
+      /* Theme */
+      --bg:#0b0b0b;
+      --fg:#e8e6df;
+      --accent:#a39e5f;     /* borders/buttons */
+      --player:#ffd166;
+
+      /* Optional palette for tiles (extend per-game) */
+      --grey:#6b7280;
+      --steel:#6f818f;
+      --green:#6ba46b;
+      --red:#a46b6b;
+      --blue:#6b7ca4;
+      --purple:#8c6ba4;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; width:100%; margin:0; }
+    body{
+      display:grid;
+      place-items:center;
+      background:var(--bg);
+      color:var(--fg);
+      font-family:monospace;
+      padding:0;
+    }
+
+    .wrap{ display:grid; gap:14px; }
+
+    /* 19x19 ASCII grid, square cells via 1em x 1em */
+    #grid{
+      --size:19;
+      display:grid;
+      grid-template-columns:repeat(var(--size), 1em);
+      grid-auto-rows:1em;
+      gap:0;
+      /* Responsive font sizing: scales down on phones, caps on desktop */
+      font-size:clamp(14px, min(3.6vw, 3.6vh), 22px);
+      line-height:1;
+      user-select:none;
+      border:1px dashed var(--accent);
+      border-radius:12px;
+      padding:0;
+      background:#0e0e0e;
+    }
+    #grid span{
+      width:1em; height:1em;
+      display:inline-block;
+      text-align:center;
+    }
+    .player{ color:var(--player); font-weight:bold; }
+
+    .controls{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      align-items:start;
+    }
+
+    .dpad{
+      display:grid;
+      grid-template-columns:repeat(3, 48px);
+      grid-template-rows:repeat(3, 48px);
+      gap:0;
+      width:max-content;
+      margin-left:30px;
+    }
+    .dpad .spacer{ visibility:hidden; }
+
+    .actions{
+      display:grid;
+      justify-content:flex-end;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    button{
+      background:#1b1b1b;
+      color:var(--accent);
+      border:1px dashed var(--accent);
+      border-radius:10px;
+      padding:12px 18px;
+      cursor:pointer;
+      font:inherit;
+    }
+    button:hover{ background:var(--accent); color:#000; }
+    .btn-big{ margin-right:60px; margin-top:12px; padding:17px 21px; border-radius:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="grid" role="application" aria-label="ASCII grid"></div>
+
+    <div class="controls" aria-label="Controls">
+      <div class="dpad" id="dpad">
+        <span class="spacer"></span>
+        <button data-dx="0" data-dy="-1">↑</button>
+        <span class="spacer"></span>
+        <button data-dx="-1" data-dy="0">←</button>
+        <span class="spacer"></span>
+        <button data-dx="1" data-dy="0">→</button>
+        <span class="spacer"></span>
+        <button data-dx="0" data-dy="1">↓</button>
+        <span class="spacer"></span>
+      </div>
+
+      <div class="actions">
+        <button id="actionBtn" class="btn-big">A</button>
+        <button id="cancelBtn" class="btn-big">B</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * BASIC CONFIG
+     ***********************/
+    const SIZE = 19;
+
+    // Map 1 (x at row 10, col 19: "                  x")
+    const MAP1 = [
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                  x",
+      "□□□□□□□□□□□□□□□□□□□",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   "
+    ];
+
+    // Map 2 (x at row 10, col 1: "x                  ")
+    const MAP2 = [
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "x                   ",
+      "□□□□□□□□□□□□□□□□□□□",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   ",
+      "                   "
+    ];
+
+    const MAPS = [MAP1, MAP2];
+
+    // Which characters are passable?
+    const PASSABLE = new Set([" ", ".", "·", "x"]);
+
+    // Color mapping per character (optional)
+    function colorFor(ch){
+      switch(ch){
+        case "@": return "var(--player)";
+        case "x": return "var(--fg)"; // warp glyph
+        case ".": return "var(--fg)";
+        case "□": return "var(--grey)";
+        default:  return "var(--fg)";
+      }
+    }
+
+    /***********************
+     * ENGINE STATE
+     ***********************/
+    let grid = []; // 2D array of chars for the active map
+    let currentMapIndex = 0; // start on MAP1
+    const player = { x: 9, y: 8 }; // default center-ish; will be corrected if '@' present
+
+    // Cache warp positions for each map (first 'x' found)
+    const warpPositions = MAPS.map(findWarp);
+
+    function findWarp(mapText){
+      for (let y = 0; y < SIZE; y++){
+        const row = mapText[y];
+        const x = row.indexOf("x");
+        if (x !== -1) return { x, y };
+      }
+      return null; // map may not have a warp
+    }
+
+    /***********************
+     * MAP LOADING / SWITCHING
+     ***********************/
+    function loadMap(index){
+      currentMapIndex = index;
+      const MAP_TEXT = MAPS[index];
+      grid = MAP_TEXT.map(row => row.padEnd(SIZE, " ").slice(0, SIZE).split(""));
+
+      // If the map contains '@', use that as starting pos; else keep current pos
+      let foundStart = false;
+      outer: for (let y = 0; y < SIZE; y++){
+        for (let x = 0; x < SIZE; x++){
+          if (grid[y][x] === "@"){ player.x = x; player.y = y; foundStart = true; break outer; }
+        }
+      }
+      // Ensure we're on a passable tile
+      if (!foundStart && !isPassable(getCell(player.x, player.y))){
+        // find nearest passable
+        for (let r = 0; r < SIZE; r++){
+          for (let dy = -r; dy <= r; dy++){
+            for (let dx = -r; dx <= r; dx++){
+              const xx = player.x + dx, yy = player.y + dy;
+              if (inBounds(xx, yy) && isPassable(getCell(xx, yy))){
+                player.x = xx; player.y = yy;
+                dy = r+1; dx = r+1;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      render();
+    }
+
+    function switchToOtherMap(){
+      const nextIndex = currentMapIndex === 0 ? 1 : 0;
+      const destWarp = warpPositions[nextIndex];
+      loadMap(nextIndex);
+      // Place player on the destination map's x location (if any)
+      if (destWarp){
+        player.x = destWarp.x;
+        player.y = destWarp.y;
+        render();
+      }
+    }
+
+    /***********************
+     * BASICS
+     ***********************/
+    function inBounds(x,y){ return x >= 0 && y >= 0 && x < SIZE && y < SIZE; }
+    function getCell(x,y){ return grid[y][x]; }
+    function isPassable(ch){ return PASSABLE.has(ch); }
+
+    function tryMove(dx,dy){
+      const nx = player.x + dx, ny = player.y + dy;
+      if (!inBounds(nx, ny)) return;
+      if (!isPassable(getCell(nx, ny))) return;
+      player.x = nx; player.y = ny;
+
+      // If standing on a warp ('x'), jump to the other map and spawn at its 'x'
+      if (getCell(player.x, player.y) === "x"){
+        switchToOtherMap();
+        return; // render already called inside switch
+      }
+
+      render();
+    }
+
+    // Hooks for A/B (kept for future games)
+    function onAction(){ /* e.g., interact */ }
+    function onCancel(){ /* e.g., back/cancel */ }
+
+    /***********************
+     * RENDERING
+     ***********************/
+    function cellHTML(x,y){
+      if (player.x === x && player.y === y){
+        return `<span data-x="${x}" data-y="${y}" class="player">@</span>`;
+      }
+      const ch = getCell(x,y);
+      const glyph = ch === " " ? " " : ch;
+      const color = colorFor(ch);
+      return `<span data-x="${x}" data-y="${y}" style="color:${color}">${glyph}</span>`;
+    }
+
+    function render(){
+      const el = document.getElementById("grid");
+      const out = [];
+      for (let y = 0; y < SIZE; y++){
+        for (let x = 0; x < SIZE; x++){
+          out.push(cellHTML(x,y));
+        }
+      }
+      el.innerHTML = out.join("");
+    }
+
+    /***********************
+     * INPUT
+     ***********************/
+    document.addEventListener("keydown", (e) => {
+      const map = {
+        ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+        w:[0,-1], a:[-1,0], s:[0,1], d:[1,0],
+        W:[0,-1], A:[-1,0], S:[0,1], D:[1,0]
+      };
+      if (map[e.key]) { e.preventDefault(); const [dx,dy] = map[e.key]; tryMove(dx,dy); }
+      else if (e.key === " ") { e.preventDefault(); onAction(); }
+      else if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+    });
+
+    document.getElementById("dpad").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-dx]");
+      if (!btn) return;
+      tryMove(parseInt(btn.dataset.dx,10), parseInt(btn.dataset.dy,10));
+    });
+    document.getElementById("actionBtn").addEventListener("click", onAction);
+    document.getElementById("cancelBtn").addEventListener("click", onCancel);
+
+    // Boot
+    loadMap(0);
+  </script>
+</body>
+</html>
