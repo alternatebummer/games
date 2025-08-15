@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>26×26 Ripple Simulator (Widening + Dissipation)</title>
+<style>
+  :root{
+    --bg:#0e0f11; --ink:#e8e6df;
+    --h0:#39414a; --h1:#5b8aa6; --h2:#78b1d1; --h3:#b6e0f5; --h4:#ffffff;
+    --cell:1.45rem; /* smaller cells (was 2.25rem) */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", Consolas, monospace;
+    display:grid; place-items:center;
+  }
+  .wrap{display:flex; gap:1.0rem; align-items:center; flex-direction:column}
+  .grid{
+    display:grid; grid-template-columns:repeat(32, var(--cell));
+    grid-auto-rows:var(--cell);
+    user-select:none; cursor:crosshair;
+    border:1px solid #2a3138; border-radius:10px; box-shadow:0 0 0 4px #14181c inset;
+  }
+  .cell{
+    display:grid; place-items:center;
+    border:1px solid #182028;
+    transition:transform 80ms ease;
+    font-weight:700; letter-spacing:0.5px;
+  }
+  .cell:active{ transform:scale(0.96) }
+  .h0{ color:var(--h0) } .h1{ color:var(--h1) }
+  .h2{ color:var(--h2) } .h3{ color:var(--h3) } .h4{ color:var(--h4) }
+  .hud{display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; opacity:0.9}
+  .btn{
+    background:#1b2228; color:#cfe7ff; border:1px solid #2e3a44; padding:.45rem .7rem;
+    border-radius:10px; cursor:pointer; font-weight:600;
+  }
+  .btn:hover{ filter:brightness(1.1) }
+  .legend{display:flex; gap:.4rem; align-items:center}
+  .chip{padding:.2rem .45rem; border-radius:8px; background:#1b2228; border:1px solid #2e3a44}
+  .dot{display:inline-grid; place-items:center; width:1.25rem; height:1.25rem; border-radius:6px; border:1px solid #2e3a44}
+  .dot.h0{background:#12161a}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hud">
+      <button id="clear" class="btn" title="Clear all waves and reset to zeroes">Clear</button>
+      <span class="legend">Topography:
+        <span class="chip"><span class="dot h0">0</span></span>
+        <span class="chip"><span class="dot h1">1</span></span>
+        <span class="chip"><span class="dot h2">2</span></span>
+        <span class="chip"><span class="dot h3">3</span></span>
+        <span class="chip"><span class="dot h4">4</span></span>
+      </span>
+      <span class="chip">Click any cell to spawn a wave</span>
+    </div>
+    <div id="grid" class="grid" aria-label="26 by 26 ripple grid"></div>
+  </div>
+
+<script>
+(() => {
+  const SIZE = 32;                 // grid size
+  const SPEED = 30;               // cells per second wavefront speed
+  const MAX_LEVEL = 50;             // 0..4
+  const BASE_THICKNESS = 2;      // initial half-width (in cells)
+  const GROWTH_RATE = .2;        // half-width grows by this * radius
+  const DECAY_RATE = 8;         // amplitude decay per second (exponential)
+
+  const gridEl = document.getElementById('grid');
+  const clearBtn = document.getElementById('clear');
+
+  // Build cells
+  const cells = new Array(SIZE * SIZE);
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const s = document.createElement('div');
+    s.className = 'cell h0';
+    s.textContent = '0';
+    s.dataset.i = i;
+    gridEl.appendChild(s);
+    cells[i] = s;
+  }
+
+  const ix = i => i % SIZE;
+  const iy = i => (i / SIZE) | 0;
+
+  // Waves: {cx, cy, t0}
+  let waves = [];
+  let running = false;
+  let lastTs = 0;
+
+  function clickToCellIndex(evt){
+    if (evt.target.classList.contains('cell')) return +evt.target.dataset.i;
+    const rect = gridEl.getBoundingClientRect();
+    const cw = rect.width / SIZE, ch = rect.height / SIZE;
+    const gx = Math.min(SIZE-1, Math.max(0, Math.floor((evt.clientX - rect.left) / cw)));
+    const gy = Math.min(SIZE-1, Math.max(0, Math.floor((evt.clientY - rect.top) / ch)));
+    return gy * SIZE + gx;
+  }
+
+  gridEl.addEventListener('pointerdown', (e) => {
+    const i = clickToCellIndex(e);
+    const cx = ix(i), cy = iy(i);
+    waves.push({ cx, cy, t0: performance.now() / 1000 });
+    if (!running) { running = true; lastTs = performance.now()/1000; requestAnimationFrame(loop); }
+  }, { passive:true });
+
+  clearBtn.addEventListener('click', () => {
+    waves = [];
+    for (const c of cells) { c.textContent = '0'; c.className = 'cell h0'; }
+  });
+
+  // Thickening + dissipating ring
+  function levelFromWaveAt(x, y, wave, t) {
+    if (t < 0) return 0;
+    const d = Math.hypot(x - wave.cx, y - wave.cy); // distance from epicenter
+    const r = t * SPEED;                             // current ring radius
+
+    // Ring thickness grows with radius
+    const thickness = BASE_THICKNESS + r * GROWTH_RATE; // half-width of the ring
+
+    // Peak amplitude decays over time (feel free to tweak curve)
+    const peak = MAX_LEVEL * Math.exp(-DECAY_RATE * t);
+
+    // Distance from ring centerline; linear falloff to edges of thickness
+    const distFromRing = Math.abs(d - r);
+    const amp = peak * Math.max(0, 1 - distFromRing / thickness);
+
+    // Quantize to integer 0..4
+    return amp > 0 ? Math.min(MAX_LEVEL, Math.floor(amp + 0.0001)) : 0;
+  }
+
+  function loop(tsMs){
+    const now = tsMs / 1000;
+    const dt = now - lastTs;
+    lastTs = now;
+
+    // Cull waves that have fully left the board and faded
+    const furthest = Math.hypot(SIZE-1, SIZE-1); // ~35.36
+    waves = waves.filter(w => {
+      const t = now - w.t0;
+      const r = t * SPEED;
+      const thickness = BASE_THICKNESS + r * GROWTH_RATE;
+      const faded = Math.exp(-DECAY_RATE * t) * MAX_LEVEL < 0.3; // near zero
+      const offBoard = r - thickness > furthest + 2;
+      return !(faded && offBoard);
+    });
+
+    if (waves.length === 0) { running = false; renderZeros(); return; }
+
+    // Superpose contributions (sum capped at MAX_LEVEL)
+    for (let i = 0; i < cells.length; i++){
+      const x = ix(i), y = iy(i);
+      let sum = 0;
+      for (let k = 0; k < waves.length; k++){
+        const t = now - waves[k].t0;
+        sum += levelFromWaveAt(x, y, waves[k], t);
+        if (sum >= MAX_LEVEL) { sum = MAX_LEVEL; break; }
+      }
+      applyLevel(cells[i], sum | 0);
+    }
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  function renderZeros(){
+    for (const c of cells) { applyLevel(c, 0); }
+  }
+
+  function applyLevel(cell, lvl){
+    if (cell.textContent !== String(lvl)) cell.textContent = String(lvl);
+    const want = 'cell h' + lvl;
+    if (cell.className !== want) cell.className = want;
+  }
+
+  // Keyboard: spawn centered wave with Space
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space'){
+      e.preventDefault();
+      const mid = ((SIZE/2)|0)*SIZE + ((SIZE/2)|0);
+      const cx = ix(mid), cy = iy(mid);
+      waves.push({ cx, cy, t0: performance.now()/1000 });
+      if (!running) { running = true; lastTs = performance.now()/1000; requestAnimationFrame(loop); }
+    }
+  });
+})();
+</script>
+</body>
+</html>

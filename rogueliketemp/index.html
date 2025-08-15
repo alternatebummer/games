@@ -31,6 +31,7 @@
     .wall{ color:var(--gunmetal); }
     .treasure{ color:var(--dark-yellow); }
     .teleport{ color:var(--kitchen-green); }
+    .sign{ color:var(--reddish-grey); }
 
     /* Controls */
     .controls{ width:min(800px, 96vw); display:flex; gap:50px; justify-content:center; align-items:flex-start; }
@@ -81,7 +82,7 @@
       "▣.........@.......▦",
       "▣.................▣",
       "▣.................▣",
-      "▣.................▣",
+      "▣.........#.......▣",
       "▣.................▣",
       "▣.................▣",
       "▣.................▣",
@@ -144,7 +145,8 @@
       }
     }
 
-    function passable(m,x,y){ const ch = maps[m][y][x]; return ch !== '▣'; }
+    function passable(m,x,y){
+        const ch = maps[m][y][x]; return ch !== '▣'; }
 
     function maybeTeleport(){
       const dest = TELEPORTS.get(tpKey(currentMap, player.x, player.y));
