@@ -1,325 +1,481 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Package Delivery Game</title>
-  <style>
-    /* Reset & Global */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #87ceeb 0%, #f0f4f8 100%);
-      color: #2c3e50;
-      padding: 20px;
-      max-width: 100%;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-    }
-
-    /* Horizontal grid container */
-    .grid {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 20px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-    }
-    /* Sections styled as panels */
-    .section {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 16px;
-      border-left: 6px solid #3498db;
-      flex: 0 0 300px;
-      min-width: 280px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Lists of items */
-    .list {
-      list-style: none;
-      padding: 0;
-      margin-top: 8px;
-      flex-grow: 1;
-      overflow-y: auto;
-    }
-    .item {
-      background: #ecf0f1;
-      border-radius: 4px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      transition: background 0.2s;
-    }
-    .item:hover { background: #d0d7de; }
-
-    /* Buttons & controls */
-    label { font-weight: 600; margin-right: 8px; }
-    select {
-      padding: 6px 10px;
-      border: 1px solid #bdc3c7;
-      border-radius: 4px;
-      background: #fff;
-      margin-bottom: 8px;
-      width: 100%;
-    }
-    button {
-      margin-top: 8px;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      background: #3498db;
-      color: white;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      width: 100%;
-    }
-    button:hover:not(:disabled) { background: #2980b9; transform: translateY(-1px); }
-    button:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Stats display */
-    .stats {
-      font-size: 0.9rem;
-      margin-top: 6px;
-      color: #7f8c8d;
-    }
-
-    /* Travel section alignment */
-    .section.travel select { margin-bottom: 0; }
-
-    /* Log styling */
-    .log-list {
-      list-style: none;
-      padding: 0;
-      flex-grow: 1;
-      overflow-y: auto;
-      font-family: 'Courier New', Courier, monospace;
-      background: #f7f9fa;
-      border: 1px solid #bdc3c7;
-      border-radius: 4px;
-      padding: 8px;
-      margin-top: 8px;
-    }
-    .log-list li {
-      padding: 4px 0;
-      border-bottom: 1px dashed #bdc3c7;
-    }
-    .log-list li:last-child { border-bottom: none; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Packed & Onward — A Tiny Travel Game</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --ink:#e9e7e1; --muted:#a9a6a0; --accent:#59c3c3; --danger:#ff6b6b; --ok:#8bd17c;
+    --card:#1f2430; --chip:#2a3140; --gold:#f5c259;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#0c0e12,#12151c 30%,#0f1115);
+    color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Inter,Arial,sans-serif;
+    display:flex; flex-direction:column; min-height:100vh;
+  }
+  header{
+    padding:18px 16px; border-bottom:1px solid #202533; background:#0f1218; position:sticky; top:0; z-index:2;
+  }
+  h1{margin:0; font-size:1.15rem; letter-spacing:.3px}
+  .subtitle{font-size:.9rem; color:var(--muted)}
+  .wrap{max-width:1100px; width:100%; margin:0 auto; padding:16px}
+  .grid{display:grid; gap:16px}
+  .g-3{grid-template-columns: 1.2fr 1fr 1fr}
+  .card{
+    background:var(--panel); border:1px solid #2a3245; border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  .card h2{margin:0; padding:12px 14px; font-size:1rem; border-bottom:1px solid #242b3b; background:var(--card); border-top-left-radius:14px; border-top-right-radius:14px}
+  .pad{padding:12px 14px}
+  .statbar{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .chip{
+    background:var(--chip); border:1px solid #30384b; color:var(--ink); padding:8px 10px; border-radius:999px; font-size:.85rem; display:flex; gap:8px; align-items:center
+  }
+  .meter{height:8px; background:#2a3140; border-radius:6px; overflow:hidden; border:1px solid #30384b}
+  .meter span{display:block; height:100%; background:linear-gradient(90deg,var(--accent),#61d5a9); width:0%}
+  .money{color:var(--gold); font-weight:600}
+  .row{display:flex; gap:10px; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #2b3346}
+  .row:last-child{border-bottom:0}
+  .row small{color:var(--muted)}
+  .btn{
+    appearance:none; border:1px solid #38445f; background:#1f2533; color:var(--ink); padding:8px 10px; border-radius:10px;
+    cursor:pointer; font-size:.9rem; transition:.12s transform ease, .12s background ease;
+  }
+  .btn:hover{transform:translateY(-1px); background:#252d3f}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+  .btn-accent{border-color:#3d6c78; background:#1e3036}
+  .btn-danger{border-color:#6b2b2b; background:#2a1b1b}
+  .btn-ghost{background:transparent}
+  .route{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+  .stop{
+    padding:6px 10px; border-radius:999px; border:1px solid #2d364a; background:#1a1f2a; font-size:.85rem;
+  }
+  .stop.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(89,195,195,.25) inset}
+  .stop.done{opacity:.6}
+  .hint{color:var(--muted); font-size:.85rem}
+  .list{max-height:340px; overflow:auto; padding-right:4px}
+  .empty{color:var(--muted); text-align:center; padding:14px 8px; border:1px dashed #334059; border-radius:10px}
+  .pill{font-size:.75rem; padding:2px 6px; border-radius:999px; background:#263046; border:1px solid #344461; color:#cfe6ff}
+  .right{display:flex; gap:8px; align-items:center}
+  .muted{color:var(--muted)}
+  .need{color:#c9e26b; font-weight:600}
+  footer{padding:16px}
+  .flex{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .grow{flex:1}
+  .spacer{height:8px}
+  dialog{
+    border:none; border-radius:16px; padding:0; width:min(560px,92vw); background:#10131a; color:var(--ink);
+    box-shadow:0 24px 70px rgba(0,0,0,.6); border:1px solid #2b3448);
+  }
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .dlg-head{padding:14px; background:#1e2432; border-top-left-radius:16px; border-top-right-radius:16px; border-bottom:1px solid #2a344a}
+  .dlg-body{padding:14px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+  .center{text-align:center}
+  .small{font-size:.9rem}
+</style>
 </head>
 <body>
-  <h1>Package Delivery Simulator</h1>
+  <header>
+    <div class="wrap">
+      <h1>Packed & Onward</h1>
+      <div class="subtitle">Make it from your start to the destination through <strong>3 stops</strong>—keep under pack limits and don’t run out of cash.</div>
+      <div class="route" id="routeBar"></div>
+    </div>
+  </header>
 
-  <div class="grid">
-    <section class="section">
-      <h2>Current Location</h2>
-      <div id="current-depot" class="stats"></div>
-      <label for="depot-select">Pick Depot for Contracts:</label>
-      <select id="depot-select"></select>
+  <div class="wrap grid g-3">
+    <section class="card">
+      <h2>Journey & Stats</h2>
+      <div class="pad">
+        <div class="statbar">
+          <div class="chip">Leg: <span id="legNow" class="mono">—</span>/<span id="legTotal" class="mono">—</span></div>
+          <div class="chip">Location: <span id="where" class="mono">—</span></div>
+          <div class="chip">Funds: <span id="funds" class="mono money">$—</span></div>
+          <div class="chip">Slots:
+            <span class="mono" id="slotsUsed">0</span>/<span class="mono" id="slotsMax">0</span>
+          </div>
+          <div class="chip" style="min-width:200px">
+            <div class="grow">
+              <div class="meter" title="Weight">
+                <span id="wtMeter"></span>
+              </div>
+              <div class="hint small">Weight <span id="wtNow" class="mono">0</span>/<span id="wtMax" class="mono">0</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div class="card" style="background:#151a25">
+          <div class="pad">
+            <div class="row">
+              <div>
+                <div class="muted small">Next leg costs</div>
+                <div class="mono" id="nextCosts">$— (fare + lodging)</div>
+              </div>
+              <div class="right">
+                <span class="pill" id="needPill" title="Helpful item for the next leg">Need: —</span>
+                <button class="btn btn-accent" id="btnTravel">Travel →</button>
+              </div>
+            </div>
+            <div class="hint">You can’t travel if you exceed slots or weight, or can’t afford the next leg.</div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="section">
-      <h2>Depot Contracts</h2>
-      <ul id="depot-list" class="list"></ul>
-      <button id="accept-btn" disabled>Accept Contract(s)</button>
+    <section class="card">
+      <h2>Backpack</h2>
+      <div class="pad">
+        <div id="packList" class="list"></div>
+        <div class="spacer"></div>
+        <div class="flex">
+          <button class="btn btn-danger" id="btnDropAll">Drop all</button>
+          <span class="hint">Sell from your backpack (50% value) or drop to free space.</span>
+        </div>
+      </div>
     </section>
 
-    <section class="section">
-      <h2>Inventory (Max 12kg)</h2>
-      <ul id="inventory-list" class="list"></ul>
-      <div id="inventory-stats" class="stats">Packages: 0, Weight: 0/12kg, Value: $0</div>
-    </section>
-
-    <section class="section travel">
-      <h2>Travel</h2>
-      <label for="destination-select">Destination Depot:</label>
-      <select id="destination-select"></select>
-      <button id="travel-btn">Travel</button>
-      <button id="reset-btn">Reset Game</button>
-    </section>
-
-    <section class="section">
-      <h2>Delivery Log</h2>
-      <ul id="delivery-log" class="log-list"></ul>
+    <section class="card">
+      <h2>Stop Market</h2>
+      <div class="pad">
+        <div id="shopList" class="list"></div>
+        <div class="spacer"></div>
+        <div class="flex">
+          <button class="btn" id="btnRestock">Refresh market</button>
+          <span class="hint">Buy items to prepare for the next leg’s need. Prices vary by stop.</span>
+        </div>
+      </div>
     </section>
   </div>
 
-  <script>
-    const MAX_WEIGHT = 12;
-    const contractDepots = ["Central Depot", "North Depot", "South Depot", "East Depot", "West Depot"];
+  <footer class="wrap">
+    <div class="flex">
+      <button class="btn btn-ghost" id="btnNew">↻ New Journey</button>
+      <span class="hint">Tip: Light but useful kits (e.g., raincoat, snacks, water, map) help avoid penalties.</span>
+    </div>
+  </footer>
 
-    let depotPackages = {};
-    let acceptedContracts = [];
-    let inventory = [];
-    let selectedContracts = new Set();
-    let currentDepot = "Central Depot";
+  <dialog id="dlg">
+    <div class="dlg-head"><strong id="dlgTitle">Results</strong></div>
+    <div class="dlg-body" id="dlgBody"></div>
+    <div class="pad" style="display:flex; justify-content:flex-end; gap:8px">
+      <button class="btn" id="dlgClose">OK</button>
+    </div>
+  </dialog>
 
-    const currentDepotEl = document.getElementById('current-depot');
-    const depotSelectEl   = document.getElementById('depot-select');
-    const depotListEl     = document.getElementById('depot-list');
-    const acceptBtn       = document.getElementById('accept-btn');
-    const inventoryListEl = document.getElementById('inventory-list');
-    const inventoryStatsEl= document.getElementById('inventory-stats');
-    const destSelectEl    = document.getElementById('destination-select');
-    const travelBtn       = document.getElementById('travel-btn');
-    const resetBtn        = document.getElementById('reset-btn');
-    const logEl           = document.getElementById('delivery-log');
+<script>
+(() => {
+  // ---------- Data ----------
+  const LOCATIONS = [
+    "Harborview", "Willowridge", "Stoneford", "Larkspur", "Riverton",
+    "Hollowgate", "Brimcliff", "Northstar", "Sunvale", "Frostbridge",
+    "Copperden", "Mistwick", "Ashport", "Greengate", "Blue Hollow"
+  ];
+  const ITEMS = [
+    {name:"Water Bottle", weight:1, slots:1, base:12, tags:["water"]},
+    {name:"Snacks", weight:1, slots:1, base:10, tags:["snack"]},
+    {name:"Raincoat", weight:1, slots:1, base:22, tags:["rain"]},
+    {name:"Map", weight:0.5, slots:1, base:15, tags:["map"]},
+    {name:"Warm Layer", weight:1.5, slots:1, base:28, tags:["warm"]},
+    {name:"First Aid", weight:1, slots:1, base:24, tags:["aid"]},
+    {name:"Power Bank", weight:1, slots:1, base:20, tags:["power"]},
+    {name:"Transit Pass", weight:0.2, slots:1, base:18, tags:["ticket"]},
+    {name:"Sunscreen", weight:0.2, slots:1, base:8, tags:["sun"]},
+    {name:"Multi-tool", weight:1, slots:1, base:26, tags:["tool"]}
+  ];
+  const NEEDS = [
+    {key:"ticket", label:"Transit Pass"},
+    {key:"water", label:"Water Bottle"},
+    {key:"rain", label:"Raincoat"},
+    {key:"map", label:"Map"},
+    {key:"warm", label:"Warm Layer"},
+    {key:"snack", label:"Snacks"}
+  ];
 
-    function resetDepotPackages() {
-      return {
-        "Central Depot": [
-          {id:1, weight:5, value:100, destination:"North Depot"},
-          {id:2, weight:10, value:200, destination:"South Depot"},
-          {id:3, weight:3, value:150, destination:"East Depot"},
-          {id:4, weight:8, value:90, destination:"West Depot"}
-        ],
-        "North Depot": [
-          {id:5, weight:6, value:130, destination:"South Depot"},
-          {id:6, weight:2, value:70, destination:"East Depot"}
-        ],
-        "South Depot": [
-          {id:7, weight:4, value:110, destination:"West Depot"},
-          {id:8, weight:5, value:95, destination:"North Depot"}
-        ],
-        "East Depot": [
-          {id:9, weight:7, value:180, destination:"West Depot"},
-          {id:10,weight:1, value:60, destination:"South Depot"}
-        ],
-        "West Depot": [
-          {id:11,weight:3, value:75, destination:"North Depot"},
-          {id:12,weight:8, value:160, destination:"East Depot"}
-        ]
-      };
+  // ---------- Helpers ----------
+  const $ = sel => document.querySelector(sel);
+  const fmt$ = n => "$" + n.toFixed(0);
+  const rand = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+  const pick = arr => arr[rand(0,arr.length-1)];
+  const shuffle = arr => arr.map(v=>({v, r:Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
+
+  // ---------- State ----------
+  let state;
+  const newGame = () => {
+    const route = shuffle(LOCATIONS).slice(0,5);
+    const capacity = {slots:6, weight:6}; // can tweak here
+    const funds = 120;
+    const backpack = [
+      cloneItem("Water Bottle"), cloneItem("Snacks"), cloneItem("Map")
+    ];
+    const leg = 0; // at route[0]
+    const next = makeLeg(route, leg);
+    state = {route, leg, funds, capacity, backpack, next};
+    hydrateShop();
+    renderAll();
+    say(`Journey created: <b>${route[0]}</b> → <b>${route[4]}</b> via 3 stops.`, "New Journey");
+  };
+
+  const cloneItem = (name) => {
+    const base = ITEMS.find(i=>i.name===name);
+    return JSON.parse(JSON.stringify(base));
+  };
+
+  const makeLeg = (route, leg) => {
+    // Leg info from current location to next
+    if (leg >= route.length-1) return null;
+    const distance = rand(2,6); // abstract "hours"
+    const fare = 10 + distance * rand(5,9);
+    const lodging = rand(12,24);
+    const need = pick(NEEDS);
+    return {from: route[leg], to: route[leg+1], fare, lodging, distance, need};
+  };
+
+  const legTotal = () => state.route.length - 1;
+
+  const currentWeight = () => state.backpack.reduce((s,i)=>s+i.weight,0);
+  const currentSlots  = () => state.backpack.reduce((s,i)=>s+i.slots,0);
+
+  const canAffordNext = () => {
+    if (!state.next) return false;
+    return state.funds >= (state.next.fare + state.next.lodging);
+  };
+
+  const needSatisfied = () => {
+    const key = state.next?.need.key;
+    if (!key) return true;
+    return state.backpack.some(i => (i.tags||[]).includes(key));
+  };
+
+  // Shop generation varies by stop (slightly random pricing)
+  let shop = [];
+  const hydrateShop = () => {
+    shop = shuffle(ITEMS).slice(0,6).map(it => {
+      const price = Math.max(6, Math.round(it.base * (0.8 + Math.random()*0.6)));
+      return {...JSON.parse(JSON.stringify(it)), price};
+    });
+  };
+
+  // ---------- Rendering ----------
+  const renderAll = () => {
+    renderRoute();
+    $("#legNow").textContent = state.leg;
+    $("#legTotal").textContent = legTotal();
+    $("#where").textContent = state.route[state.leg];
+    $("#funds").textContent = fmt$(state.funds);
+
+    $("#slotsUsed").textContent = currentSlots().toFixed(0);
+    $("#slotsMax").textContent = state.capacity.slots;
+    $("#wtNow").textContent    = currentWeight().toFixed(1);
+    $("#wtMax").textContent    = state.capacity.weight.toFixed(1);
+
+    const wtPct = Math.min(100, Math.round(currentWeight()/state.capacity.weight*100));
+    $("#wtMeter").style.width = wtPct + "%";
+
+    if (state.next){
+      $("#nextCosts").textContent = `${fmt$(state.next.fare + state.next.lodging)} = ${fmt$(state.next.fare)} fare + ${fmt$(state.next.lodging)} lodging`;
+      $("#needPill").textContent = `Need: ${state.next.need.label}`;
+    } else {
+      $("#nextCosts").textContent = "—";
+      $("#needPill").textContent = "—";
+    }
+    renderBackpack();
+    renderShop();
+
+    const overSlots = currentSlots() > state.capacity.slots;
+    const overWeight = currentWeight() > state.capacity.weight;
+    $("#btnTravel").disabled = !state.next || overSlots || overWeight || !canAffordNext();
+
+    $("#btnDropAll").disabled = state.backpack.length===0;
+  };
+
+  const renderRoute = () => {
+    const bar = $("#routeBar");
+    bar.innerHTML = "";
+    state.route.forEach((name, idx) => {
+      const el = document.createElement("div");
+      el.className = "stop" + (idx < state.leg ? " done" : idx===state.leg ? " active":"");
+      el.textContent = `${idx}. ${name}`;
+      bar.appendChild(el);
+    });
+  };
+
+  const renderBackpack = () => {
+    const wrap = $("#packList");
+    wrap.innerHTML = "";
+    if (!state.backpack.length) {
+      wrap.innerHTML = `<div class="empty">Your backpack is empty.</div>`;
+      return;
+    }
+    state.backpack.forEach((it, idx) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <div><strong>${it.name}</strong></div>
+          <small>${it.weight} wt • ${it.slots} slot${it.slots>1?"s":""}</small>
+        </div>
+        <div class="right">
+          <button class="btn btn-danger" title="Drop" data-idx="${idx}" data-act="drop">Drop</button>
+          <button class="btn" title="Sell (50%)" data-idx="${idx}" data-act="sell">Sell ${fmt$(getSellPrice(it))}</button>
+        </div>
+      `;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll("button").forEach(b=>{
+      b.addEventListener("click", onPackAction);
+    });
+  };
+
+  const getSellPrice = (it) => {
+    // Use closest shop price baseline (if present), otherwise base
+    const price = (shop.find(s=>s.name===it.name)?.price) ?? it.base;
+    return Math.max(2, Math.round(price * 0.5));
+  };
+
+  const onPackAction = (e) => {
+    const idx = +e.currentTarget.dataset.idx;
+    const act = e.currentTarget.dataset.act;
+    const it = state.backpack[idx];
+    if (!it) return;
+    if (act === "drop"){
+      state.backpack.splice(idx,1);
+    } else if (act === "sell"){
+      state.backpack.splice(idx,1);
+      state.funds += getSellPrice(it);
+    }
+    renderAll();
+  };
+
+  const renderShop = () => {
+    const wrap = $("#shopList");
+    wrap.innerHTML = "";
+    if (!shop.length) {
+      wrap.innerHTML = `<div class="empty">Market is empty. Try “Refresh market”.</div>`;
+      return;
+    }
+    shop.forEach((it, idx) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <div><strong>${it.name}</strong> <span class="muted">— ${fmt$(it.price)}</span></div>
+          <small>${it.weight} wt • ${it.slots} slot${it.slots>1?"s":""}</small>
+        </div>
+        <div class="right">
+          ${(state.next && (state.next.need.key && (it.tags||[]).includes(state.next.need.key))) ? `<span class="pill">Helps: ${state.next.need.label}</span>` : ""}
+          <button class="btn btn-accent" data-idx="${idx}" data-act="buy" ${state.funds<it.price?"disabled":""}>Buy</button>
+        </div>
+      `;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll("button").forEach(b=>{
+      b.addEventListener("click", onShopAction);
+    });
+  };
+
+  const onShopAction = (e) => {
+    const idx = +e.currentTarget.dataset.idx;
+    const it = shop[idx];
+    if (!it) return;
+    if (state.funds < it.price) return;
+    // Add to backpack if it fits by slots (weight can overflow temporarily; you must fix before travel)
+    state.funds -= it.price;
+    state.backpack.push(JSON.parse(JSON.stringify(it)));
+    renderAll();
+  };
+
+  // ---------- Travel ----------
+  const travel = () => {
+    if (!state.next) return;
+    const overSlots = currentSlots() > state.capacity.slots;
+    const overWeight = currentWeight() > state.capacity.weight;
+    if (overSlots || overWeight) {
+      warn("You must repack under your slots and weight limits before traveling.");
+      return;
+    }
+    const cost = state.next.fare + state.next.lodging;
+    if (state.funds < cost) {
+      warn("You can’t afford the next leg. Sell something or refresh the market.");
+      return;
     }
 
-    function init() {
-      depotPackages = resetDepotPackages();
-      acceptedContracts = [];
-      inventory = [];
-      selectedContracts.clear();
-      currentDepot = "Central Depot";
-      logEl.innerHTML = '';
+    // Spend base costs
+    state.funds -= cost;
 
-      currentDepotEl.textContent = currentDepot;
-      depotSelectEl.innerHTML = contractDepots.map(d => `<option value="${d}">${d}</option>`).join('');
-      depotSelectEl.value = currentDepot;
-      depotSelectEl.addEventListener('change', renderDepot);
-
-      travelBtn.addEventListener('click', runTravel);
-      resetBtn.addEventListener('click', init);
-      acceptBtn.addEventListener('click', acceptContracts);
-      depotListEl.addEventListener('change', handleContractSelect);
-
-      updateTravelOptions();
-      renderDepot();
-      renderInventory();
+    // Event: if need not satisfied, apply penalty
+    let penalty = 0, msg = "";
+    if (!needSatisfied()){
+      // Penalty: unexpected expense 8–22
+      penalty = rand(8,22);
+      state.funds -= penalty;
+      msg = `You were missing <span class="need">${state.next.need.label}</span> and had to improvise. Unexpected expenses: <b>${fmt$(penalty)}</b>.`;
+    } else {
+      msg = `Prepared! Carrying <span class="need">${state.next.need.label}</span> helped you avoid extra costs.`;
     }
 
-    function updateTravelOptions() {
-      destSelectEl.innerHTML = contractDepots
-        .filter(d => d !== currentDepot)
-        .map(d => `<option value="${d}">${d}</option>`)
-        .join('');
+    // Advance leg
+    const arrived = state.next.to;
+    state.leg += 1;
+    state.next = makeLeg(state.route, state.leg);
+    hydrateShop();
+    renderAll();
+
+    // Outcome dialog
+    if (state.leg === state.route.length - 1) {
+      // Arrived at final destination
+      const result = state.funds >= 0 ? "You made it!" : "You arrived broke!";
+      const flair  = state.funds >= 40 ? "Traveler Supreme" : state.funds >= 0 ? "Nicely Done" : "Close Call";
+      say(`
+        <div class="center">
+          <h3>${result}</h3>
+          <p>You reached <b>${arrived}</b>, after 3 stops.</p>
+          <p>Final funds: <b class="money">${fmt$(Math.max(0,state.funds))}</b></p>
+          <p class="small muted">Title earned: <b>${flair}</b></p>
+        </div>
+        <hr>
+        <p class="small">Tip for next time: mind the “Need” tag each leg—buy once, sell later if you must.</p>
+      `, "Destination Reached");
+    } else {
+      say(`
+        <p>You traveled to <b>${arrived}</b>.</p>
+        <ul>
+          <li>Base expenses: <b>${fmt$(cost)}</b> (fare + lodging)</li>
+          ${penalty? `<li>Penalty: <b>${fmt$(penalty)}</b></li>`:""}
+          <li>${msg}</li>
+        </ul>
+        <p>Remaining funds: <b class="money">${fmt$(Math.max(0,state.funds))}</b></p>
+      `, "Leg Complete");
     }
+  };
 
-    function renderDepot() {
-      const depot = depotSelectEl.value;
-      const list = depotPackages[depot] || [];
-      depotListEl.innerHTML = list.length
-        ? list.map(p => `<li class="item"><label><input type="checkbox" value="${p.id}"> Package ${p.id}: ${p.weight}kg, $${p.value}, to ${p.destination}</label></li>`).join('')
-        : '<li class="item">No contracts available.</li>';
-      selectedContracts.clear();
-      acceptBtn.disabled = true;
+  // ---------- Dialog helpers ----------
+  const dlg = $("#dlg"), dlgBody=$("#dlgBody"), dlgTitle=$("#dlgTitle");
+  const say = (html, title="Notice") => {
+    dlgTitle.textContent = title;
+    dlgBody.innerHTML = html;
+    dlg.showModal();
+  };
+  const warn = (msg) => say(`<p>${msg}</p>`, "Heads up");
+
+  // ---------- Events ----------
+  $("#btnTravel").addEventListener("click", travel);
+  $("#btnRestock").addEventListener("click", ()=>{ hydrateShop(); renderAll(); });
+  $("#btnDropAll").addEventListener("click", ()=>{
+    if (!state.backpack.length) return;
+    if (confirm("Drop everything in your backpack?")) {
+      state.backpack = [];
+      renderAll();
     }
+  });
+  $("#btnNew").addEventListener("click", ()=>{ newGame(); });
+  $("#dlgClose").addEventListener("click", ()=> dlg.close());
 
-    function handleContractSelect(e) {
-      if (e.target.matches('input[type=checkbox]')) {
-        const id = Number(e.target.value);
-        e.target.checked ? selectedContracts.add(id) : selectedContracts.delete(id);
-        acceptBtn.disabled = selectedContracts.size === 0 || !canAcceptSelected();
-      }
-    }
-
-    function canAcceptSelected() {
-      const depot = depotSelectEl.value;
-      const list = depotPackages[depot] || [];
-      const selW = list.filter(p => selectedContracts.has(p.id)).reduce((sum,p) => sum + p.weight, 0);
-      const curW = inventory.reduce((sum,p) => sum + p.weight, 0) + acceptedContracts.reduce((sum,p) => sum + p.weight, 0);
-      return curW + selW <= MAX_WEIGHT;
-    }
-
-    function acceptContracts() {
-      const depot = depotSelectEl.value;
-      const list = depotPackages[depot] || [];
-      const moving = list.filter(p => selectedContracts.has(p.id));
-      moving.forEach(p => {
-        if (depot === currentDepot) {
-          inventory.push(p);
-          logEvent(`Picked up Package ${p.id} at ${depot}`);
-        } else {
-          acceptedContracts.push({...p, origin: depot});
-          logEvent(`Accepted Contract for Package ${p.id} at ${depot}`);
-        }
-      });
-      depotPackages[depot] = list.filter(p => !selectedContracts.has(p.id));
-      selectedContracts.clear();
-      renderDepot(); renderInventory();
-    }
-
-    function renderInventory() {
-      inventoryListEl.innerHTML = inventory.length
-        ? inventory.map(p => `<li class="item">Package ${p.id}: ${p.weight}kg, $${p.value}, to ${p.destination}</li>`).join('')
-        : '<li class="item">Inventory is empty.</li>';
-      updateInventoryStats();
-    }
-
-    function updateInventoryStats() {
-      const count = inventory.length;
-      const weight = inventory.reduce((sum,p) => sum + p.weight, 0);
-      const value = inventory.reduce((sum,p) => sum + p.value, 0);
-      inventoryStatsEl.textContent = `Packages: ${count}, Weight: ${weight}/${MAX_WEIGHT}kg, Value: $${value}`;
-    }
-
-    function runTravel() {
-      const destination = destSelectEl.value;
-      const previous = currentDepot;
-      currentDepot = destination;
-      logEvent(`Traveled from ${previous} to ${currentDepot}`);
-      currentDepotEl.textContent = currentDepot;
-      depotSelectEl.value = currentDepot;
-
-      updateTravelOptions(); renderDepot();
-
-      const pickups = acceptedContracts.filter(c => c.origin === currentDepot);
-      pickups.forEach(p => { inventory.push(p); logEvent(`Picked up Package ${p.id} at ${currentDepot}`); });
-      acceptedContracts = acceptedContracts.filter(c => c.origin !== currentDepot);
-      renderInventory();
-
-      const delivered = inventory.filter(p => p.destination === currentDepot);
-      if (delivered.length) { delivered.forEach(p => logEvent(`Delivered Package ${p.id} to ${currentDepot}`)); inventory = inventory.filter(p => p.destination !== currentDepot); renderInventory(); }
-      else { logEvent(`No packages delivered at ${currentDepot}`); }
-
-      if (!inventory.length && Object.values(depotPackages).every(arr => arr.length === 0) && acceptedContracts.length===0) setTimeout(() => alert('Congratulations! All packages delivered!'),100);
-    }
-
-    function logEvent(text) { const li = document.createElement('li'); li.textContent = text; logEl.appendChild(li); }
-
-    init();
-  </script>
+  // ---------- Boot ----------
+  newGame();
+})();
+</script>
 </body>
 </html>
