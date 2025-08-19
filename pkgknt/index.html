@@ -72,7 +72,7 @@
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
   }
   .equal{ display:flex; flex-direction:column; }
-  .subhead{font-size:12px; color:var(--muted); margin:4px 0 10px}
+  .subhead{font-size:20px; text-align:center; color:var(--muted); margin:4px 0 10px}
 
   /* Centered stacks for gen/knight content */
   .stack-center{
@@ -182,21 +182,19 @@
     <div class="main">
       <!-- Generator -->
       <section class="card equal gen">
-        <div class="subhead">Generator</div>
-        <div class="Gen-info">Click for package info. Long press to drag.</div>
+        <div class="subhead">Package Portal</div>
         <div class="stack-center">
           <div id="generatorSlot" class="slot"></div>
-          <button id="btnGen" title="Generate Package (15 mana)">Generate Package</button>
+          <button id="btnGen" title="Generate Package (15 mana)">Activate (15 mana)</button>
         </div>
       </section>
 
       <!-- Package Knight -->
       <section class="card equal knight">
         <div class="subhead">Package Knight</div>
-        <div class="knight-info">Your courier can carry exactly one package.</div>
         <div class="stack-center">
           <div id="knightSlot" class="knight-slot">
-            <div class="placeholder">no package</div>
+            <div class="placeholder">Empty</div>
           </div>
           <button id="btnDeliver">Deliver Package</button>
         </div>
