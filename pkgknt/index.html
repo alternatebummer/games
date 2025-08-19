@@ -42,6 +42,15 @@
     -webkit-touch-callout: none;           /* iOS long-press menu */
     -webkit-tap-highlight-color: transparent;
   }
+  .main{
+  display:grid; gap:var(--gap);
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "gen knight"
+    "inv inv";
+  max-width: 600px;
+  margin: 0 auto;
+}
   @media (max-width: 760px){
     .main{
       grid-template-columns: 1fr;
