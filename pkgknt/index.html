@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PACKAGE KNIGHT WIZARD — UI Skeleton with Slots</title>
+<title>PACKAGE KNIGHT WIZARD — Click-to-Move</title>
 <style>
   :root{
     --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
     --accent:#d9b36a; --outline:#2c313a; --slot:#1f232a;
     --gap:16px;
-    --slot-size:100px;                 /* unified, square slot size */
+    --slot-size:100px;
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -19,14 +19,13 @@
     display:grid; place-items:start center;
   }
 
-  /* Wrapper */
   .wrap{
     width:min(1024px,95vw);
     padding:20px 16px 40px;
     display:grid; gap:var(--gap);
   }
 
-  /* Title card (top bar) */
+  /* Title card */
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     gap:12px; padding:12px 16px;
@@ -35,35 +34,31 @@
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
   }
   .title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
-  .mana{ font-weight:700; color:var(--ink) }
+  .mana{ font-weight:700 }
 
-  /* Board: Generator + Knight side-by-side; Inventory full-width below */
+  /* Board layout: Gen + Knight side-by-side; Inventory full width below */
   .main{
     display:flex; flex-wrap:wrap; gap:var(--gap);
     width:600px; max-width:600px; margin:0 auto;
   }
-  .gen, .knight{
-    flex:0 0 calc((600px - var(--gap))/2); /* equal halves */
-    min-width:0;
-  }
+  .gen, .knight{ flex:0 0 calc((600px - var(--gap))/2); min-width:0; }
   .inv{ flex:0 0 100%; }
 
-  /* Card chrome shared by Generator, Knight, Inventory */
+  /* Cards */
   .card{
     background:linear-gradient(180deg, var(--panel), #0f1216 85%);
     border:1px solid var(--outline); border-radius:12px; padding:14px;
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
     min-height:160px;
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
-
   .subhead{
     width:100%;
     font-size:12px; color:var(--muted);
     margin:0 0 8px; text-transform:uppercase; letter-spacing:.06em;
   }
 
-  /* Slots (unified square look for all areas) */
+  /* Slots (square) */
   .slot, .knight-slot, .inv-slot{
     width:var(--slot-size); height:var(--slot-size);
     background:var(--slot);
@@ -71,32 +66,70 @@
     border-radius:12px;
     display:grid; place-items:center;
     position:relative; overflow:hidden;
+    transition:border-color .15s ease, background .15s ease, transform .06s ease;
+    cursor:pointer;
   }
-  .placeholder{
-    color:var(--muted); font-size:12px; opacity:.9;
-  }
+  .slot:hover, .knight-slot:hover, .inv-slot:hover{ border-color:var(--accent); }
 
-  /* Inventory slot grid: 5 slots */
+  .placeholder{ color:var(--muted); font-size:12px; opacity:.9; }
+
+  /* Inventory grid: 5 slots */
   .inv .grid{
     display:grid;
     grid-template-columns: repeat(5, var(--slot-size));
     gap:12px;
-    justify-content:center;        /* center the 5 fixed-size slots */
+    justify-content:center;
     margin-top:8px;
+  }
+
+  /* Package chip */
+  .pkg{
+    --ring:transparent;
+    display:grid; place-items:center; gap:4px; text-align:center;
+    width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
+    border-radius:10px; user-select:none; border:1px solid var(--outline);
+    background:
+      radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
+      linear-gradient(180deg,#182029,#11161c);
+    transition:transform .06s ease, box-shadow .12s ease, border-color .12s ease;
+    pointer-events:auto; cursor:pointer;
+  }
+  .pkg .icon{ font-size:32px; line-height:1 }
+  .pkg .tag{
+    margin-top:2px; font-size:11px; color:var(--muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
+  }
+
+  /* Selection states */
+  .pkg.is-selected{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(217,179,106,.25);
+    transform:scale(0.98);
+  }
+  .board-selecting .slot,
+  .board-selecting .knight-slot,
+  .board-selecting .inv-slot{
+    outline:1px dashed rgba(217,179,106,.25);
+  }
+
+  /* Interaction niceties */
+  .main, .main *{
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent;
   }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- Title Card -->
+    <!-- Title -->
     <header class="topbar">
       <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
       <div class="mana">Mana Crystals: 50/50</div>
     </header>
 
-    <!-- Cards Row -->
-    <div class="main">
-      <!-- Generator (1 slot) -->
+    <!-- Board -->
+    <div class="main" id="board">
+      <!-- Generator -->
       <section class="card gen" aria-label="Generator">
         <div class="subhead">Generator</div>
         <div class="slot" aria-label="Generator slot">
@@ -104,7 +137,7 @@
         </div>
       </section>
 
-      <!-- Package Knight (1 slot) -->
+      <!-- Package Knight -->
       <section class="card knight" aria-label="Package Knight">
         <div class="subhead">Package Knight</div>
         <div class="knight-slot" aria-label="Knight slot">
@@ -112,11 +145,17 @@
         </div>
       </section>
 
-      <!-- Inventory (5 slots) -->
+      <!-- Inventory -->
       <section class="card inv" aria-label="Inventory">
         <div class="subhead">Inventory</div>
         <div class="grid">
-          <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
+          <!-- Slot 1 starts with a package -->
+          <div class="inv-slot" aria-label="Inventory slot 1">
+            <div class="pkg" data-id="parcel">
+              <div class="icon">📦</div>
+              <div class="tag">Standard Parcel</div>
+            </div>
+          </div>
           <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
@@ -125,5 +164,83 @@
       </section>
     </div>
   </div>
+
+<script>
+/* Click-to-select, click-to-place movement (no drag/drop) */
+(function(){
+  const board = document.getElementById('board');
+  const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
+
+  let selectedChip = null;
+  let selectedFrom = null;
+
+  function makePlaceholderFor(slot){
+    const ph = document.createElement('div');
+    ph.className = 'placeholder';
+    ph.textContent = slot.classList.contains('knight-slot') ? 'no package' : 'empty';
+    return ph;
+  }
+
+  function selectChip(chip){
+    if (selectedChip) selectedChip.classList.remove('is-selected');
+    selectedChip = chip;
+    selectedFrom = chip.parentElement;
+    chip.classList.add('is-selected');
+    board.classList.add('board-selecting');
+  }
+
+  function clearSelection(){
+    if (selectedChip) selectedChip.classList.remove('is-selected');
+    selectedChip = null;
+    selectedFrom = null;
+    board.classList.remove('board-selecting');
+  }
+
+  function moveChipTo(slot){
+    if (!selectedChip) return;
+
+    // If destination is same as source, just deselect
+    if (slot === selectedFrom){
+      clearSelection();
+      return;
+    }
+
+    // Place chip into destination (replace contents)
+    slot.replaceChildren(selectedChip);
+
+    // Ensure source shows a placeholder after moving out
+    if (selectedFrom && selectedFrom.children.length === 0){
+      selectedFrom.appendChild(makePlaceholderFor(selectedFrom));
+    }
+
+    // Remove placeholder from destination if it existed
+    const ph = slot.querySelector('.placeholder');
+    if (ph) ph.remove();
+
+    clearSelection();
+  }
+
+  // Delegate clicks for packages (select) and slots (place)
+  board.addEventListener('click', (e) => {
+    const chip = e.target.closest('.pkg');
+    const slot = e.target.closest(SLOT_SEL);
+
+    if (chip){
+      // Select the clicked chip; prevent slot handler from firing on same click
+      e.stopPropagation();
+      selectChip(chip);
+      return;
+    }
+
+    if (slot){
+      moveChipTo(slot);
+      return;
+    }
+
+    // Clicked outside interactive elements -> clear selection
+    clearSelection();
+  });
+})();
+</script>
 </body>
 </html>
