@@ -33,14 +33,14 @@
      - two equal columns on top row (gen, knight)
      - inventory spans both columns and equals 600px
   */
-  .main{
-    display:grid; gap:var(--gap);
-    grid-template-columns: 1fr 1fr;       /* two equal halves */
-    grid-template-areas:
-      "gen knight"
-      "inv inv";
-    max-width: 600px;                      /* inventory width */
-    margin: 0 auto;                        /* center the block */
+  .main, .main * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;           /* iOS long-press menu */
+    -webkit-tap-highlight-color: transparent;
   }
   @media (max-width: 760px){
     .main{
@@ -113,6 +113,7 @@
       linear-gradient(180deg,#182029,#11161c);
     transition:transform .08s ease;
   }
+
   .pkg:active{ cursor:grabbing }
   .pkg.dragging{ opacity:.35 }
   .pkg.lp-hint{ transform:scale(0.98) }
@@ -130,6 +131,14 @@
   .tips{color:var(--muted); font-size:12px}
 
   /* Overlay (package details) */
+  .overlay, .overlay * {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+
+    -webkit-touch-callout: default;
+  }
   .overlay{
     position:fixed; inset:0; display:none; align-items:center; justify-content:center;
     background:rgba(0,0,0,.6); z-index:1000; padding:20px;
