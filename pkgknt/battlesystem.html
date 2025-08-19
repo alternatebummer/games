@@ -14,18 +14,44 @@
   .wrap{max-width:980px;margin:0 auto;padding:16px}
   h1{font-size:20px;margin:0 0 12px}
   .row{display:grid;grid-template-columns:1fr 2fr;gap:12px}
-  .card{background:var(--panel);border:1px solid #22272e;border-radius:12px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+  .card{;background:var(--panel);border:0px solid #22272e;border-radius:12px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
   .controls{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
-  button{cursor:pointer;border:1px solid #2a3139;background:#0f1318;color:var(--ink);padding:8px 12px;border-radius:10px}
+  button{cursor:pointer;border:0px solid #2a3139;background:#0f1318;color:var(--ink);padding:8px 12px;border-radius:10px}
   button:hover{border-color:#3a424c}
-  button.primary{background:var(--accent);color:#0d1117;border-color:#7aa84c}
-  .pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #2a3139;color:var(--muted)}
+  button.primary{background:#ab9046;color:#0d1117;border-color:#7aa84c}
+  .pill{display:inline-block;padding:0rem .15rem;border-radius:999px;border:0px solid #6b332c;color:#f0c654;margin-right:1px}
   .hp{color:var(--gold)}
   .muted{color:var(--muted)}
-  .log{height:520px;overflow:auto;background:#0f1318;border:1px solid #22272e;border-radius:10px;padding:10px;white-space:pre-wrap}
+  .log{height:520px;overflow:auto;background:#0f1318;border:0px solid #22272e;border-radius:10px;padding:10px;white-space:pre-wrap}
   .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
   .small{font-size:12px}
   .sep{height:1px;background:#22272e;margin:8px 0}
+  .dash{margin-top:12px;display:grid;grid-template-columns:2fr 1fr;gap:12px}
+  canvas{width:100%;height:260px;background:#0f1318;border:0px solid #22272e;border-radius:10px}
+  .table{max-height:260px;overflow:hidden;border:0px solid #22272e;border-radius:10px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #22272e}
+  th{position:sticky;top:0;background:#12161c;color:var(--muted);text-align:left}
+  .count{text-align:right}
+  /* Works in Chrome, Edge, Safari */
+  .log::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .log::-webkit-scrollbar-track {
+    background: #0f1318; /* track color */
+    border-radius: 6px;
+  }
+
+  .log::-webkit-scrollbar-thumb {
+    background: #f0c654; /* thumb color */
+    border-radius: 6px;
+    border: 2px solid #0f1318; /* optional gap effect */
+  }
+
+  .log::-webkit-scrollbar-thumb:hover {
+    background: #b6d97f; /* lighter when hovered */
+  }
 </style>
 </head>
 <body>
@@ -57,7 +83,23 @@
       <div id="log" class="log" aria-live="polite"></div>
     </section>
   </div>
+
+  <section class="card dash">
+    <div>
+      <div class="small muted">Performance (cumulative wins over battles)</div>
+      <canvas id="perfChart" width="900" height="260"></canvas>
+    </div>
+    <div class="table">
+      <table>
+        <thead>
+          <tr><th>Move</th><th class="count">Uses</th></tr>
+        </thead>
+        <tbody id="movesBody"></tbody>
+      </table>
+    </div>
+  </section>
 </div>
+
 <script>
 (function(){
   const logEl   = document.getElementById('log');
@@ -73,6 +115,12 @@
   const pickGoblin = document.getElementById('pickGoblin');
   const pickBlade  = document.getElementById('pickBlade');
 
+  // Dashboard
+  const chart = document.getElementById('perfChart');
+  const ctx = chart.getContext('2d');
+  const movesBody = document.getElementById('movesBody');
+
+  // helpers
   const r = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
   const chance = (p)=> Math.random() < p;
   const clamp = (n,min,max)=> Math.max(min, Math.min(max, n));
@@ -80,6 +128,106 @@
   const sep = ()=> append('<span class="muted">────────────────────────────────</span>');
   const fmt = (d)=> (d>=0? `+${d}` : `${d}`);
 
+  // ===== Stats tracking (chart + move counts) =====
+  const Fighters = ['Knight','Goblin','Wandering Blade'];
+  const stats = {
+    wins: { 'Knight':0, 'Goblin':0, 'Wandering Blade':0 },
+    timeline: [], // array of snapshots after each battle
+    moves: {}     // "Name|moveId" -> count
+  };
+  const moveLabels = {
+    'Knight|normal':'Knight — Normal Attack',
+    'Knight|double':'Knight — Double Strike',
+    'Knight|flourish':'Knight — Improvised Flourish',
+    'Knight|perry':'Knight — Perry',
+    'Knight|block':'Knight — Block',
+    'Knight|counter':'Knight — Counter',
+    'Goblin|normal':'Goblin — Normal Attack',
+    'Goblin|bomb':'Goblin — Goblin Bomb',
+    'Goblin|perry':'Goblin — Perry',
+    'Goblin|block':'Goblin — Block',
+    'Goblin|counter':'Goblin — Counter',
+    'Wandering Blade|normal':'Wandering Blade — Normal Attack',
+    'Wandering Blade|poised_charge':'Wandering Blade — Poised (Defensive Stance)',
+    'Wandering Blade|poised_unleash':'Wandering Blade — Poised Strike',
+    'Wandering Blade|perry':'Wandering Blade — Perry',
+    'Wandering Blade|block':'Wandering Blade — Block',
+    'Wandering Blade|counter':'Wandering Blade — Poised Counter'
+  };
+  function recordMove(name, moveId){
+    const key = `${name}|${moveId}`;
+    stats.moves[key] = (stats.moves[key]||0)+1;
+  }
+  function recordDefense(name, kind){
+    const key = `${name}|${kind}`;
+    stats.moves[key] = (stats.moves[key]||0)+1;
+  }
+  function redrawMovesTable(){
+    const entries = Object.entries(stats.moves);
+    entries.sort((a,b)=> b[1]-a[1]);
+    const rows = entries.map(([key,count])=>{
+      const label = moveLabels[key] || key.replace('|',' — ');
+      return `<tr><td>${label}</td><td class="count">${count}</td></tr>`;
+    }).join('');
+    movesBody.innerHTML = rows || `<tr><td class="muted" colspan="2">No moves yet.</td></tr>`;
+  }
+  const lineColors = { 'Knight':'#9fc46b', 'Goblin':'#8eb3ff', 'Wandering Blade':'#d9b36a' };
+  function drawChart(){
+    const pad = 30;
+    const W = chart.width, H = chart.height;
+    ctx.clearRect(0,0,W,H);
+
+    // axes
+    ctx.strokeStyle = '#2a3139'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
+
+    const points = stats.timeline.length;
+    const maxWins = Math.max(1, ...Fighters.map(f=>stats.wins[f]));
+    const xStep = (W - pad*2) / Math.max(1, points-1);
+    const yScale = (H - pad*2) / maxWins;
+
+    // grid + y labels
+    ctx.fillStyle = '#8aa2b3'; ctx.font = '12px ui-monospace, monospace';
+    for(let y=0;y<=maxWins;y++){
+      const yPos = H - pad - y*yScale;
+      ctx.strokeStyle = '#1c232a';
+      ctx.beginPath(); ctx.moveTo(pad, yPos); ctx.lineTo(W-pad, yPos); ctx.stroke();
+      ctx.fillText(String(y), 6, yPos+4);
+    }
+
+    // lines
+    Fighters.forEach((name, idx)=>{
+      ctx.strokeStyle = lineColors[name]; ctx.lineWidth = 2; ctx.beginPath();
+      stats.timeline.forEach((snap, i)=>{
+        const x = pad + i*xStep;
+        const y = H - pad - (snap[name]||0)*yScale;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      // legend
+      ctx.fillStyle = lineColors[name];
+      ctx.fillRect(W - pad - 120, pad - 22 + idx*16, 10, 10);
+      ctx.fillStyle = '#cfe3ef';
+      ctx.fillText(name, W - pad - 105, pad - 12 + idx*16);
+    });
+
+    ctx.fillStyle = '#8aa2b3';
+    ctx.fillText('Battles', W/2 - 20, H-6);
+  }
+
+  // ===== Core engine =====
+  function dealImmediate(target, amount, label){
+    const before = target.hp;
+    target.hp = clamp(target.hp - amount, 0, target.maxHp);
+    append(`${label} <span class="hp">${before}</span> → <span class="hp">${target.hp}</span>.`);
+    return before - target.hp; // damage dealt (>=0)
+  }
+  function healImmediate(target, amount, label){
+    const before = target.hp;
+    target.hp = clamp(target.hp + amount, 0, target.maxHp);
+    append(`${label} <span class="hp">${before}</span> → <span class="hp">${target.hp}</span>.`);
+    return target.hp - before; // healing gained (>=0)
+  }
   function makeFighter(cfg){
     return {
       name: cfg.name,
@@ -91,14 +239,13 @@
       bloodlustTurns: 0,
       stunTurns: 0,
       _queuedCounter:false,
-      defenseRates: cfg.defenseRates || { perry:0.10, counter:0.10, block:0.10 },
-      counterBase: cfg.counterBase || 2,
+      defenseRates: cfg.defenseRates,
+      counterBase: cfg.counterBase,
       regenTicks: 0,
       poisedQueued: false,
       ai: cfg.ai
     };
   }
-
   function updateHUD(a, b){
     nameAEl.textContent = a.name;
     nameBEl.textContent = b.name;
@@ -107,78 +254,66 @@
     elGHP.textContent = `${b.hp}/${b.maxHp}`;
     elGPobs.textContent = `${b.bloodPotions}`;
   }
-
   function rollDefenseChoice(defender, opts){
-    const unblockable = !!(opts && opts.unblockable);
-    const canPerry = chance(defender.defenseRates.perry);
+    if(opts && opts.unblockable) return 'none';
+    const canPerry   = chance(defender.defenseRates.perry);
     const canCounter = chance(defender.defenseRates.counter);
-    const canBlock = unblockable ? false : chance(defender.defenseRates.block);
+    const canBlock   = chance(defender.defenseRates.block);
     if(canPerry) return 'perry';
     if(canCounter) return 'counter';
     if(canBlock) return 'block';
     return 'none';
   }
-
   function applyDefense(defender, incoming, attacker, opts){
+    if (opts && opts.unblockable) {
+      defender._queuedCounter = false;
+      return { finalDamage: incoming };
+    }
     if (defender.stunTurns > 0){
       return { finalDamage: incoming };
     }
-    const unblockable = !!(opts && opts.unblockable);
-    const def = rollDefenseChoice(defender, {unblockable});
+    const def = rollDefenseChoice(defender, opts);
     let dmg = incoming;
     defender._queuedCounter = false;
 
     if(def === 'perry'){
-      append(`${defender.name} parries! Damage avoided. ${attacker.name} is stunned into next turn.`);
+      append(`<span class="pill">${defender.name}</span> parries! <span class="pill">${attacker.name}</span> is stunned into next turn.`);
       attacker.stunTurns = Math.max(attacker.stunTurns, 1);
+      recordDefense(defender.name,'perry');
       dmg = 0;
     } else if(def === 'counter'){
       defender._queuedCounter = true;
+      recordDefense(defender.name,'counter');
     } else if(def === 'block'){
       const blocked = Math.floor(dmg/2);
-      append(`${defender.name} blocks, reducing ${dmg} → ${blocked}.`);
+      append(`<span class="pill">${defender.name}</span> blocks, reducing <span class="hp">${dmg}</span> → <span class="hp">${blocked}</span>.`);
+      recordDefense(defender.name,'block');
       dmg = blocked;
-    } else if(unblockable){
-      append(`${defender.name} cannot block this attack.`);
     }
     return { finalDamage: dmg };
   }
-
-  function dealImmediate(target, amount, label){
-    const before = target.hp;
-    target.hp = clamp(target.hp - amount, 0, target.maxHp);
-    append(`${label} ${before} → ${target.hp}.`);
-    return before - target.hp; // actual damage taken (>=0)
-  }
-
-  function healImmediate(target, amount, label){
-    const before = target.hp;
-    target.hp = clamp(target.hp + amount, 0, target.maxHp);
-    append(`${label} ${before} → ${target.hp}.`);
-    return target.hp - before; // actual healing gained (>=0)
-  }
-
   function resolveCounter(defender, attacker){
     if(!defender._queuedCounter) return 0;
     const base = defender.counterBase;
     const isCrit = chance(defender.crit);
     const dmg = isCrit ? base*2 : base;
     defender._queuedCounter = false;
-    return dealImmediate(attacker, dmg, `${defender.name} counters for ${dmg}${isCrit?' (CRIT)':''} damage.`);
+    return dealImmediate(attacker, dmg, `<span class="pill">${defender.name}</span> counters for <span class="hp">${dmg}${isCrit?' (CRIT)':''}</span> damage:`);
   }
 
   function takeTurn(actor, target, hudUpdate){
     let netActor = 0, netTarget = 0;
 
     if(actor.stunTurns > 0){
-      append(`${actor.name} is stunned and cannot attack.`);
+      append(`<span class="pill">${actor.name}</span> is stunned and cannot attack.`);
       actor.stunTurns = Math.max(0, actor.stunTurns - 1);
       hudUpdate();
       return { netActor, netTarget, ended:false };
     }
 
+    // start-of-turn regen
     if(actor.regenTicks > 0){
-      const healed = healImmediate(actor, 2, `${actor.name} regenerates:`);
+      const healed = healImmediate(actor, 2, `<span class="pill">${actor.name}</span> regenerates:`);
       netActor += healed;
       actor.regenTicks -= 1;
       hudUpdate();
@@ -188,6 +323,7 @@
     hudUpdate();
 
     const moveId = actor.ai.chooseMove(actor, target);
+    recordMove(actor.name, moveId);
     const moveResult = actor.ai.executeMove(actor, target, moveId, append);
 
     const total = moveResult.rawDamage || 0;
@@ -195,7 +331,7 @@
 
     const { finalDamage } = applyDefense(target, total, actor, opts);
     if(finalDamage > 0){
-      const dealt = dealImmediate(target, finalDamage, `${actor.name} deals ${finalDamage} damage:`);
+      const dealt = dealImmediate(target, finalDamage, `<span class="pill">${actor.name}</span> deals <span class="hp">${finalDamage}</span> damage:`);
       netTarget -= dealt;
       hudUpdate();
       if(target.hp <= 0){
@@ -217,17 +353,17 @@
     return { netActor, netTarget, ended:false };
   }
 
+  // ===== AIs =====
   const KnightAI = {
     preAction(actor, target, log, heal, hud){
       if(actor.hp < 5 && actor.potions > 0){
         actor.potions -= 1;
-        const healed = heal(actor, 5, `Knight drinks a potion:`);
+        heal(actor, 5, `<span class="pill">Knight</span> drinks a potion:`);
         hud();
-        append(`(Potions left: ${actor.potions})`);
       }
     },
     chooseMove(actor){
-      const canFlourish = (actor.hp < 4) && chance(0.20);
+      const canFlourish = (actor.hp < 5) && chance(0.20);
       const canDouble = chance(0.10);
       if(canFlourish) return 'flourish';
       if(canDouble) return 'double';
@@ -236,29 +372,28 @@
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
       if(move === 'flourish'){
-        const roll = r(3,6);
+        const roll = r(3,5);
         let total = roll + 2;
         if(isCrit) total *= 2;
-        append(`Knight uses Improvised Flourish (${roll}+2${isCrit?' ×2 CRIT':''}).`);
+        append(`<span class="pill">Knight</span> uses Improvised Flourish (${roll}+2${isCrit?' ×2 CRIT':''}).`);
         return {
           rawDamage: total,
           onHit(a, t){
             if(chance(0.20)){
-              append(`Goblin is stunned by Flourish (20%).`);
               t.stunTurns = Math.max(t.stunTurns, 1);
             }
           }
         };
       }
       if(move === 'double'){
-        const a = r(3,6), b = r(3,6);
+        const a = r(2,3), b = r(3,6);
         const total = isCrit ? (a*2 + b*2) : (a + b);
-        append(`Knight uses Double Strike (${a}${isCrit?'×2':''}+${b}${isCrit?'×2':''}).`);
+        append(`<span class="pill">Knight</span> uses Double Strike (${a}${isCrit?'×2':''}+${b}${isCrit?'×2':''}).`);
         return { rawDamage: total };
       }
-      const roll = r(3,6);
+      const roll = r(3,4);
       const total = isCrit ? roll*2 : roll;
-      append(`Knight attacks (${isCrit?roll+"×2":roll}).`);
+      append(`<span class="pill">Knight</span> attacks (${isCrit?roll+"×2":roll}).`);
       return { rawDamage: total };
     }
   };
@@ -268,7 +403,7 @@
       if(actor.hp < 5 && actor.bloodlustTurns === 0 && actor.bloodPotions > 0){
         actor.bloodPotions -= 1;
         actor.bloodlustTurns = 3;
-        append(`Goblin quaffs a blood potion and now has Blood Lust! +2 damage for 3 turns.`);
+        append(`<span class="pill">Goblin</span> quaffs blood potion, gaining Blood Lust! <span class="hp">+2 damage</span> for 3 turns.`);
         hud();
       }
     },
@@ -279,31 +414,33 @@
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
       let base, metaStun = false, label;
+
       if(move === 'bomb'){
-        base = r(3,6);
-        metaStun = chance(0.10);
-        label = `Goblin uses Goblin Bomb (${isCrit?base+"×2":base}).`;
+        base = r(2,7);
+        metaStun = chance(0.40);
+        label = `<span class="pill">Goblin</span> uses Goblin Bomb (${isCrit?base+"×2":base}).`;
       } else {
-        base = r(1,3);
-        label = `Goblin attacks (${isCrit?base+"×2":base}).`;
+        base = r(1,5);
+        label = `<span class="pill">Goblin</span> attacks (${isCrit?base+"×2":base}).`;
       }
+
       let total = isCrit ? base*2 : base;
 
-      // 👇 Attack log first
       append(label);
 
       if(actor.bloodlustTurns > 0){
         const before = total;
         total += 2;
-        append(`Blood Lust adds +2 damage (${before} → ${total}).`);
+        append(` Blood Lust adds <span class="hp">+2</span> damage (<span class="hp">${before}</span> → <span class="hp">${total}</span>).`);
         actor.bloodlustTurns -= 1;
       }
 
       return {
         rawDamage: total,
+        unblockable: (move === 'bomb'),
         onHit(a, t){
           if(move === 'bomb' && metaStun){
-            append(`Knight is stunned by Goblin Bomb (10%).`);
+            append(`<span class="pill">${t.name}</span> is stunned by Goblin Bomb.`);
             t.stunTurns = Math.max(t.stunTurns, 1);
           }
         }
@@ -311,12 +448,11 @@
     }
   };
 
-
   const BladeAI = {
     preAction(actor, target, log, heal, hud){
       if(actor.potions > 0){
         actor.potions -= 1;
-        const healed = heal(actor, 2, `Wandering Blade drinks a regen potion! +2HP for 3 turns.`);
+        heal(actor, 2, `<span class="pill">Wandering Blade</span> drinks a regen potion:`);
         actor.regenTicks += 2;
         hud();
       }
@@ -328,25 +464,31 @@
     },
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
+
       if(move === 'poised_charge'){
         actor.poisedQueued = true;
-        append(`Wandering Blade switches to a defensive stance.`);
-        return { rawDamage: 0 };
+        append(`<span class="pill">Wandering Blade</span> switches to a defensive stance.`);
+        // Unblockable setup (no perry/block/counter)
+        return { rawDamage: 0, unblockable: true };
       }
+
       if(move === 'poised_unleash'){
         actor.poisedQueued = false;
         const base = r(4,8);
         const total = isCrit ? base*2 : base;
-        append(`Wandering Blade unleashes a poised strike! (${isCrit?base+"×2":base}).`);
-        return { rawDamage: total, unblockable: true };
+        append(`<span class="pill">Wandering Blade</span> unleashes a poised strike! (${isCrit?base+"×2":base}).`);
+        // Blockable/defendable
+        return { rawDamage: total };
       }
+
       const base = r(3,5);
       const total = isCrit ? base*2 : base;
-      append(`Wandering Blade attacks (${isCrit?base+"×2":base}).`);
+      append(`<span class="pill">Wandering Blade</span> attacks (${isCrit?base+"×2":base}).`);
       return { rawDamage: total };
     }
   };
 
+  // ===== Roster =====
   const ROSTER = {
     Knight: ()=> makeFighter({
       name:'Knight', maxHp:12, crit:0.15, potions:2,
@@ -373,6 +515,19 @@
     return picks.slice(0, 2);
   }
 
+  function finalizeStats(winnerName){
+    if(winnerName && stats.wins[winnerName] !== undefined){
+      stats.wins[winnerName] += 1;
+    }
+    stats.timeline.push({
+      'Knight':stats.wins['Knight'],
+      'Goblin':stats.wins['Goblin'],
+      'Wandering Blade':stats.wins['Wandering Blade']
+    });
+    redrawMovesTable();
+    drawChart();
+  }
+
   function runBattle(){
     logEl.innerHTML = '';
 
@@ -387,7 +542,7 @@
     function hud(){ updateHUD(A,B); }
 
     hud();
-    append(`Battle starts: ${A.name} vs ${B.name}`);
+    append(`Battle starts: <span class="pill">${A.name}</span> vs <span class="pill">${B.name}</span>`);
     sep();
 
     let round = 1;
@@ -396,47 +551,53 @@
 
       const startA = A.hp, startB = B.hp;
 
+      // turn order alternates each round
       const first = (round % 2 === 1) ? A : B;
       const second = (round % 2 === 1) ? B : A;
 
-      const turn1 = takeTurn(first, second, hud);
-      if(turn1.ended){
+      const t1 = takeTurn(first, second, hud);
+      if(t1.ended){
         const netA = A.hp - startA;
         const netB = B.hp - startB;
-        append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+        append(`— Round ${round} Tally → <span class="pill">${A.name}</span> ${fmt(netA)}, <span class="pill">${B.name}</span> ${fmt(netB)}.`);
         hud();
-        append(`${turn1.winner} wins!`);
-        break;
+        append(`<span class="pill">${t1.winner}</span> wins!`);
+        finalizeStats(t1.winner);
+        return;
       }
 
-      const turn2 = takeTurn(second, first, hud);
-      if(turn2.ended){
+      const t2 = takeTurn(second, first, hud);
+      if(t2.ended){
         const netA = A.hp - startA;
         const netB = B.hp - startB;
-        append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+        append(`— Round ${round} Tally → <span class="pill">${A.name}</span> ${fmt(netA)}, <span class="pill">${B.name}</span> ${fmt(netB)}.`);
         hud();
-        append(`${turn2.winner} wins!`);
-        break;
+        append(`<span class="pill">${t2.winner}</span> wins!`);
+        finalizeStats(t2.winner);
+        return;
       }
 
       const netA = A.hp - startA;
       const netB = B.hp - startB;
-      append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+      append(`— Round ${round} Tally → <span class="pill">${A.name}</span> ${fmt(netA)}, <span class="pill">${B.name}</span> ${fmt(netB)}.`);
       hud();
 
-      if(B.hp <= 0){ append(`${A.name} wins!`); break; }
-      if(A.hp <= 0){ append(`${B.name} wins!`); break; }
+      if(B.hp <= 0){ append(`<span class="pill">${A.name}</span> wins!`); finalizeStats(A.name); return; }
+      if(A.hp <= 0){ append(`<span class="pill">${B.name}</span> wins!`); finalizeStats(B.name); return; }
 
       sep();
       round++;
     }
-    if(round >= 200) append('Safety stop reached.');
-
-    A._queuedCounter = B._queuedCounter = false;
+    if(round >= 200){ append('Safety stop reached.'); finalizeStats(null); }
   }
 
+  // bind UI
   document.getElementById('runBtn').addEventListener('click', runBattle);
   document.getElementById('clearLog').addEventListener('click', ()=>{logEl.innerHTML='';});
+
+  // initial dashboard render
+  redrawMovesTable();
+  drawChart();
 })();
 </script>
 </body>
