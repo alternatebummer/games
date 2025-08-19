@@ -18,7 +18,8 @@
     font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     display:grid; place-items:start center;
   }
-  .wrap{width:min(1024px,95vw); padding:20px 16px 40px; display:grid; gap:var(--gap)}
+  .wrap{ overflow-x:auto; }
+
 
   /* Top bar */
   .topbar{
@@ -45,8 +46,9 @@
   .main{
     display:grid;
     gap:var(--gap);
-    width:600px; /* inventory width */
-    grid-template-columns: 1fr 1fr;  /* two equal tracks */
+    width:600px;                     /* matches Inventory width */
+    max-width:600px;
+    grid-template-columns: repeat(2, 1fr);  /* two equal halves */
     grid-template-areas:
       "gen knight"
       "inv inv";
