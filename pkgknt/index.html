@@ -43,22 +43,22 @@
     -webkit-tap-highlight-color: transparent;
   }
   .main{
-  display:grid; gap:var(--gap);
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    "gen knight"
-    "inv inv";
-  max-width: 600px;
-  margin: 0 auto;
-}
-  @media (max-width: 760px){
+    display:grid;
+    gap:var(--gap);
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* stay side-by-side, shrink as needed */
+    grid-template-areas:
+      "gen knight"
+      "inv inv";
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  @media (max-width: 420px){
     .main{
       grid-template-columns: 1fr;
       grid-template-areas:
         "gen"
         "knight"
         "inv";
-      max-width: 100%;                     /* allow narrow phones */
     }
   }
 
