@@ -2,494 +2,128 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PACKAGE KNIGHT WIZARD</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PACKAGE KNIGHT WIZARD — UI Skeleton with Slots</title>
 <style>
-:root{
-  --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
-  --accent:#d9b36a; --slot:#1f232a; --outline:#2c313a; --good:#89d185;
-  --slot-size: 100px;   /* unified square slot size */
-  --gap: 16px;
-}
+  :root{
+    --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
+    --accent:#d9b36a; --outline:#2c313a; --slot:#1f232a;
+    --gap:16px;
+    --slot-size:100px;                 /* unified, square slot size */
+  }
+  *{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    display:grid; place-items:start center;
+  }
 
-*{ box-sizing:border-box }
+  /* Wrapper */
+  .wrap{
+    width:min(1024px,95vw);
+    padding:20px 16px 40px;
+    display:grid; gap:var(--gap);
+  }
 
-html,body{ height:100% }
+  /* Title card (top bar) */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; padding:12px 16px;
+    background:linear-gradient(180deg, var(--panel), #0f1216 85%);
+    border:1px solid var(--outline); border-radius:12px;
+    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  .title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
+  .mana{ font-weight:700; color:var(--ink) }
 
-body{
-  margin:0; background:var(--bg); color:var(--ink);
-  font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  display:grid; place-items:start center;
-}
+  /* Board: Generator + Knight side-by-side; Inventory full-width below */
+  .main{
+    display:flex; flex-wrap:wrap; gap:var(--gap);
+    width:600px; max-width:600px; margin:0 auto;
+  }
+  .gen, .knight{
+    flex:0 0 calc((600px - var(--gap))/2); /* equal halves */
+    min-width:0;
+  }
+  .inv{ flex:0 0 100%; }
 
-.wrap{
-  width:min(1024px,95vw);
-  padding:20px 16px 40px;
-  display:grid; gap:var(--gap);
-  overflow-x:auto;                 /* allow horizontal scroll on narrow phones */
-}
+  /* Card chrome shared by Generator, Knight, Inventory */
+  .card{
+    background:linear-gradient(180deg, var(--panel), #0f1216 85%);
+    border:1px solid var(--outline); border-radius:12px; padding:14px;
+    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+    min-height:160px;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+  }
 
-/* Top bar */
-.topbar{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:6px 0;
-}
-.title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
-.mana{ font-weight:700 }
+  .subhead{
+    width:100%;
+    font-size:12px; color:var(--muted);
+    margin:0 0 8px; text-transform:uppercase; letter-spacing:.06em;
+  }
 
-/* === LAYOUT: Force Gen + Knight side-by-side; Inventory full-width below === */
-.main{
-  display:flex;                    /* override any previous grid usage */
-  flex-wrap:wrap;                  /* allows .inv to wrap to next line */
-  gap:var(--gap);
-  width:600px;                     /* board width matches Inventory */
-  max-width:600px;
-  margin:0 auto;
-}
+  /* Slots (unified square look for all areas) */
+  .slot, .knight-slot, .inv-slot{
+    width:var(--slot-size); height:var(--slot-size);
+    background:var(--slot);
+    border:1px dashed var(--outline);
+    border-radius:12px;
+    display:grid; place-items:center;
+    position:relative; overflow:hidden;
+  }
+  .placeholder{
+    color:var(--muted); font-size:12px; opacity:.9;
+  }
 
-/* Two equal halves on the top row (300px minus half the gap each) */
-.gen, .knight{
-  flex: 0 0 calc((600px - var(--gap)) / 2);
-  min-width:0;                     /* allow content to shrink within cell */
-}
-
-/* Inventory spans full board width on its own row */
-.inv{ flex: 0 0 100%; }
-
-/* Neutralize any old grid-area rules that might exist elsewhere */
-.gen, .knight, .inv{ grid-area: unset; }
-
-/* Cards */
-.card{
-  /* each card sizes to its flex cell; Inventory cell = 600px,
-     Gen/Knight cells = (600px - gap)/2 */
-  max-height:300px;
-  background:linear-gradient(180deg,var(--panel),#0f1216 85%);
-  border:1px solid var(--outline); border-radius:12px; padding:14px;
-  box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-}
-.equal{ display:flex; flex-direction:column; }
-.subhead{ font-size:12px; color:var(--muted); margin:4px 0 10px }
-
-/* Centered stacks for gen/knight content */
-.stack-center{
-  display:flex; flex-direction:column; gap:10px;
-  align-items:center; justify-content:center; flex:1 1 auto;
-}
-
-/* Slots (all identical & square) */
-.slot, .inv-slot, .knight-slot {
-  width:var(--slot-size); height:var(--slot-size);
-  border-radius:12px; background:var(--slot);
-  border:1px dashed var(--outline); display:grid; place-items:center;
-  transition:border-color .15s ease, background .15s ease;
-  position:relative; overflow:hidden;
-}
-.slot.hover, .inv-slot.hover, .knight-slot.hover{ border-color:var(--accent); background:#151a21 }
-.slot.spin::after{
-  content:""; position:absolute; inset:-40%; border-radius:50%;
-  border:2px solid rgba(217,179,106,.25); animation:spin 0.75s linear; pointer-events:none;
-}
-@keyframes spin{ from{ transform:rotate(0)} to{transform:rotate(360deg)} }
-.placeholder{ font-size:11px; color:var(--muted) }
-
-/* Buttons */
-button{
-  background:var(--accent); color:#161208; font-weight:700; border:0;
-  padding:10px 14px; border-radius:10px; cursor:pointer;
-  box-shadow:0 3px 0 #9f7f3f; transition:transform .05s ease;
-}
-button:active{ transform:translateY(2px) }
-button:disabled{
-  opacity:.55; cursor:not-allowed; box-shadow:0 3px 0 #6f5930;
-}
-
-/* Package chip */
-.pkg{
-  --ring:transparent;
-  display:grid; place-items:center; gap:4px; text-align:center;
-  width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
-  border-radius:10px; cursor:grab; user-select:none; border:1px solid var(--outline);
-  background:
-    radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
-    linear-gradient(180deg,#182029,#11161c);
-  transition:transform .08s ease;
-}
-.pkg:active{ cursor:grabbing }
-.pkg.dragging{ opacity:.35 }
-.pkg.lp-hint{ transform:scale(0.98) }
-.pkg .icon{ font-size:32px; line-height:1 }
-.pkg .tag{
-  margin-top:2px; font-size:11px; color:var(--muted);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
-}
-
-/* Inventory grid */
-.inv .grid{
-  display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:auto;
-}
-
-.tips{ color:var(--muted); font-size:12px }
-
-/* Overlay (package details) */
-.overlay{
-  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,.6); z-index:1000; padding:20px;
-}
-.overlay[aria-hidden="false"]{ display:flex }
-.ov-card{
-  width:min(520px, 92vw);
-  background:linear-gradient(180deg,var(--panel),#0f1216 85%);
-  border:1px solid var(--outline); border-radius:14px; padding:16px 16px 54px;
-  position:relative;
-  box-shadow:0 10px 40px rgba(0,0,0,.45);
-}
-.ov-title{ font-weight:800; color:var(--accent); margin:0 0 8px }
-.ov-meta{ font-size:13px; color:var(--muted); margin-bottom:10px }
-.ov-desc{ font-size:14px }
-.ov-close{
-  position:absolute; right:12px; bottom:12px;
-  background:var(--accent); color:#161208; border:0; padding:8px 12px;
-  border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #9f7f3f;
-}
-
-/* ==== Touch & selection fixes ==== */
-
-/* Prevent text selection / callouts while interacting with the game UI */
-.main, .main *{
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-
-  -webkit-touch-callout: none;           /* iOS long-press menu */
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Re-enable selection in the overlay (so players can copy text there) */
-.overlay, .overlay *{
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-
-  -webkit-touch-callout: default;
-}
-
-/* Improve touch drag behavior and stop unwanted browser gestures */
-.pkg, .slot, .inv-slot, .knight-slot{
-  touch-action: none;                     /* prevent panning/zoom during drag */
-  -webkit-user-drag: none;                /* Safari: don't drag as image */
-}
-
+  /* Inventory slot grid: 5 slots */
+  .inv .grid{
+    display:grid;
+    grid-template-columns: repeat(5, var(--slot-size));
+    gap:12px;
+    justify-content:center;        /* center the 5 fixed-size slots */
+    margin-top:8px;
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
+    <!-- Title Card -->
+    <header class="topbar">
       <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
       <div class="mana">Mana Crystals: 50/50</div>
-    </div>
+    </header>
 
-    <div class="tips">Tap a package to see details. Or <strong>long-press</strong> a package to grab it and drag. Items are <strong>moved</strong>, not copied; dropping on an occupied slot replaces it.</div>
-
+    <!-- Cards Row -->
     <div class="main">
-      <!-- Generator -->
-      <section class="card equal gen">
-        <div class="subhead">Package Portal</div>
-        <div class="stack-center">
-          <div id="generatorSlot" class="slot"></div>
-          <button id="btnGen" title="Generate Package (15 mana)">Activate (15 mana)</button>
+      <!-- Generator (1 slot) -->
+      <section class="card gen" aria-label="Generator">
+        <div class="subhead">Generator</div>
+        <div class="slot" aria-label="Generator slot">
+          <div class="placeholder">empty</div>
         </div>
       </section>
 
-      <!-- Package Knight -->
-      <section class="card equal knight">
+      <!-- Package Knight (1 slot) -->
+      <section class="card knight" aria-label="Package Knight">
         <div class="subhead">Package Knight</div>
-        <div class="stack-center">
-          <div id="knightSlot" class="knight-slot">
-            <div class="placeholder">Empty</div>
-          </div>
-          <button id="btnDeliver">Deliver Package</button>
+        <div class="knight-slot" aria-label="Knight slot">
+          <div class="placeholder">no package</div>
         </div>
       </section>
 
-      <!-- Inventory -->
-      <section class="card equal inv">
-        <div class="subhead">Inventory (5 slots)</div>
-        <div id="inventory" class="grid">
-          <div class="inv-slot" data-slot="0"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" data-slot="1"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" data-slot="2"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" data-slot="3"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" data-slot="4"><div class="placeholder">empty</div></div>
+      <!-- Inventory (5 slots) -->
+      <section class="card inv" aria-label="Inventory">
+        <div class="subhead">Inventory</div>
+        <div class="grid">
+          <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" aria-label="Inventory slot 5"><div class="placeholder">empty</div></div>
         </div>
       </section>
     </div>
   </div>
-
-  <!-- Details Overlay -->
-  <div id="overlay" class="overlay" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="ov-card">
-      <h2 class="ov-title" id="ovTitle">—</h2>
-      <div class="ov-meta" id="ovMeta">Size: —</div>
-      <div class="ov-desc" id="ovDesc">—</div>
-      <button id="ovClose" class="ov-close">Close</button>
-    </div>
-  </div>
-
-<script>
-(function(){
-  const PACKAGES = [
-    { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
-    { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
-    { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
-    { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
-    { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
-  ];
-
-  const genSlot    = document.getElementById('generatorSlot');
-  const btnGen     = document.getElementById('btnGen');
-  const inventory  = document.getElementById('inventory');
-  const knightSlot = document.getElementById('knightSlot');
-
-  // Overlay refs
-  const overlay  = document.getElementById('overlay');
-  const ovTitle  = document.getElementById('ovTitle');
-  const ovMeta   = document.getElementById('ovMeta');
-  const ovDesc   = document.getElementById('ovDesc');
-  const ovClose  = document.getElementById('ovClose');
-
-  // Mana system (15 mana per generate)
-  const manaEl = document.querySelector('.mana');
-  const MANA_MAX = 50;
-  const GEN_COST = 15;
-  let mana = 50;
-
-  function updateMana(){
-    manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
-    btnGen.disabled = mana < GEN_COST;
-    btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
-  }
-  updateMana();
-
-  // Desktop drag context
-  const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false };
-
-  // Touch drag state (no ghost; move the real element) + snapping
-  const SLOT_SELECTOR = '.inv-slot, .knight-slot, .slot';
-  const touchDrag = {
-    active:false, el:null, originSlot:null, pkg:null,
-    lastX:0, lastY:0, nearest:null, justDropped:false
-  };
-
-  function openOverlay(pkg){
-    ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
-    ovMeta.textContent  = `Size: ${pkg.size}`;
-    ovDesc.textContent  = pkg.desc;
-    overlay.setAttribute('aria-hidden','false');
-  }
-  function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
-  ovClose.addEventListener('click', closeOverlay);
-  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
-
-  function renderPkg(pkg){
-    const el = document.createElement('div');
-    el.className = 'pkg';
-    el.draggable = true;
-    el.dataset.pkg = JSON.stringify(pkg);
-    el.style.setProperty('--ring', pkg.ring || 'transparent');
-    el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
-
-    // CLICK opens overlay unless we just dragged
-    el.addEventListener('click', () => {
-      if (dragCtx.didDrag || touchDrag.active || touchDrag.justDropped) {
-        dragCtx.didDrag = false; touchDrag.justDropped = false; return;
-      }
-      openOverlay(JSON.parse(el.dataset.pkg));
-    });
-
-    // LONG PRESS -> begin custom touch drag (no ghost; snap to nearest slot)
-    const LP_MS = 350;
-    let lpTimer = null;
-
-    const onTouchStart = (evt)=>{
-      if (lpTimer) clearTimeout(lpTimer);
-      const t = evt.touches && evt.touches[0];
-      const startX = t ? t.clientX : 0;
-      const startY = t ? t.clientY : 0;
-
-      lpTimer = setTimeout(()=>{
-        beginSnapDrag(el, JSON.parse(el.dataset.pkg), startX, startY);
-      }, LP_MS);
-    };
-    const cancelLP = ()=>{
-      if (lpTimer) clearTimeout(lpTimer);
-      lpTimer = null;
-    };
-
-    el.addEventListener('touchstart', onTouchStart, {passive:false});
-    ['touchend','touchcancel','touchmove'].forEach(ev => el.addEventListener(ev, cancelLP));
-
-    // DESKTOP: native HTML5 drag
-    el.addEventListener('dragstart', (e) => {
-      dragCtx.didDrag = true;
-      dragCtx.chip = el;
-      dragCtx.fromSlot = el.parentElement;
-      dragCtx.drop = false;
-      el.classList.add('dragging');
-      e.dataTransfer.setData('application/json', el.dataset.pkg);
-      setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
-      e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
-    });
-
-    el.addEventListener('dragend', () => {
-      el.classList.remove('dragging');
-      if (dragCtx.drop) { if (el.parentElement) el.remove(); }
-      else { el.style.visibility = ''; }
-      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
-      dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
-    });
-
-    return el;
-  }
-
-  // ------- SNAP-TO-GRID TOUCH DRAG (no ghost) -------
-  function beginSnapDrag(el, pkg, x, y){
-    if (touchDrag.active) return;
-    touchDrag.active = true;
-    touchDrag.el = el;
-    touchDrag.pkg = pkg;
-    touchDrag.originSlot = el.parentElement;
-    touchDrag.nearest = null;
-    touchDrag.lastX = x; touchDrag.lastY = y;
-
-    // elevate the actual element & let it follow the finger
-    el.classList.add('dragging');
-    el.style.position = 'fixed';
-    el.style.left = (x - el.offsetWidth/2) + 'px';
-    el.style.top  = (y - el.offsetHeight/2) + 'px';
-    el.style.zIndex = '2000';
-    el.style.pointerEvents = 'none'; // pass events to slots underneath
-
-    window.addEventListener('touchmove', onTouchMove, {passive:false});
-    window.addEventListener('touchend', onTouchEnd, {passive:false});
-    window.addEventListener('touchcancel', onTouchEnd, {passive:false});
-
-    updateNearestSlot(x, y);
-  }
-
-  function onTouchMove(e){
-    if (!touchDrag.active) return;
-    const t = e.touches[0]; if (!t) return;
-    e.preventDefault(); // prevent scroll while dragging
-
-    touchDrag.lastX = t.clientX;
-    touchDrag.lastY = t.clientY;
-
-    const el = touchDrag.el;
-    el.style.left = (touchDrag.lastX - el.offsetWidth/2) + 'px';
-    el.style.top  = (touchDrag.lastY - el.offsetHeight/2) + 'px';
-
-    updateNearestSlot(touchDrag.lastX, touchDrag.lastY);
-  }
-
-  function onTouchEnd(){
-    if (!touchDrag.active) return;
-
-    // snap to closest slot (or back to origin if none)
-    const target = touchDrag.nearest || touchDrag.originSlot;
-
-    // clear highlight
-    if (touchDrag.nearest) touchDrag.nearest.classList.remove('hover');
-
-    // move the actual element into the target slot (replace existing content)
-    target.replaceChildren(touchDrag.el);
-
-    // restore element styling
-    const el = touchDrag.el;
-    el.classList.remove('dragging');
-    el.style.position = '';
-    el.style.left = '';
-    el.style.top = '';
-    el.style.zIndex = '';
-    el.style.pointerEvents = '';
-
-    // reset state
-    touchDrag.active = false;
-    touchDrag.justDropped = true;
-    setTimeout(()=> touchDrag.justDropped = false, 120);
-    touchDrag.el = null; touchDrag.pkg = null;
-    touchDrag.originSlot = null; touchDrag.nearest = null;
-
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
-    window.removeEventListener('touchcancel', onTouchEnd);
-  }
-
-  function updateNearestSlot(x, y){
-    const slots = Array.from(document.querySelectorAll(SLOT_SELECTOR));
-    let best = null, bestD2 = Infinity;
-    for (const s of slots){
-      const r = s.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top  + r.height/2;
-      const d2 = (cx - x)*(cx - x) + (cy - y)*(cy - y);
-      if (d2 < bestD2){ bestD2 = d2; best = s; }
-    }
-    if (best !== touchDrag.nearest){
-      if (touchDrag.nearest) touchDrag.nearest.classList.remove('hover');
-      if (best) best.classList.add('hover');
-      touchDrag.nearest = best;
-    }
-  }
-  // ------- END TOUCH DRAG -------
-
-  function generate(){
-    genSlot.classList.add('spin');
-    setTimeout(() => genSlot.classList.remove('spin'), 750);
-    const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
-    genSlot.replaceChildren(renderPkg(pkg));
-  }
-
-  function wireSlots(slotElements){
-    slotElements.forEach(slot => {
-      // Desktop HTML5 DnD only (touch uses custom handlers above)
-      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
-      slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
-      slot.addEventListener('drop', (e) => {
-        e.preventDefault(); slot.classList.remove('hover');
-
-        if (dragCtx.fromSlot === slot) {
-          if (dragCtx.chip) dragCtx.chip.style.visibility = '';
-          dragCtx.drop = false;
-          return;
-        }
-
-        const payload = e.dataTransfer.getData('application/json');
-        if(!payload) return;
-        const pkg = JSON.parse(payload);
-        slot.replaceChildren(renderPkg(pkg));
-        dragCtx.drop = true;
-      });
-    });
-  }
-
-  // Accept drops on all slots (generator, knight, inventory)
-  wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
-
-  // Buttons
-  btnGen.addEventListener('click', () => {
-    if (mana < GEN_COST) return;
-    mana -= GEN_COST;
-    updateMana();
-    generate();
-  });
-
-  document.getElementById('btnDeliver').addEventListener('click', () => {
-    console.log('Deliver Package clicked');
-  });
-})();
-</script>
 </body>
 </html>
