@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autobattler — Knight vs Goblin</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#15181c; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a; --gold:#d9b36a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .wrap{max-width:900px;margin:0 auto;padding:18px}
+  header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+  h1{font-size:18px;margin:0;color:var(--accent)}
+  button{background:var(--panel);color:var(--ink);border:1px solid #26313a;border-radius:8px;padding:6px 12px;cursor:pointer}
+  button:hover{border-color:#3a4a57}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--panel);border:1px solid #26313a;border-radius:10px;padding:12px;min-height:120px}
+  .title{color:var(--muted);font-weight:700;margin-bottom:6px}
+  .statline{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .pill{border:1px solid #2b3742;border-radius:999px;padding:2px 8px}
+  .log{white-space:pre-wrap;overflow:auto;max-height:56vh}
+  .small{font-size:12px;color:var(--muted)}
+  .win{color:var(--gold)}
+  .lose{color:var(--danger)}
+  .tally{color:#a9c1cf}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Autobattler — Knight vs Goblin</h1>
+      <div>
+        <button id="fight1">1 Battle</button>
+        <button id="fight10">10 Battles</button>
+        <button id="fight100">100 Battles</button>
+        <button id="clear">Clear Log</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="title">Combatants</div>
+        <div class="statline">
+          <span class="pill">Knight HP: <span id="kHP">–</span></span>
+          <span class="pill">Goblin HP: <span id="gHP">–</span></span>
+        </div>
+        <div class="small">Knight has health potions and flourishes. Goblin can bloodlust and throw bombs. Both have defenses and crits.</div>
+      </section>
+
+      <section class="card">
+        <div class="title">Results</div>
+        <div class="statline">
+          <span class="pill">Knight Wins: <span id="kWins">0</span></span>
+          <span class="pill">Goblin Wins: <span id="gWins">0</span></span>
+          <span class="pill">Battles: <span id="bCount">0</span></span>
+        </div>
+      </section>
+
+      <section class="card" style="grid-column:1 / -1">
+        <div class="title">Battle Log</div>
+        <div id="log" class="log"></div>
+      </section>
+    </div>
+  </div>
+
+<script>
+const ui = {
+  kHP: document.getElementById('kHP'),
+  gHP: document.getElementById('gHP'),
+  kWins: document.getElementById('kWins'),
+  gWins: document.getElementById('gWins'),
+  bCount: document.getElementById('bCount'),
+  log: document.getElementById('log')
+};
+document.getElementById('clear').onclick = ()=> ui.log.textContent = "";
+
+const rnd = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+const chance = p => Math.random() < p;
+
+function simulateBattle(){
+  let knight = {hp:12,pots:2,crit:0.15,stunned:0};
+  let goblin = {hp:10,pots:1,crit:0.10,blood:0,stunned:0};
+  let round=1;
+  while(knight.hp>0 && goblin.hp>0 && round<200){
+    let logLine = `Round ${round} → `;
+    let first = (round%2===1)? 'knight':'goblin';
+    let second= (first==='knight')?'goblin':'knight';
+    [first,second].forEach(who=>{
+      let me = (who==='knight')?knight:goblin;
+      let opp = (who==='knight')?goblin:knight;
+      if(me.hp<=0||me.stunned>0){ if(me.stunned>0){logLine+=`${who} is stunned. `;me.stunned--;} return; }
+      // Potion
+      if(who==='knight' && me.pots>0 && me.hp<5){ me.hp+=5; me.pots--; logLine+=`Knight drinks potion. `; }
+      if(who==='goblin' && me.pots>0 && me.hp<5 && me.blood===0){ me.pots--; me.blood=3; logLine+=`Goblin drinks blood potion. `; }
+      // Attack
+      let dmg=0, stun=false;
+      if(who==='knight'){
+        if(me.hp<4 && chance(0.2)){ dmg=rnd(3,6)+2; if(chance(0.2)) stun=true; logLine+=`Flourish! `; }
+        else if(chance(0.1)){ dmg=rnd(3,6)+rnd(3,6); logLine+=`Double strike! `; }
+        else{ dmg=rnd(3,6); }
+      }else{ // goblin
+        if(me.hp===1 && chance(0.5)){ dmg=rnd(3,6); if(chance(0.1)) stun=true; logLine+=`Goblin Bomb! `; }
+        else{ dmg=rnd(1,3); }
+        if(me.blood>0){ dmg+=2; me.blood--; }
+      }
+      // crit
+      if(chance(me.crit)){ dmg*=2; logLine+=`Critical! `; }
+      // Defenses
+      if(opp.stunned===0){
+        if(chance(0.1)){ dmg=0; me.stunned=2; logLine+=`${opp===knight?"Goblin":"Knight"} parries! `; }
+        else if(chance(0.1)){ let ret=2; if(chance(opp.crit)) ret*=2; me.hp-=ret; logLine+=`${opp===knight?"Goblin":"Knight"} counters ${ret}! `; }
+        else if(chance(0.1)){ dmg=Math.floor(dmg/2); logLine+=`Blocked. `; }
+      }
+      opp.hp-=dmg; logLine+=`${who} hits ${dmg}. `;
+      if(stun && opp.hp>0){ opp.stunned=2; logLine+=`${opp===knight?"Knight":"Goblin"} stunned! `; }
+    });
+    ui.log.textContent += logLine+"\n";
+    round++;
+  }
+  let winner = (knight.hp>0 && goblin.hp<=0)?'knight':(goblin.hp>0 && knight.hp<=0)?'goblin':'none';
+  if(winner==='knight'){ ui.kWins.textContent=+ui.kWins.textContent+1; ui.log.textContent+="Knight wins!\n"; }
+  else if(winner==='goblin'){ ui.gWins.textContent=+ui.gWins.textContent+1; ui.log.textContent+="Goblin wins!\n"; }
+  ui.bCount.textContent=+ui.bCount.textContent+1;
+  ui.kHP.textContent=knight.hp; ui.gHP.textContent=goblin.hp;
+}
+
+document.getElementById('fight1').onclick=()=>simulateBattle();
+document.getElementById('fight10').onclick=()=>{for(let i=0;i<10;i++)simulateBattle();};
+document.getElementById('fight100').onclick=()=>{for(let i=0;i<100;i++)simulateBattle();};
+</script>
+</body>
+</html>

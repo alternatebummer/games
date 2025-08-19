@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autobattler Test — Select Any Two Fighters</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#15181c; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --gold:#d9b36a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .wrap{max-width:980px;margin:0 auto;padding:16px}
+  h1{font-size:20px;margin:0 0 12px}
+  .row{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+  .card{background:var(--panel);border:1px solid #22272e;border-radius:12px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+  button{cursor:pointer;border:1px solid #2a3139;background:#0f1318;color:var(--ink);padding:8px 12px;border-radius:10px}
+  button:hover{border-color:#3a424c}
+  button.primary{background:var(--accent);color:#0d1117;border-color:#7aa84c}
+  .pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #2a3139;color:var(--muted)}
+  .hp{color:var(--gold)}
+  .muted{color:var(--muted)}
+  .log{height:520px;overflow:auto;background:#0f1318;border:1px solid #22272e;border-radius:10px;padding:10px;white-space:pre-wrap}
+  .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .small{font-size:12px}
+  .sep{height:1px;background:#22272e;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Autobattler Test — Select Any Two Fighters</h1>
+  <div class="row">
+    <section class="card">
+      <div class="statgrid">
+        <div>
+          <div class="pill" id="nameA">Knight</div>
+          <div class="small">HP <span id="knightHP" class="hp">–</span> · Potions <span id="knightPots">–</span></div>
+        </div>
+        <div>
+          <div class="pill" id="nameB">Goblin</div>
+          <div class="small">HP <span id="goblinHP" class="hp">–</span> · Blood Potions <span id="goblinPobs">–</span></div>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="controls">
+        <label class="small"><input type="checkbox" id="pickKnight" checked> Knight</label>
+        <label class="small"><input type="checkbox" id="pickGoblin" checked> Goblin</label>
+        <label class="small"><input type="checkbox" id="pickBlade"> Wandering Blade</label>
+        <button class="primary" id="runBtn">Run Battle</button>
+        <button id="clearLog">Clear Log</button>
+        <label class="small"><input type="checkbox" id="autoscroll" checked> Auto-scroll log</label>
+      </div>
+    </section>
+    <section class="card">
+      <div id="log" class="log" aria-live="polite"></div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  const logEl   = document.getElementById('log');
+  const elKHP   = document.getElementById('knightHP');
+  const elKPots = document.getElementById('knightPots');
+  const elGHP   = document.getElementById('goblinHP');
+  const elGPobs = document.getElementById('goblinPobs');
+  const nameAEl = document.getElementById('nameA');
+  const nameBEl = document.getElementById('nameB');
+  const autoScroll = document.getElementById('autoscroll');
+
+  const pickKnight = document.getElementById('pickKnight');
+  const pickGoblin = document.getElementById('pickGoblin');
+  const pickBlade  = document.getElementById('pickBlade');
+
+  const r = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+  const chance = (p)=> Math.random() < p;
+  const clamp = (n,min,max)=> Math.max(min, Math.min(max, n));
+  const append = (msg)=> { logEl.insertAdjacentHTML('beforeend', msg+"\n"); if(autoScroll.checked) logEl.scrollTop = logEl.scrollHeight; };
+  const sep = ()=> append('<span class="muted">────────────────────────────────</span>');
+  const fmt = (d)=> (d>=0? `+${d}` : `${d}`);
+
+  function makeFighter(cfg){
+    return {
+      name: cfg.name,
+      maxHp: cfg.maxHp,
+      hp: cfg.maxHp,
+      crit: cfg.crit || 0,
+      potions: cfg.potions || 0,
+      bloodPotions: cfg.bloodPotions || 0,
+      bloodlustTurns: 0,
+      stunTurns: 0,
+      _queuedCounter:false,
+      defenseRates: cfg.defenseRates || { perry:0.10, counter:0.10, block:0.10 },
+      counterBase: cfg.counterBase || 2,
+      regenTicks: 0,
+      poisedQueued: false,
+      ai: cfg.ai
+    };
+  }
+
+  function updateHUD(a, b){
+    nameAEl.textContent = a.name;
+    nameBEl.textContent = b.name;
+    elKHP.textContent = `${a.hp}/${a.maxHp}`;
+    elKPots.textContent = `${a.potions}`;
+    elGHP.textContent = `${b.hp}/${b.maxHp}`;
+    elGPobs.textContent = `${b.bloodPotions}`;
+  }
+
+  function rollDefenseChoice(defender, opts){
+    const unblockable = !!(opts && opts.unblockable);
+    const canPerry = chance(defender.defenseRates.perry);
+    const canCounter = chance(defender.defenseRates.counter);
+    const canBlock = unblockable ? false : chance(defender.defenseRates.block);
+    if(canPerry) return 'perry';
+    if(canCounter) return 'counter';
+    if(canBlock) return 'block';
+    return 'none';
+  }
+
+  function applyDefense(defender, incoming, attacker, opts){
+    if (defender.stunTurns > 0){
+      return { finalDamage: incoming };
+    }
+    const unblockable = !!(opts && opts.unblockable);
+    const def = rollDefenseChoice(defender, {unblockable});
+    let dmg = incoming;
+    defender._queuedCounter = false;
+
+    if(def === 'perry'){
+      append(`${defender.name} parries! Damage avoided. ${attacker.name} is stunned into next turn.`);
+      attacker.stunTurns = Math.max(attacker.stunTurns, 1);
+      dmg = 0;
+    } else if(def === 'counter'){
+      defender._queuedCounter = true;
+    } else if(def === 'block'){
+      const blocked = Math.floor(dmg/2);
+      append(`${defender.name} blocks, reducing ${dmg} → ${blocked}.`);
+      dmg = blocked;
+    } else if(unblockable){
+      append(`${defender.name} cannot block this attack.`);
+    }
+    return { finalDamage: dmg };
+  }
+
+  function dealImmediate(target, amount, label){
+    const before = target.hp;
+    target.hp = clamp(target.hp - amount, 0, target.maxHp);
+    append(`${label} ${before} → ${target.hp}.`);
+    return before - target.hp; // actual damage taken (>=0)
+  }
+
+  function healImmediate(target, amount, label){
+    const before = target.hp;
+    target.hp = clamp(target.hp + amount, 0, target.maxHp);
+    append(`${label} ${before} → ${target.hp}.`);
+    return target.hp - before; // actual healing gained (>=0)
+  }
+
+  function resolveCounter(defender, attacker){
+    if(!defender._queuedCounter) return 0;
+    const base = defender.counterBase;
+    const isCrit = chance(defender.crit);
+    const dmg = isCrit ? base*2 : base;
+    defender._queuedCounter = false;
+    return dealImmediate(attacker, dmg, `${defender.name} counters for ${dmg}${isCrit?' (CRIT)':''} damage.`);
+  }
+
+  function takeTurn(actor, target, hudUpdate){
+    let netActor = 0, netTarget = 0;
+
+    if(actor.stunTurns > 0){
+      append(`${actor.name} is stunned and cannot attack.`);
+      actor.stunTurns = Math.max(0, actor.stunTurns - 1);
+      hudUpdate();
+      return { netActor, netTarget, ended:false };
+    }
+
+    if(actor.regenTicks > 0){
+      const healed = healImmediate(actor, 2, `${actor.name} regenerates:`);
+      netActor += healed;
+      actor.regenTicks -= 1;
+      hudUpdate();
+    }
+
+    actor.ai.preAction?.(actor, target, append, healImmediate, hudUpdate);
+    hudUpdate();
+
+    const moveId = actor.ai.chooseMove(actor, target);
+    const moveResult = actor.ai.executeMove(actor, target, moveId, append);
+
+    const total = moveResult.rawDamage || 0;
+    const opts = { unblockable: !!moveResult.unblockable };
+
+    const { finalDamage } = applyDefense(target, total, actor, opts);
+    if(finalDamage > 0){
+      const dealt = dealImmediate(target, finalDamage, `${actor.name} deals ${finalDamage} damage:`);
+      netTarget -= dealt;
+      hudUpdate();
+      if(target.hp <= 0){
+        return { netActor, netTarget, ended:true, winner:actor.name };
+      }
+    }
+
+    moveResult.onHit?.(actor, target, append, { stunNow: (t)=> t.stunTurns = Math.max(t.stunTurns,1) });
+
+    const counterDealt = resolveCounter(target, actor);
+    if(counterDealt > 0){
+      netActor -= counterDealt;
+      hudUpdate();
+      if(actor.hp <= 0){
+        return { netActor, netTarget, ended:true, winner:target.name };
+      }
+    }
+
+    return { netActor, netTarget, ended:false };
+  }
+
+  const KnightAI = {
+    preAction(actor, target, log, heal, hud){
+      if(actor.hp < 5 && actor.potions > 0){
+        actor.potions -= 1;
+        const healed = heal(actor, 5, `Knight drinks a potion:`);
+        hud();
+        append(`(Potions left: ${actor.potions})`);
+      }
+    },
+    chooseMove(actor){
+      const canFlourish = (actor.hp < 4) && chance(0.20);
+      const canDouble = chance(0.10);
+      if(canFlourish) return 'flourish';
+      if(canDouble) return 'double';
+      return 'normal';
+    },
+    executeMove(actor, target, move){
+      const isCrit = chance(actor.crit);
+      if(move === 'flourish'){
+        const roll = r(3,6);
+        let total = roll + 2;
+        if(isCrit) total *= 2;
+        append(`Knight uses Improvised Flourish (${roll}+2${isCrit?' ×2 CRIT':''}).`);
+        return {
+          rawDamage: total,
+          onHit(a, t){
+            if(chance(0.20)){
+              append(`Goblin is stunned by Flourish (20%).`);
+              t.stunTurns = Math.max(t.stunTurns, 1);
+            }
+          }
+        };
+      }
+      if(move === 'double'){
+        const a = r(3,6), b = r(3,6);
+        const total = isCrit ? (a*2 + b*2) : (a + b);
+        append(`Knight uses Double Strike (${a}${isCrit?'×2':''}+${b}${isCrit?'×2':''}).`);
+        return { rawDamage: total };
+      }
+      const roll = r(3,6);
+      const total = isCrit ? roll*2 : roll;
+      append(`Knight attacks (${isCrit?roll+"×2":roll}).`);
+      return { rawDamage: total };
+    }
+  };
+
+  const GoblinAI = {
+    preAction(actor, target, log, heal, hud){
+      if(actor.hp < 5 && actor.bloodlustTurns === 0 && actor.bloodPotions > 0){
+        actor.bloodPotions -= 1;
+        actor.bloodlustTurns = 3;
+        append(`Goblin quaffs a blood potion and now has Blood Lust! +2 damage for 3 turns.`);
+        hud();
+      }
+    },
+    chooseMove(actor){
+      if(actor.hp === 1 && chance(0.50)) return 'bomb';
+      return 'normal';
+    },
+    executeMove(actor, target, move){
+      const isCrit = chance(actor.crit);
+      let base, metaStun = false, label;
+      if(move === 'bomb'){
+        base = r(3,6);
+        metaStun = chance(0.10);
+        label = `Goblin uses Goblin Bomb (${isCrit?base+"×2":base}).`;
+      } else {
+        base = r(1,3);
+        label = `Goblin attacks (${isCrit?base+"×2":base}).`;
+      }
+      let total = isCrit ? base*2 : base;
+
+      // 👇 Attack log first
+      append(label);
+
+      if(actor.bloodlustTurns > 0){
+        const before = total;
+        total += 2;
+        append(`Blood Lust adds +2 damage (${before} → ${total}).`);
+        actor.bloodlustTurns -= 1;
+      }
+
+      return {
+        rawDamage: total,
+        onHit(a, t){
+          if(move === 'bomb' && metaStun){
+            append(`Knight is stunned by Goblin Bomb (10%).`);
+            t.stunTurns = Math.max(t.stunTurns, 1);
+          }
+        }
+      };
+    }
+  };
+
+
+  const BladeAI = {
+    preAction(actor, target, log, heal, hud){
+      if(actor.potions > 0){
+        actor.potions -= 1;
+        const healed = heal(actor, 2, `Wandering Blade drinks a regen potion! +2HP for 3 turns.`);
+        actor.regenTicks += 2;
+        hud();
+      }
+    },
+    chooseMove(actor){
+      if(actor.poisedQueued) return 'poised_unleash';
+      if(chance(0.40)) return 'poised_charge';
+      return 'normal';
+    },
+    executeMove(actor, target, move){
+      const isCrit = chance(actor.crit);
+      if(move === 'poised_charge'){
+        actor.poisedQueued = true;
+        append(`Wandering Blade switches to a defensive stance.`);
+        return { rawDamage: 0 };
+      }
+      if(move === 'poised_unleash'){
+        actor.poisedQueued = false;
+        const base = r(4,8);
+        const total = isCrit ? base*2 : base;
+        append(`Wandering Blade unleashes a poised strike! (${isCrit?base+"×2":base}).`);
+        return { rawDamage: total, unblockable: true };
+      }
+      const base = r(3,5);
+      const total = isCrit ? base*2 : base;
+      append(`Wandering Blade attacks (${isCrit?base+"×2":base}).`);
+      return { rawDamage: total };
+    }
+  };
+
+  const ROSTER = {
+    Knight: ()=> makeFighter({
+      name:'Knight', maxHp:12, crit:0.15, potions:2,
+      defenseRates:{ perry:0.10, counter:0.10, block:0.10 },
+      counterBase:2, ai: KnightAI
+    }),
+    Goblin: ()=> makeFighter({
+      name:'Goblin', maxHp:10, crit:0.10, bloodPotions:1,
+      defenseRates:{ perry:0.10, counter:0.10, block:0.10 },
+      counterBase:2, ai: GoblinAI
+    }),
+    'Wandering Blade': ()=> makeFighter({
+      name:'Wandering Blade', maxHp:8, crit:0.20, potions:1,
+      defenseRates:{ perry:0.15, counter:0.15, block:0.15 },
+      counterBase:4, ai: BladeAI
+    })
+  };
+
+  function pickTwo(){
+    const picks = [];
+    if(pickKnight.checked) picks.push('Knight');
+    if(pickGoblin.checked) picks.push('Goblin');
+    if(pickBlade.checked)  picks.push('Wandering Blade');
+    return picks.slice(0, 2);
+  }
+
+  function runBattle(){
+    logEl.innerHTML = '';
+
+    const chosen = pickTwo();
+    if(chosen.length !== 2){
+      append('Select exactly two combatants, then press Run Battle.');
+      return;
+    }
+    const A = ROSTER[chosen[0]]();
+    const B = ROSTER[chosen[1]]();
+
+    function hud(){ updateHUD(A,B); }
+
+    hud();
+    append(`Battle starts: ${A.name} vs ${B.name}`);
+    sep();
+
+    let round = 1;
+    while(A.hp > 0 && B.hp > 0 && round < 200){
+      append(`<span class="muted">— Round ${round} —</span>`);
+
+      const startA = A.hp, startB = B.hp;
+
+      const first = (round % 2 === 1) ? A : B;
+      const second = (round % 2 === 1) ? B : A;
+
+      const turn1 = takeTurn(first, second, hud);
+      if(turn1.ended){
+        const netA = A.hp - startA;
+        const netB = B.hp - startB;
+        append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+        hud();
+        append(`${turn1.winner} wins!`);
+        break;
+      }
+
+      const turn2 = takeTurn(second, first, hud);
+      if(turn2.ended){
+        const netA = A.hp - startA;
+        const netB = B.hp - startB;
+        append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+        hud();
+        append(`${turn2.winner} wins!`);
+        break;
+      }
+
+      const netA = A.hp - startA;
+      const netB = B.hp - startB;
+      append(`Round ${round} Tally → ${A.name} ${fmt(netA)}, ${B.name} ${fmt(netB)}.`);
+      hud();
+
+      if(B.hp <= 0){ append(`${A.name} wins!`); break; }
+      if(A.hp <= 0){ append(`${B.name} wins!`); break; }
+
+      sep();
+      round++;
+    }
+    if(round >= 200) append('Safety stop reached.');
+
+    A._queuedCounter = B._queuedCounter = false;
+  }
+
+  document.getElementById('runBtn').addEventListener('click', runBattle);
+  document.getElementById('clearLog').addEventListener('click', ()=>{logEl.innerHTML='';});
+})();
+</script>
+</body>
+</html>
