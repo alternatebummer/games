@@ -200,152 +200,275 @@
     </div>
   </div>
 
-<script>
-(function(){
-  const PACKAGES = [
-    { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
-    { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
-    { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
-    { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
-    { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
-  ];
+  <script>
+  (function(){
+    const PACKAGES = [
+      { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
+      { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
+      { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
+      { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
+      { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
+    ];
 
-  const genSlot    = document.getElementById('generatorSlot');
-  const btnGen     = document.getElementById('btnGen');
-  const inventory  = document.getElementById('inventory');
-  const knightSlot = document.getElementById('knightSlot');
+    const genSlot    = document.getElementById('generatorSlot');
+    const btnGen     = document.getElementById('btnGen');
+    const inventory  = document.getElementById('inventory');
+    const knightSlot = document.getElementById('knightSlot');
 
-  // Overlay refs
-  const overlay  = document.getElementById('overlay');
-  const ovTitle  = document.getElementById('ovTitle');
-  const ovMeta   = document.getElementById('ovMeta');
-  const ovDesc   = document.getElementById('ovDesc');
-  const ovClose  = document.getElementById('ovClose');
+    // Overlay refs
+    const overlay  = document.getElementById('overlay');
+    const ovTitle  = document.getElementById('ovTitle');
+    const ovMeta   = document.getElementById('ovMeta');
+    const ovDesc   = document.getElementById('ovDesc');
+    const ovClose  = document.getElementById('ovClose');
 
-  // Mana system (15 mana per generate)
-  const manaEl = document.querySelector('.mana');
-  const MANA_MAX = 50;
-  const GEN_COST = 15;
-  let mana = 50;
+    // Mana system (15 mana per generate)
+    const manaEl = document.querySelector('.mana');
+    const MANA_MAX = 50;
+    const GEN_COST = 15;
+    let mana = 50;
 
-  function updateMana(){
-    manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
-    btnGen.disabled = mana < GEN_COST;
-    btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
-  }
-  updateMana();
+    function updateMana(){
+      manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
+      btnGen.disabled = mana < GEN_COST;
+      btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
+    }
+    updateMana();
 
-  // Drag context (prevents duplication)
-  const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false };
+    // Drag contexts
+    const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false }; // desktop HTML5
+    const SLOT_SELECTOR = '.inv-slot, .knight-slot, .slot';
 
-  // Long-press config
-  const LP_MS = 350;
-  let lpTimer = null;
-  let lpTriggered = false;
-
-  function openOverlay(pkg){
-    ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
-    ovMeta.textContent  = `Size: ${pkg.size}`;
-    ovDesc.textContent  = pkg.desc;
-    overlay.setAttribute('aria-hidden','false');
-  }
-  function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
-  ovClose.addEventListener('click', closeOverlay);
-  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
-
-  function renderPkg(pkg){
-    const el = document.createElement('div');
-    el.className = 'pkg';
-    el.draggable = true;
-    el.dataset.pkg = JSON.stringify(pkg);
-    el.style.setProperty('--ring', pkg.ring || 'transparent');
-    el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
-
-    el.addEventListener('click', () => {
-      if (dragCtx.didDrag || lpTriggered) { dragCtx.didDrag = false; lpTriggered = false; return; }
-      openOverlay(pkg);
-    });
-
-    const startLP = ()=>{
-      if (lpTimer) clearTimeout(lpTimer);
-      lpTriggered = false;
-      lpTimer = setTimeout(()=>{ lpTriggered = true; el.classList.add('lp-hint'); }, LP_MS);
+    // Custom touch drag (for mobile)
+    const touchDrag = {
+      active:false, ghost:null, originEl:null, originSlot:null, pkg:null, currentSlot:null
     };
-    const clearLP = ()=>{
-      if (lpTimer) clearTimeout(lpTimer);
-      lpTimer = null;
-      setTimeout(()=> el.classList.remove('lp-hint'), 120);
-    };
-    el.addEventListener('mousedown', startLP);
-    el.addEventListener('touchstart', startLP, {passive:true});
-    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> el.addEventListener(ev, clearLP));
 
-    el.addEventListener('dragstart', (e) => {
-      dragCtx.didDrag = true;
-      dragCtx.chip = el;
-      dragCtx.fromSlot = el.parentElement;
-      dragCtx.drop = false;
-      el.classList.add('dragging');
-      e.dataTransfer.setData('application/json', JSON.stringify({ pkg }));
-      setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
-      e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
-    });
+    function openOverlay(pkg){
+      ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
+      ovMeta.textContent  = `Size: ${pkg.size}`;
+      ovDesc.textContent  = pkg.desc;
+      overlay.setAttribute('aria-hidden','false');
+    }
+    function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
+    ovClose.addEventListener('click', closeOverlay);
+    overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
 
-    el.addEventListener('dragend', () => {
-      el.classList.remove('dragging');
-      if (dragCtx.drop) { if (el.parentElement) el.remove(); }
-      else { el.style.visibility = ''; }
-      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
-      dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
-    });
+    function renderPkg(pkg){
+      const el = document.createElement('div');
+      el.className = 'pkg';
+      el.draggable = true;
+      el.dataset.pkg = JSON.stringify(pkg);
+      el.style.setProperty('--ring', pkg.ring || 'transparent');
+      el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
 
-    return el;
-  }
+      // ----- CLICK vs LONG-PRESS -----
+      const LP_MS = 350;
+      let lpTimer = null;
+      let lpTriggered = false;
 
-  function generate(){
-    genSlot.classList.add('spin');
-    setTimeout(() => genSlot.classList.remove('spin'), 750);
-    const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
-    genSlot.replaceChildren(renderPkg(pkg));
-  }
-
-  function wireSlots(slotElements){
-    slotElements.forEach(slot => {
-      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
-      slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
-      slot.addEventListener('drop', (e) => {
-        e.preventDefault(); slot.classList.remove('hover');
-
-        if (dragCtx.fromSlot === slot) {
-          if (dragCtx.chip) dragCtx.chip.style.visibility = '';
-          dragCtx.drop = false;
+      el.addEventListener('click', () => {
+        if (dragCtx.didDrag || lpTriggered || touchDrag.active) { // skip overlay right after a drag
+          dragCtx.didDrag = false; lpTriggered = false;
           return;
         }
-
-        const payload = e.dataTransfer.getData('application/json');
-        if(!payload) return;
-        const { pkg } = JSON.parse(payload);
-        slot.replaceChildren(renderPkg(pkg));
-        dragCtx.drop = true;
+        openOverlay(JSON.parse(el.dataset.pkg));
       });
+
+      const startLP = (evt)=>{
+        if (lpTimer) clearTimeout(lpTimer);
+        lpTriggered = false;
+
+        // remember initial touch point (for immediate ghost placement if needed)
+        let startX = 0, startY = 0;
+        if (evt.touches && evt.touches[0]) {
+          startX = evt.touches[0].clientX; startY = evt.touches[0].clientY;
+        }
+
+        lpTimer = setTimeout(()=>{
+          lpTriggered = true;
+          el.classList.add('lp-hint');
+
+          // Wait for movement to actually start the drag
+          const onMove = (e)=>{
+            if (!lpTriggered || touchDrag.active) return;
+            const t = e.touches && e.touches[0] ? e.touches[0] : null;
+            if (!t) return;
+            beginTouchDrag(el, JSON.parse(el.dataset.pkg), t.clientX, t.clientY);
+            window.removeEventListener('touchmove', onMove);
+          };
+          window.addEventListener('touchmove', onMove, {passive:false});
+        }, LP_MS);
+      };
+      const clearLP = ()=>{
+        if (lpTimer) clearTimeout(lpTimer);
+        lpTimer = null;
+        setTimeout(()=> el.classList.remove('lp-hint'), 120);
+      };
+
+      el.addEventListener('mousedown', startLP);         // desktop hint (doesn't start custom drag)
+      el.addEventListener('touchstart', startLP, {passive:true});
+      ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> el.addEventListener(ev, clearLP));
+
+      // ----- DESKTOP: native HTML5 drag -----
+      el.addEventListener('dragstart', (e) => {
+        dragCtx.didDrag = true;
+        dragCtx.chip = el;
+        dragCtx.fromSlot = el.parentElement;
+        dragCtx.drop = false;
+        el.classList.add('dragging');
+        e.dataTransfer.setData('application/json', el.dataset.pkg);
+        setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
+        e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
+      });
+
+      el.addEventListener('dragend', () => {
+        el.classList.remove('dragging');
+        if (dragCtx.drop) { if (el.parentElement) el.remove(); }
+        else { el.style.visibility = ''; }
+        setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
+        dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
+      });
+
+      return el;
+    }
+
+    // ---------- TOUCH DRAG HELPERS ----------
+    function beginTouchDrag(sourceEl, pkg, x, y){
+      // create a ghost that follows the finger
+      const ghost = sourceEl.cloneNode(true);
+      ghost.style.position = 'fixed';
+      ghost.style.left = (x - ghost.offsetWidth/2) + 'px';
+      ghost.style.top  = (y - ghost.offsetHeight/2) + 'px';
+      ghost.style.zIndex = 2000;
+      ghost.style.opacity = '0.8';
+      ghost.style.pointerEvents = 'none';
+      ghost.classList.add('dragging');
+      document.body.appendChild(ghost);
+
+      touchDrag.active = true;
+      touchDrag.ghost = ghost;
+      touchDrag.originEl = sourceEl;
+      touchDrag.originSlot = sourceEl.parentElement;
+      touchDrag.pkg = pkg;
+      touchDrag.currentSlot = null;
+
+      // hide original
+      sourceEl.style.visibility = 'hidden';
+
+      // listeners
+      window.addEventListener('touchmove', onTouchMove, {passive:false});
+      window.addEventListener('touchend', onTouchEnd, {passive:false});
+      window.addEventListener('touchcancel', onTouchEnd, {passive:false});
+    }
+
+    function onTouchMove(e){
+      if (!touchDrag.active) return;
+      const t = e.touches[0];
+      if (!t) return;
+      e.preventDefault(); // prevent scroll while dragging
+
+      // move ghost
+      const g = touchDrag.ghost;
+      g.style.left = (t.clientX - g.offsetWidth/2) + 'px';
+      g.style.top  = (t.clientY - g.offsetHeight/2) + 'px';
+
+      // detect slot under finger
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const slot = el ? el.closest(SLOT_SELECTOR) : null;
+
+      if (slot !== touchDrag.currentSlot) {
+        if (touchDrag.currentSlot) touchDrag.currentSlot.classList.remove('hover');
+        if (slot) slot.classList.add('hover');
+        touchDrag.currentSlot = slot;
+      }
+    }
+
+    function onTouchEnd(e){
+      if (!touchDrag.active) return;
+
+      const target = touchDrag.currentSlot;
+      if (target) target.classList.remove('hover');
+
+      // drop or cancel
+      if (target && target !== touchDrag.originSlot) {
+        // place package into target slot (move, not copy)
+        target.replaceChildren(renderPkg(touchDrag.pkg));
+        // remove original chip to avoid duplication
+        if (touchDrag.originEl && touchDrag.originEl.parentElement) {
+          touchDrag.originEl.remove();
+        }
+      } else {
+        // restore original visibility if cancelled or same-slot
+        if (touchDrag.originEl) touchDrag.originEl.style.visibility = '';
+      }
+
+      // cleanup
+      if (touchDrag.ghost && touchDrag.ghost.parentElement) {
+        touchDrag.ghost.parentElement.removeChild(touchDrag.ghost);
+      }
+      touchDrag.active = false;
+      touchDrag.ghost = null;
+      touchDrag.originEl = null;
+      touchDrag.originSlot = null;
+      touchDrag.pkg = null;
+      touchDrag.currentSlot = null;
+
+      // ensure click/overlay doesn't immediately fire
+      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
+
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    }
+    // ---------- END TOUCH DRAG HELPERS ----------
+
+    function generate(){
+      genSlot.classList.add('spin');
+      setTimeout(() => genSlot.classList.remove('spin'), 750);
+      const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
+      genSlot.replaceChildren(renderPkg(pkg));
+    }
+
+    function wireSlots(slotElements){
+      slotElements.forEach(slot => {
+        // Desktop HTML5 DnD
+        slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
+        slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault(); slot.classList.remove('hover');
+
+          // Dropped back onto same slot -> cancel
+          if (dragCtx.fromSlot === slot) {
+            if (dragCtx.chip) dragCtx.chip.style.visibility = '';
+            dragCtx.drop = false;
+            return;
+          }
+
+          const payload = e.dataTransfer.getData('application/json');
+          if(!payload) return;
+          const pkg = JSON.parse(payload);
+          slot.replaceChildren(renderPkg(pkg));
+          dragCtx.drop = true;
+        });
+      });
+    }
+
+    // Accept drops on all slots (generator, knight, inventory)
+    wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
+
+    // Buttons
+    btnGen.addEventListener('click', () => {
+      if (mana < GEN_COST) return;
+      mana -= GEN_COST;
+      updateMana();
+      generate();
     });
-  }
 
-  // Accept drops on all slots (generator, knight, inventory)
-  wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
-
-  // Buttons
-  btnGen.addEventListener('click', () => {
-    if (mana < GEN_COST) return;
-    mana -= GEN_COST;
-    updateMana();
-    generate();
-  });
-
-  document.getElementById('btnDeliver').addEventListener('click', () => {
-    console.log('Deliver Package clicked');
-  });
-})();
-</script>
+    document.getElementById('btnDeliver').addEventListener('click', () => {
+      console.log('Deliver Package clicked');
+    });
+  })();
+  </script>
 </body>
 </html>
