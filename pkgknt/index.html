@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PACKAGE KNIGHT WIZARD</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
+    --accent:#d9b36a; --slot:#1f232a; --outline:#2c313a; --good:#89d185;
+    --slot-size: 100px;   /* unified square slot size */
+    --gap: 16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    display:grid; place-items:start center;
+  }
+  .wrap{width:min(1024px,95vw); padding:20px 16px 40px; display:grid; gap:var(--gap)}
+
+  /* Top bar */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; padding:6px 0;
+  }
+  .title{margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px}
+  .mana{font-weight:700}
+
+  /* Main grid — EXACT FIT */
+  .main{
+    display:grid; gap:var(--gap);
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "gen knight"
+      "inv inv";
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  @media (max-width: 760px){
+    .main{
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "gen"
+        "knight"
+        "inv";
+      max-width: 100%;
+    }
+  }
+
+  .card{
+    max-width:600px;
+    max-height:300px;
+    background:linear-gradient(180deg,var(--panel),#0f1216 85%);
+    border:1px solid var(--outline); border-radius:12px; padding:14px;
+    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  .equal{ display:flex; flex-direction:column; }
+  .subhead{font-size:20px; color:var(--muted); margin:4px 0 10px}
+
+  /* Centered stacks for gen/knight content */
+  .stack-center{
+    display:flex; flex-direction:column; gap:10px;
+    align-items:center; justify-content:center; flex:1 1 auto;
+  }
+
+  /* Areas */
+  .gen{ grid-area: gen; min-width:0; }
+  .knight{ grid-area: knight; min-width:0; }
+  .inv{ grid-area: inv; }
+
+  /* Slots */
+  .slot, .inv-slot, .knight-slot {
+    width:var(--slot-size); height:var(--slot-size);
+    border-radius:12px; background:var(--slot);
+    border:1px dashed var(--outline); display:grid; place-items:center;
+    transition:border-color .15s ease, background .15s ease;
+    position:relative; overflow:hidden;
+  }
+  .slot.hover, .inv-slot.hover, .knight-slot.hover{ border-color:var(--accent); background:#151a21 }
+  .slot.spin::after{
+    content:""; position:absolute; inset:-40%; border-radius:50%;
+    border:2px solid rgba(217,179,106,.25); animation:spin 0.75s linear; pointer-events:none;
+  }
+  @keyframes spin{ from{ transform:rotate(0)} to{transform:rotate(360deg)} }
+  .placeholder{ font-size:11px; color:var(--muted) }
+
+  button{
+    background:var(--accent); color:#161208; font-weight:700; border:0;
+    padding:10px 14px; border-radius:10px; cursor:pointer;
+    box-shadow:0 3px 0 #9f7f3f; transition:transform .05s ease;
+  }
+  button:active{ transform:translateY(2px) }
+  button:disabled{
+    opacity:.55; cursor:not-allowed; box-shadow:0 3px 0 #6f5930;
+  }
+
+  /* Package chip */
+  .pkg{
+    --ring:transparent;
+    display:grid; place-items:center; gap:4px; text-align:center;
+    width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
+    border-radius:10px; cursor:grab; user-select:none; border:1px solid var(--outline);
+    background:
+      radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
+      linear-gradient(180deg,#182029,#11161c);
+    transition:transform .08s ease;
+  }
+  .pkg:active{ cursor:grabbing }
+  .pkg.dragging{ opacity:.35 }
+  .pkg.lp-hint{ transform:scale(0.98) }
+  .pkg .icon{ font-size:32px; line-height:1 }
+  .pkg .tag{
+    margin-top:2px; font-size:11px; color:var(--muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
+  }
+
+  /* Inventory grid */
+  .inv .grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:auto;
+  }
+
+  /* Overlay */
+  .overlay{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.6); z-index:1000; padding:20px;
+  }
+  .overlay[aria-hidden="false"]{ display:flex }
+  .ov-card{
+    width:min(520px, 92vw);
+    background:linear-gradient(180deg,var(--panel),#0f1216 85%);
+    border:1px solid var(--outline); border-radius:14px; padding:16px 16px 54px;
+    position:relative;
+    box-shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  .ov-title{ font-weight:800; color:var(--accent); margin:0 0 8px }
+  .ov-meta{ font-size:10px; color:var(--muted); margin-bottom:10px }
+  .ov-desc{ font-size:14px }
+  .ov-close{
+    position:absolute; right:12px; bottom:12px;
+    background:var(--accent); color:#161208; border:0; padding:8px 12px;
+    border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #9f7f3f;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
+      <div class="mana">Mana Crystals: 50/50</div>
+    </div>
+
+    <div class="tips">Tap a package to see details. Or <strong>long-press</strong> a package to grab it and drag. Items are <strong>moved</strong>, not copied; dropping on an occupied slot replaces it.</div>
+
+    <div class="main">
+      <!-- Generator -->
+      <section class="card equal gen">
+        <div class="subhead">Package Portal</div>
+        <div class="Gen-info">Click for package info. Long press to drag.</div>
+        <div class="stack-center">
+          <div id="generatorSlot" class="slot"></div>
+          <button id="btnGen" title="Generate Package (15 mana)">Activate (15 Mana)</button>
+        </div>
+      </section>
+
+      <!-- Package Knight -->
+      <section class="card equal knight">
+        <div class="subhead">Package Knight</div>
+        <div class="knight-info">Your courier can carry exactly one package.</div>
+        <div class="stack-center">
+          <div id="knightSlot" class="knight-slot">
+            <div class="placeholder">no package</div>
+          </div>
+          <button id="btnDeliver">Deliver Package</button>
+        </div>
+      </section>
+
+      <!-- Inventory -->
+      <section class="card equal inv">
+        <div class="subhead">Inventory (5 slots)</div>
+        <div id="inventory" class="grid">
+          <div class="inv-slot" data-slot="0"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" data-slot="1"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" data-slot="2"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" data-slot="3"><div class="placeholder">empty</div></div>
+          <div class="inv-slot" data-slot="4"><div class="placeholder">empty</div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Details Overlay -->
+  <div id="overlay" class="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ov-card">
+      <h2 class="ov-title" id="ovTitle">—</h2>
+      <div class="ov-meta" id="ovMeta">Size: —</div>
+      <div class="ov-desc" id="ovDesc">—</div>
+      <button id="ovClose" class="ov-close">Close</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const PACKAGES = [
+    { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
+    { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
+    { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
+    { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
+    { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
+  ];
+
+  const genSlot    = document.getElementById('generatorSlot');
+  const btnGen     = document.getElementById('btnGen');
+  const inventory  = document.getElementById('inventory');
+  const knightSlot = document.getElementById('knightSlot');
+
+  // Overlay refs
+  const overlay  = document.getElementById('overlay');
+  const ovTitle  = document.getElementById('ovTitle');
+  const ovMeta   = document.getElementById('ovMeta');
+  const ovDesc   = document.getElementById('ovDesc');
+  const ovClose  = document.getElementById('ovClose');
+
+  // Mana system (15 mana per generate)
+  const manaEl = document.querySelector('.mana');
+  const MANA_MAX = 50;
+  const GEN_COST = 15;
+  let mana = 50;
+
+  function updateMana(){
+    manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
+    btnGen.disabled = mana < GEN_COST;
+    btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
+  }
+  updateMana();
+
+  // Drag context (prevents duplication)
+  const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false };
+
+  // Long-press config
+  const LP_MS = 350;
+  let lpTimer = null;
+  let lpTriggered = false;
+
+  function openOverlay(pkg){
+    ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
+    ovMeta.textContent  = `Size: ${pkg.size}`;
+    ovDesc.textContent  = pkg.desc;
+    overlay.setAttribute('aria-hidden','false');
+  }
+  function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
+  ovClose.addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
+
+  function renderPkg(pkg){
+    const el = document.createElement('div');
+    el.className = 'pkg';
+    el.draggable = true;
+    el.dataset.pkg = JSON.stringify(pkg);
+    el.style.setProperty('--ring', pkg.ring || 'transparent');
+    el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
+
+    el.addEventListener('click', () => {
+      if (dragCtx.didDrag || lpTriggered) { dragCtx.didDrag = false; lpTriggered = false; return; }
+      openOverlay(pkg);
+    });
+
+    const startLP = ()=>{
+      if (lpTimer) clearTimeout(lpTimer);
+      lpTriggered = false;
+      lpTimer = setTimeout(()=>{ lpTriggered = true; el.classList.add('lp-hint'); }, LP_MS);
+    };
+    const clearLP = ()=>{
+      if (lpTimer) clearTimeout(lpTimer);
+      lpTimer = null;
+      setTimeout(()=> el.classList.remove('lp-hint'), 120);
+    };
+    el.addEventListener('mousedown', startLP);
+    el.addEventListener('touchstart', startLP, {passive:true});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> el.addEventListener(ev, clearLP));
+
+    el.addEventListener('dragstart', (e) => {
+      dragCtx.didDrag = true;
+      dragCtx.chip = el;
+      dragCtx.fromSlot = el.parentElement;
+      dragCtx.drop = false;
+      el.classList.add('dragging');
+      e.dataTransfer.setData('application/json', JSON.stringify({ pkg }));
+      setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
+      e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
+    });
+
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      if (dragCtx.drop) { if (el.parentElement) el.remove(); }
+      else { el.style.visibility = ''; }
+      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
+      dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
+    });
+
+    return el;
+  }
+
+  function generate(){
+    genSlot.classList.add('spin');
+    setTimeout(() => genSlot.classList.remove('spin'), 750);
+    const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
+    genSlot.replaceChildren(renderPkg(pkg));
+  }
+
+  function wireSlots(slotElements){
+    slotElements.forEach(slot => {
+      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault(); slot.classList.remove('hover');
+
+        if (dragCtx.fromSlot === slot) {
+          if (dragCtx.chip) dragCtx.chip.style.visibility = '';
+          dragCtx.drop = false;
+          return;
+        }
+
+        const payload = e.dataTransfer.getData('application/json');
+        if(!payload) return;
+        const { pkg } = JSON.parse(payload);
+        slot.replaceChildren(renderPkg(pkg));
+        dragCtx.drop = true;
+      });
+    });
+  }
+
+  // Accept drops on all slots (generator, knight, inventory)
+  wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
+
+  // Buttons
+  btnGen.addEventListener('click', () => {
+    if (mana < GEN_COST) return;
+    mana -= GEN_COST;
+    updateMana();
+    generate();
+  });
+
+  document.getElementById('btnDeliver').addEventListener('click', () => {
+    console.log('Deliver Package clicked');
+  });
+})();
+</script>
+</body>
+</html>
