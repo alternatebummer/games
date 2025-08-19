@@ -5,171 +5,183 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>PACKAGE KNIGHT WIZARD</title>
 <style>
-  :root{
-    --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
-    --accent:#d9b36a; --slot:#1f232a; --outline:#2c313a; --good:#89d185;
-    --slot-size: 100px;   /* unified square slot size */
-    --gap: 16px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    display:grid; place-items:start center;
-  }
-  .wrap{ overflow-x:auto; }
+:root{
+  --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
+  --accent:#d9b36a; --slot:#1f232a; --outline:#2c313a; --good:#89d185;
+  --slot-size: 100px;   /* unified square slot size */
+  --gap: 16px;
+}
 
+*{ box-sizing:border-box }
 
-  /* Top bar */
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:12px; padding:6px 0;
-  }
-  .title{margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px}
-  .mana{font-weight:700}
+html,body{ height:100% }
 
-  /* Main grid — EXACT FIT:
-     - container width capped at 600px
-     - two equal columns on top row (gen, knight)
-     - inventory spans both columns and equals 600px
-  */
-  .main, .main * {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  display:grid; place-items:start center;
+}
 
-    -webkit-touch-callout: none;           /* iOS long-press menu */
-    -webkit-tap-highlight-color: transparent;
-  }
-  .main{
-    display:grid;
-    gap:var(--gap);
-    width:600px;                     /* matches Inventory width */
-    max-width:600px;
-    grid-template-columns: repeat(2, 1fr);  /* two equal halves */
-    grid-template-areas:
-      "gen knight"
-      "inv inv";
-    margin:0 auto;
-  }
-  @media (max-width: 420px){
-    .main{
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "gen"
-        "knight"
-        "inv";
-    }
-  }
+.wrap{
+  width:min(1024px,95vw);
+  padding:20px 16px 40px;
+  display:grid; gap:var(--gap);
+  overflow-x:auto;                 /* allow horizontal scroll on narrow phones */
+}
 
-  .card{
-    /* each card will size to its grid cell; inventory cell = 600px,
-       gen/knight cells = (600px - gap)/2 */
-    max-width:600px;
-    max-height:300px;
-    background:linear-gradient(180deg,var(--panel),#0f1216 85%);
-    border:1px solid var(--outline); border-radius:12px; padding:14px;
-    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-  }
-  .equal{ display:flex; flex-direction:column; }
-  .subhead{font-size:20px; text-align:center; color:var(--muted); margin:4px 0 10px}
+/* Top bar */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:6px 0;
+}
+.title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
+.mana{ font-weight:700 }
 
-  /* Centered stacks for gen/knight content */
-  .stack-center{
-    display:flex; flex-direction:column; gap:10px;
-    align-items:center; justify-content:center; flex:1 1 auto;
-  }
+/* === LAYOUT: Force Gen + Knight side-by-side; Inventory full-width below === */
+.main{
+  display:flex;                    /* override any previous grid usage */
+  flex-wrap:wrap;                  /* allows .inv to wrap to next line */
+  gap:var(--gap);
+  width:600px;                     /* board width matches Inventory */
+  max-width:600px;
+  margin:0 auto;
+}
 
-  /* Areas */
-  .gen{ grid-area: gen; min-width:0; }      /* let grid control width */
-  .knight{ grid-area: knight; min-width:0; }
-  .inv{ grid-area: inv; }
+/* Two equal halves on the top row (300px minus half the gap each) */
+.gen, .knight{
+  flex: 0 0 calc((600px - var(--gap)) / 2);
+  min-width:0;                     /* allow content to shrink within cell */
+}
 
-  /* Slots (all identical & square) */
-  .slot, .inv-slot, .knight-slot {
-    width:var(--slot-size); height:var(--slot-size);
-    border-radius:12px; background:var(--slot);
-    border:1px dashed var(--outline); display:grid; place-items:center;
-    transition:border-color .15s ease, background .15s ease;
-    position:relative; overflow:hidden;
-  }
-  .slot.hover, .inv-slot.hover, .knight-slot.hover{ border-color:var(--accent); background:#151a21 }
-  .slot.spin::after{
-    content:""; position:absolute; inset:-40%; border-radius:50%;
-    border:2px solid rgba(217,179,106,.25); animation:spin 0.75s linear; pointer-events:none;
-  }
-  @keyframes spin{ from{ transform:rotate(0)} to{transform:rotate(360deg)} }
-  .placeholder{ font-size:11px; color:var(--muted) }
+/* Inventory spans full board width on its own row */
+.inv{ flex: 0 0 100%; }
 
-  button{
-    background:var(--accent); color:#161208; font-weight:700; border:0;
-    padding:10px 14px; border-radius:10px; cursor:pointer;
-    box-shadow:0 3px 0 #9f7f3f; transition:transform .05s ease;
-  }
-  button:active{ transform:translateY(2px) }
-  button:disabled{
-    opacity:.55; cursor:not-allowed; box-shadow:0 3px 0 #6f5930;
-  }
+/* Neutralize any old grid-area rules that might exist elsewhere */
+.gen, .knight, .inv{ grid-area: unset; }
 
-  /* Package chip */
-  .pkg{
-    --ring:transparent;
-    display:grid; place-items:center; gap:4px; text-align:center;
-    width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
-    border-radius:10px; cursor:grab; user-select:none; border:1px solid var(--outline);
-    background:
-      radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
-      linear-gradient(180deg,#182029,#11161c);
-    transition:transform .08s ease;
-  }
+/* Cards */
+.card{
+  /* each card sizes to its flex cell; Inventory cell = 600px,
+     Gen/Knight cells = (600px - gap)/2 */
+  max-height:300px;
+  background:linear-gradient(180deg,var(--panel),#0f1216 85%);
+  border:1px solid var(--outline); border-radius:12px; padding:14px;
+  box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.equal{ display:flex; flex-direction:column; }
+.subhead{ font-size:12px; color:var(--muted); margin:4px 0 10px }
 
-  .pkg:active{ cursor:grabbing }
-  .pkg.dragging{ opacity:.35 }
-  .pkg.lp-hint{ transform:scale(0.98) }
-  .pkg .icon{ font-size:32px; line-height:1 }
-  .pkg .tag{
-    margin-top:2px; font-size:11px; color:var(--muted);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
-  }
+/* Centered stacks for gen/knight content */
+.stack-center{
+  display:flex; flex-direction:column; gap:10px;
+  align-items:center; justify-content:center; flex:1 1 auto;
+}
 
-  /* Inventory grid */
-  .inv .grid{
-    display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:auto;
-  }
+/* Slots (all identical & square) */
+.slot, .inv-slot, .knight-slot {
+  width:var(--slot-size); height:var(--slot-size);
+  border-radius:12px; background:var(--slot);
+  border:1px dashed var(--outline); display:grid; place-items:center;
+  transition:border-color .15s ease, background .15s ease;
+  position:relative; overflow:hidden;
+}
+.slot.hover, .inv-slot.hover, .knight-slot.hover{ border-color:var(--accent); background:#151a21 }
+.slot.spin::after{
+  content:""; position:absolute; inset:-40%; border-radius:50%;
+  border:2px solid rgba(217,179,106,.25); animation:spin 0.75s linear; pointer-events:none;
+}
+@keyframes spin{ from{ transform:rotate(0)} to{transform:rotate(360deg)} }
+.placeholder{ font-size:11px; color:var(--muted) }
 
-  .tips{color:var(--muted); font-size:12px}
+/* Buttons */
+button{
+  background:var(--accent); color:#161208; font-weight:700; border:0;
+  padding:10px 14px; border-radius:10px; cursor:pointer;
+  box-shadow:0 3px 0 #9f7f3f; transition:transform .05s ease;
+}
+button:active{ transform:translateY(2px) }
+button:disabled{
+  opacity:.55; cursor:not-allowed; box-shadow:0 3px 0 #6f5930;
+}
 
-  /* Overlay (package details) */
-  .overlay, .overlay * {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
+/* Package chip */
+.pkg{
+  --ring:transparent;
+  display:grid; place-items:center; gap:4px; text-align:center;
+  width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
+  border-radius:10px; cursor:grab; user-select:none; border:1px solid var(--outline);
+  background:
+    radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
+    linear-gradient(180deg,#182029,#11161c);
+  transition:transform .08s ease;
+}
+.pkg:active{ cursor:grabbing }
+.pkg.dragging{ opacity:.35 }
+.pkg.lp-hint{ transform:scale(0.98) }
+.pkg .icon{ font-size:32px; line-height:1 }
+.pkg .tag{
+  margin-top:2px; font-size:11px; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
+}
 
-    -webkit-touch-callout: default;
-  }
-  .overlay{
-    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.6); z-index:1000; padding:20px;
-  }
-  .overlay[aria-hidden="false"]{ display:flex }
-  .ov-card{
-    width:min(520px, 92vw);
-    background:linear-gradient(180deg,var(--panel),#0f1216 85%);
-    border:1px solid var(--outline); border-radius:14px; padding:16px 16px 54px;
-    position:relative;
-    box-shadow:0 10px 40px rgba(0,0,0,.45);
-  }
-  .ov-title{ font-weight:800; color:var(--accent); margin:0 0 8px }
-  .ov-meta{ font-size:13px; color:var(--muted); margin-bottom:10px }
-  .ov-desc{ font-size:14px }
-  .ov-close{
-    position:absolute; right:12px; bottom:12px;
-    background:var(--accent); color:#161208; border:0; padding:8px 12px;
-    border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #9f7f3f;
-  }
+/* Inventory grid */
+.inv .grid{
+  display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:auto;
+}
+
+.tips{ color:var(--muted); font-size:12px }
+
+/* Overlay (package details) */
+.overlay{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.6); z-index:1000; padding:20px;
+}
+.overlay[aria-hidden="false"]{ display:flex }
+.ov-card{
+  width:min(520px, 92vw);
+  background:linear-gradient(180deg,var(--panel),#0f1216 85%);
+  border:1px solid var(--outline); border-radius:14px; padding:16px 16px 54px;
+  position:relative;
+  box-shadow:0 10px 40px rgba(0,0,0,.45);
+}
+.ov-title{ font-weight:800; color:var(--accent); margin:0 0 8px }
+.ov-meta{ font-size:13px; color:var(--muted); margin-bottom:10px }
+.ov-desc{ font-size:14px }
+.ov-close{
+  position:absolute; right:12px; bottom:12px;
+  background:var(--accent); color:#161208; border:0; padding:8px 12px;
+  border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #9f7f3f;
+}
+
+/* ==== Touch & selection fixes ==== */
+
+/* Prevent text selection / callouts while interacting with the game UI */
+.main, .main *{
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none;           /* iOS long-press menu */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Re-enable selection in the overlay (so players can copy text there) */
+.overlay, .overlay *{
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+
+  -webkit-touch-callout: default;
+}
+
+/* Improve touch drag behavior and stop unwanted browser gestures */
+.pkg, .slot, .inv-slot, .knight-slot{
+  touch-action: none;                     /* prevent panning/zoom during drag */
+  -webkit-user-drag: none;                /* Safari: don't drag as image */
+}
+
 </style>
 </head>
 <body>
