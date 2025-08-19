@@ -28,15 +28,19 @@
   .title{margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px}
   .mana{font-weight:700}
 
-  /* Main grid — EXACT FIT */
+  /* Main grid — EXACT FIT:
+     - container width capped at 600px
+     - two equal columns on top row (gen, knight)
+     - inventory spans both columns and equals 600px
+  */
   .main{
     display:grid; gap:var(--gap);
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;       /* two equal halves */
     grid-template-areas:
       "gen knight"
       "inv inv";
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 600px;                      /* inventory width */
+    margin: 0 auto;                        /* center the block */
   }
   @media (max-width: 760px){
     .main{
@@ -45,11 +49,13 @@
         "gen"
         "knight"
         "inv";
-      max-width: 100%;
+      max-width: 100%;                     /* allow narrow phones */
     }
   }
 
   .card{
+    /* each card will size to its grid cell; inventory cell = 600px,
+       gen/knight cells = (600px - gap)/2 */
     max-width:600px;
     max-height:300px;
     background:linear-gradient(180deg,var(--panel),#0f1216 85%);
@@ -57,7 +63,7 @@
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
   }
   .equal{ display:flex; flex-direction:column; }
-  .subhead{font-size:20px; color:var(--muted); margin:4px 0 10px}
+  .subhead{font-size:12px; color:var(--muted); margin:4px 0 10px}
 
   /* Centered stacks for gen/knight content */
   .stack-center{
@@ -66,11 +72,11 @@
   }
 
   /* Areas */
-  .gen{ grid-area: gen; min-width:0; }
+  .gen{ grid-area: gen; min-width:0; }      /* let grid control width */
   .knight{ grid-area: knight; min-width:0; }
   .inv{ grid-area: inv; }
 
-  /* Slots */
+  /* Slots (all identical & square) */
   .slot, .inv-slot, .knight-slot {
     width:var(--slot-size); height:var(--slot-size);
     border-radius:12px; background:var(--slot);
@@ -121,7 +127,9 @@
     display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:auto;
   }
 
-  /* Overlay */
+  .tips{color:var(--muted); font-size:12px}
+
+  /* Overlay (package details) */
   .overlay{
     position:fixed; inset:0; display:none; align-items:center; justify-content:center;
     background:rgba(0,0,0,.6); z-index:1000; padding:20px;
@@ -135,7 +143,7 @@
     box-shadow:0 10px 40px rgba(0,0,0,.45);
   }
   .ov-title{ font-weight:800; color:var(--accent); margin:0 0 8px }
-  .ov-meta{ font-size:10px; color:var(--muted); margin-bottom:10px }
+  .ov-meta{ font-size:13px; color:var(--muted); margin-bottom:10px }
   .ov-desc{ font-size:14px }
   .ov-close{
     position:absolute; right:12px; bottom:12px;
@@ -156,11 +164,11 @@
     <div class="main">
       <!-- Generator -->
       <section class="card equal gen">
-        <div class="subhead">Package Portal</div>
+        <div class="subhead">Generator</div>
         <div class="Gen-info">Click for package info. Long press to drag.</div>
         <div class="stack-center">
           <div id="generatorSlot" class="slot"></div>
-          <button id="btnGen" title="Generate Package (15 mana)">Activate (15 Mana)</button>
+          <button id="btnGen" title="Generate Package (15 mana)">Generate Package</button>
         </div>
       </section>
 
@@ -200,275 +208,258 @@
     </div>
   </div>
 
-  <script>
-  (function(){
-    const PACKAGES = [
-      { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
-      { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
-      { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
-      { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
-      { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
-    ];
+<script>
+(function(){
+  const PACKAGES = [
+    { id:'letter',  icon:'📨', name:'Sealed Letter',    size:'XS', desc:'Urgent correspondence; handle flat to avoid creases.', ring:'#6aa0ff' },
+    { id:'parcel',  icon:'📦', name:'Standard Parcel',   size:'M',  desc:'General goods in a corrugated box with tape seam.',   ring:'#d9b36a' },
+    { id:'tube',    icon:'🧪', name:'Document Tube',     size:'S',  desc:'Rolled map/blueprint; moisture-resistant casing.',    ring:'#8fd18b' },
+    { id:'crate',   icon:'🪵', name:'Wooden Crate',      size:'L',  desc:'Slatted crate with rattling contents. “FRAGILE”.',    ring:'#c0906a' },
+    { id:'freight', icon:'🧊', name:'Refrigerated Box',  size:'XL', desc:'Cold-chain package; deliver swiftly to maintain temp.',ring:'#7ad3e8' }
+  ];
 
-    const genSlot    = document.getElementById('generatorSlot');
-    const btnGen     = document.getElementById('btnGen');
-    const inventory  = document.getElementById('inventory');
-    const knightSlot = document.getElementById('knightSlot');
+  const genSlot    = document.getElementById('generatorSlot');
+  const btnGen     = document.getElementById('btnGen');
+  const inventory  = document.getElementById('inventory');
+  const knightSlot = document.getElementById('knightSlot');
 
-    // Overlay refs
-    const overlay  = document.getElementById('overlay');
-    const ovTitle  = document.getElementById('ovTitle');
-    const ovMeta   = document.getElementById('ovMeta');
-    const ovDesc   = document.getElementById('ovDesc');
-    const ovClose  = document.getElementById('ovClose');
+  // Overlay refs
+  const overlay  = document.getElementById('overlay');
+  const ovTitle  = document.getElementById('ovTitle');
+  const ovMeta   = document.getElementById('ovMeta');
+  const ovDesc   = document.getElementById('ovDesc');
+  const ovClose  = document.getElementById('ovClose');
 
-    // Mana system (15 mana per generate)
-    const manaEl = document.querySelector('.mana');
-    const MANA_MAX = 50;
-    const GEN_COST = 15;
-    let mana = 50;
+  // Mana system (15 mana per generate)
+  const manaEl = document.querySelector('.mana');
+  const MANA_MAX = 50;
+  const GEN_COST = 15;
+  let mana = 50;
 
-    function updateMana(){
-      manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
-      btnGen.disabled = mana < GEN_COST;
-      btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
-    }
-    updateMana();
+  function updateMana(){
+    manaEl.textContent = `Mana Crystals: ${mana}/${MANA_MAX}`;
+    btnGen.disabled = mana < GEN_COST;
+    btnGen.title = btnGen.disabled ? `Need ${GEN_COST} mana to generate` : 'Generate Package (15 mana)';
+  }
+  updateMana();
 
-    // Drag contexts
-    const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false }; // desktop HTML5
-    const SLOT_SELECTOR = '.inv-slot, .knight-slot, .slot';
+  // Desktop drag context
+  const dragCtx = { chip:null, fromSlot:null, drop:false, didDrag:false };
 
-    // Custom touch drag (for mobile)
-    const touchDrag = {
-      active:false, ghost:null, originEl:null, originSlot:null, pkg:null, currentSlot:null
+  // Touch drag state (no ghost; move the real element) + snapping
+  const SLOT_SELECTOR = '.inv-slot, .knight-slot, .slot';
+  const touchDrag = {
+    active:false, el:null, originSlot:null, pkg:null,
+    lastX:0, lastY:0, nearest:null, justDropped:false
+  };
+
+  function openOverlay(pkg){
+    ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
+    ovMeta.textContent  = `Size: ${pkg.size}`;
+    ovDesc.textContent  = pkg.desc;
+    overlay.setAttribute('aria-hidden','false');
+  }
+  function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
+  ovClose.addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
+
+  function renderPkg(pkg){
+    const el = document.createElement('div');
+    el.className = 'pkg';
+    el.draggable = true;
+    el.dataset.pkg = JSON.stringify(pkg);
+    el.style.setProperty('--ring', pkg.ring || 'transparent');
+    el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
+
+    // CLICK opens overlay unless we just dragged
+    el.addEventListener('click', () => {
+      if (dragCtx.didDrag || touchDrag.active || touchDrag.justDropped) {
+        dragCtx.didDrag = false; touchDrag.justDropped = false; return;
+      }
+      openOverlay(JSON.parse(el.dataset.pkg));
+    });
+
+    // LONG PRESS -> begin custom touch drag (no ghost; snap to nearest slot)
+    const LP_MS = 350;
+    let lpTimer = null;
+
+    const onTouchStart = (evt)=>{
+      if (lpTimer) clearTimeout(lpTimer);
+      const t = evt.touches && evt.touches[0];
+      const startX = t ? t.clientX : 0;
+      const startY = t ? t.clientY : 0;
+
+      lpTimer = setTimeout(()=>{
+        beginSnapDrag(el, JSON.parse(el.dataset.pkg), startX, startY);
+      }, LP_MS);
+    };
+    const cancelLP = ()=>{
+      if (lpTimer) clearTimeout(lpTimer);
+      lpTimer = null;
     };
 
-    function openOverlay(pkg){
-      ovTitle.textContent = `${pkg.icon} ${pkg.name}`;
-      ovMeta.textContent  = `Size: ${pkg.size}`;
-      ovDesc.textContent  = pkg.desc;
-      overlay.setAttribute('aria-hidden','false');
+    el.addEventListener('touchstart', onTouchStart, {passive:false});
+    ['touchend','touchcancel','touchmove'].forEach(ev => el.addEventListener(ev, cancelLP));
+
+    // DESKTOP: native HTML5 drag
+    el.addEventListener('dragstart', (e) => {
+      dragCtx.didDrag = true;
+      dragCtx.chip = el;
+      dragCtx.fromSlot = el.parentElement;
+      dragCtx.drop = false;
+      el.classList.add('dragging');
+      e.dataTransfer.setData('application/json', el.dataset.pkg);
+      setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
+      e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
+    });
+
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      if (dragCtx.drop) { if (el.parentElement) el.remove(); }
+      else { el.style.visibility = ''; }
+      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
+      dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
+    });
+
+    return el;
+  }
+
+  // ------- SNAP-TO-GRID TOUCH DRAG (no ghost) -------
+  function beginSnapDrag(el, pkg, x, y){
+    if (touchDrag.active) return;
+    touchDrag.active = true;
+    touchDrag.el = el;
+    touchDrag.pkg = pkg;
+    touchDrag.originSlot = el.parentElement;
+    touchDrag.nearest = null;
+    touchDrag.lastX = x; touchDrag.lastY = y;
+
+    // elevate the actual element & let it follow the finger
+    el.classList.add('dragging');
+    el.style.position = 'fixed';
+    el.style.left = (x - el.offsetWidth/2) + 'px';
+    el.style.top  = (y - el.offsetHeight/2) + 'px';
+    el.style.zIndex = '2000';
+    el.style.pointerEvents = 'none'; // pass events to slots underneath
+
+    window.addEventListener('touchmove', onTouchMove, {passive:false});
+    window.addEventListener('touchend', onTouchEnd, {passive:false});
+    window.addEventListener('touchcancel', onTouchEnd, {passive:false});
+
+    updateNearestSlot(x, y);
+  }
+
+  function onTouchMove(e){
+    if (!touchDrag.active) return;
+    const t = e.touches[0]; if (!t) return;
+    e.preventDefault(); // prevent scroll while dragging
+
+    touchDrag.lastX = t.clientX;
+    touchDrag.lastY = t.clientY;
+
+    const el = touchDrag.el;
+    el.style.left = (touchDrag.lastX - el.offsetWidth/2) + 'px';
+    el.style.top  = (touchDrag.lastY - el.offsetHeight/2) + 'px';
+
+    updateNearestSlot(touchDrag.lastX, touchDrag.lastY);
+  }
+
+  function onTouchEnd(){
+    if (!touchDrag.active) return;
+
+    // snap to closest slot (or back to origin if none)
+    const target = touchDrag.nearest || touchDrag.originSlot;
+
+    // clear highlight
+    if (touchDrag.nearest) touchDrag.nearest.classList.remove('hover');
+
+    // move the actual element into the target slot (replace existing content)
+    target.replaceChildren(touchDrag.el);
+
+    // restore element styling
+    const el = touchDrag.el;
+    el.classList.remove('dragging');
+    el.style.position = '';
+    el.style.left = '';
+    el.style.top = '';
+    el.style.zIndex = '';
+    el.style.pointerEvents = '';
+
+    // reset state
+    touchDrag.active = false;
+    touchDrag.justDropped = true;
+    setTimeout(()=> touchDrag.justDropped = false, 120);
+    touchDrag.el = null; touchDrag.pkg = null;
+    touchDrag.originSlot = null; touchDrag.nearest = null;
+
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+    window.removeEventListener('touchcancel', onTouchEnd);
+  }
+
+  function updateNearestSlot(x, y){
+    const slots = Array.from(document.querySelectorAll(SLOT_SELECTOR));
+    let best = null, bestD2 = Infinity;
+    for (const s of slots){
+      const r = s.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top  + r.height/2;
+      const d2 = (cx - x)*(cx - x) + (cy - y)*(cy - y);
+      if (d2 < bestD2){ bestD2 = d2; best = s; }
     }
-    function closeOverlay(){ overlay.setAttribute('aria-hidden','true'); }
-    ovClose.addEventListener('click', closeOverlay);
-    overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeOverlay(); });
+    if (best !== touchDrag.nearest){
+      if (touchDrag.nearest) touchDrag.nearest.classList.remove('hover');
+      if (best) best.classList.add('hover');
+      touchDrag.nearest = best;
+    }
+  }
+  // ------- END TOUCH DRAG -------
 
-    function renderPkg(pkg){
-      const el = document.createElement('div');
-      el.className = 'pkg';
-      el.draggable = true;
-      el.dataset.pkg = JSON.stringify(pkg);
-      el.style.setProperty('--ring', pkg.ring || 'transparent');
-      el.innerHTML = `<div class="icon">${pkg.icon}</div><div class="tag">${pkg.name}</div>`;
+  function generate(){
+    genSlot.classList.add('spin');
+    setTimeout(() => genSlot.classList.remove('spin'), 750);
+    const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
+    genSlot.replaceChildren(renderPkg(pkg));
+  }
 
-      // ----- CLICK vs LONG-PRESS -----
-      const LP_MS = 350;
-      let lpTimer = null;
-      let lpTriggered = false;
+  function wireSlots(slotElements){
+    slotElements.forEach(slot => {
+      // Desktop HTML5 DnD only (touch uses custom handlers above)
+      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault(); slot.classList.remove('hover');
 
-      el.addEventListener('click', () => {
-        if (dragCtx.didDrag || lpTriggered || touchDrag.active) { // skip overlay right after a drag
-          dragCtx.didDrag = false; lpTriggered = false;
+        if (dragCtx.fromSlot === slot) {
+          if (dragCtx.chip) dragCtx.chip.style.visibility = '';
+          dragCtx.drop = false;
           return;
         }
-        openOverlay(JSON.parse(el.dataset.pkg));
+
+        const payload = e.dataTransfer.getData('application/json');
+        if(!payload) return;
+        const pkg = JSON.parse(payload);
+        slot.replaceChildren(renderPkg(pkg));
+        dragCtx.drop = true;
       });
-
-      const startLP = (evt)=>{
-        if (lpTimer) clearTimeout(lpTimer);
-        lpTriggered = false;
-
-        // remember initial touch point (for immediate ghost placement if needed)
-        let startX = 0, startY = 0;
-        if (evt.touches && evt.touches[0]) {
-          startX = evt.touches[0].clientX; startY = evt.touches[0].clientY;
-        }
-
-        lpTimer = setTimeout(()=>{
-          lpTriggered = true;
-          el.classList.add('lp-hint');
-
-          // Wait for movement to actually start the drag
-          const onMove = (e)=>{
-            if (!lpTriggered || touchDrag.active) return;
-            const t = e.touches && e.touches[0] ? e.touches[0] : null;
-            if (!t) return;
-            beginTouchDrag(el, JSON.parse(el.dataset.pkg), t.clientX, t.clientY);
-            window.removeEventListener('touchmove', onMove);
-          };
-          window.addEventListener('touchmove', onMove, {passive:false});
-        }, LP_MS);
-      };
-      const clearLP = ()=>{
-        if (lpTimer) clearTimeout(lpTimer);
-        lpTimer = null;
-        setTimeout(()=> el.classList.remove('lp-hint'), 120);
-      };
-
-      el.addEventListener('mousedown', startLP);         // desktop hint (doesn't start custom drag)
-      el.addEventListener('touchstart', startLP, {passive:true});
-      ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> el.addEventListener(ev, clearLP));
-
-      // ----- DESKTOP: native HTML5 drag -----
-      el.addEventListener('dragstart', (e) => {
-        dragCtx.didDrag = true;
-        dragCtx.chip = el;
-        dragCtx.fromSlot = el.parentElement;
-        dragCtx.drop = false;
-        el.classList.add('dragging');
-        e.dataTransfer.setData('application/json', el.dataset.pkg);
-        setTimeout(() => { el.style.visibility = 'hidden'; }, 0);
-        e.dataTransfer.setDragImage(el, el.clientWidth/2, el.clientHeight/2);
-      });
-
-      el.addEventListener('dragend', () => {
-        el.classList.remove('dragging');
-        if (dragCtx.drop) { if (el.parentElement) el.remove(); }
-        else { el.style.visibility = ''; }
-        setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
-        dragCtx.chip = null; dragCtx.fromSlot = null; dragCtx.drop = false;
-      });
-
-      return el;
-    }
-
-    // ---------- TOUCH DRAG HELPERS ----------
-    function beginTouchDrag(sourceEl, pkg, x, y){
-      // create a ghost that follows the finger
-      const ghost = sourceEl.cloneNode(true);
-      ghost.style.position = 'fixed';
-      ghost.style.left = (x - ghost.offsetWidth/2) + 'px';
-      ghost.style.top  = (y - ghost.offsetHeight/2) + 'px';
-      ghost.style.zIndex = 2000;
-      ghost.style.opacity = '0.8';
-      ghost.style.pointerEvents = 'none';
-      ghost.classList.add('dragging');
-      document.body.appendChild(ghost);
-
-      touchDrag.active = true;
-      touchDrag.ghost = ghost;
-      touchDrag.originEl = sourceEl;
-      touchDrag.originSlot = sourceEl.parentElement;
-      touchDrag.pkg = pkg;
-      touchDrag.currentSlot = null;
-
-      // hide original
-      sourceEl.style.visibility = 'hidden';
-
-      // listeners
-      window.addEventListener('touchmove', onTouchMove, {passive:false});
-      window.addEventListener('touchend', onTouchEnd, {passive:false});
-      window.addEventListener('touchcancel', onTouchEnd, {passive:false});
-    }
-
-    function onTouchMove(e){
-      if (!touchDrag.active) return;
-      const t = e.touches[0];
-      if (!t) return;
-      e.preventDefault(); // prevent scroll while dragging
-
-      // move ghost
-      const g = touchDrag.ghost;
-      g.style.left = (t.clientX - g.offsetWidth/2) + 'px';
-      g.style.top  = (t.clientY - g.offsetHeight/2) + 'px';
-
-      // detect slot under finger
-      const el = document.elementFromPoint(t.clientX, t.clientY);
-      const slot = el ? el.closest(SLOT_SELECTOR) : null;
-
-      if (slot !== touchDrag.currentSlot) {
-        if (touchDrag.currentSlot) touchDrag.currentSlot.classList.remove('hover');
-        if (slot) slot.classList.add('hover');
-        touchDrag.currentSlot = slot;
-      }
-    }
-
-    function onTouchEnd(e){
-      if (!touchDrag.active) return;
-
-      const target = touchDrag.currentSlot;
-      if (target) target.classList.remove('hover');
-
-      // drop or cancel
-      if (target && target !== touchDrag.originSlot) {
-        // place package into target slot (move, not copy)
-        target.replaceChildren(renderPkg(touchDrag.pkg));
-        // remove original chip to avoid duplication
-        if (touchDrag.originEl && touchDrag.originEl.parentElement) {
-          touchDrag.originEl.remove();
-        }
-      } else {
-        // restore original visibility if cancelled or same-slot
-        if (touchDrag.originEl) touchDrag.originEl.style.visibility = '';
-      }
-
-      // cleanup
-      if (touchDrag.ghost && touchDrag.ghost.parentElement) {
-        touchDrag.ghost.parentElement.removeChild(touchDrag.ghost);
-      }
-      touchDrag.active = false;
-      touchDrag.ghost = null;
-      touchDrag.originEl = null;
-      touchDrag.originSlot = null;
-      touchDrag.pkg = null;
-      touchDrag.currentSlot = null;
-
-      // ensure click/overlay doesn't immediately fire
-      setTimeout(()=>{ dragCtx.didDrag = false; }, 50);
-
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-      window.removeEventListener('touchcancel', onTouchEnd);
-    }
-    // ---------- END TOUCH DRAG HELPERS ----------
-
-    function generate(){
-      genSlot.classList.add('spin');
-      setTimeout(() => genSlot.classList.remove('spin'), 750);
-      const pkg = PACKAGES[Math.floor(Math.random()*PACKAGES.length)];
-      genSlot.replaceChildren(renderPkg(pkg));
-    }
-
-    function wireSlots(slotElements){
-      slotElements.forEach(slot => {
-        // Desktop HTML5 DnD
-        slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('hover'); });
-        slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
-        slot.addEventListener('drop', (e) => {
-          e.preventDefault(); slot.classList.remove('hover');
-
-          // Dropped back onto same slot -> cancel
-          if (dragCtx.fromSlot === slot) {
-            if (dragCtx.chip) dragCtx.chip.style.visibility = '';
-            dragCtx.drop = false;
-            return;
-          }
-
-          const payload = e.dataTransfer.getData('application/json');
-          if(!payload) return;
-          const pkg = JSON.parse(payload);
-          slot.replaceChildren(renderPkg(pkg));
-          dragCtx.drop = true;
-        });
-      });
-    }
-
-    // Accept drops on all slots (generator, knight, inventory)
-    wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
-
-    // Buttons
-    btnGen.addEventListener('click', () => {
-      if (mana < GEN_COST) return;
-      mana -= GEN_COST;
-      updateMana();
-      generate();
     });
+  }
 
-    document.getElementById('btnDeliver').addEventListener('click', () => {
-      console.log('Deliver Package clicked');
-    });
-  })();
-  </script>
+  // Accept drops on all slots (generator, knight, inventory)
+  wireSlots([genSlot, knightSlot, ...inventory.querySelectorAll('.inv-slot')]);
+
+  // Buttons
+  btnGen.addEventListener('click', () => {
+    if (mana < GEN_COST) return;
+    mana -= GEN_COST;
+    updateMana();
+    generate();
+  });
+
+  document.getElementById('btnDeliver').addEventListener('click', () => {
+    console.log('Deliver Package clicked');
+  });
+})();
+</script>
 </body>
 </html>
