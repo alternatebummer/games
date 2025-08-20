@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PACKAGE KNIGHT WIZARD — Click-to-Move</title>
+<title>PACKAGE KNIGHT WIZARD</title>
 <style>
   :root{
-    --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
-    --accent:#d9b36a; --outline:#2c313a; --slot:#1f232a;
+    --bg:black; --panel:black; --ink:#9eba8f; --muted:#91a1aa;
+    --accent:#d9b36a; --outline:#ad5b44; --slot:#0f1318;
     --gap:16px; --slot-size:100px;
     --gold-soft:#d9b36a;         /* coins */
-    --ice-soft:#a8c7d9;          /* mana */
+    --ice-soft:#8a9fb5;          /* mana */
+    --btnclr:#0f1318;
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -26,18 +27,18 @@
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     gap:12px; padding:12px 16px;
-    background:linear-gradient(180deg, var(--panel), #0f1216 85%);
-    border:1px solid var(--outline); border-radius:12px;
+    background:var(--panel);
+    border:1px dashed var(--outline); border-radius:12px;
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
     width:100%; max-width:1000px;
   }
-  .title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
+  .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .btn-buy{
-    border:1px solid var(--outline); background:#1a1f25; color:var(--ink);
+    border:1px dashed var(--outline); background:var(--btnclr); color:var(--ink);
     border-radius:10px; padding:6px 10px; font-weight:700; cursor:pointer;
   }
-  .stat{ font-weight:700; padding:4px 8px; border:1px solid var(--outline); border-radius:8px; background:#12171d; }
+  .stat{ font-weight:700; padding:4px 8px; border:1px dashed var(--outline); border-radius:8px; background:#12171d; }
   .stat.coins{ color:var(--gold-soft); }
   .stat.mana{ color:var(--ice-soft); }
 
@@ -56,8 +57,8 @@
 
   /* Card base */
   .card{
-    background:linear-gradient(180deg, var(--panel), #0f1216 85%);
-    border:1px solid var(--outline); border-radius:12px; padding:14px;
+    background:var(--panel);
+    border:1px dashed var(--outline); border-radius:12px; padding:14px;
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
     gap:10px; flex:none;
@@ -89,10 +90,8 @@
     --ring:transparent;
     display:grid; place-items:center; gap:4px; text-align:center;
     width:calc(var(--slot-size) - 16px); height:calc(var(--slot-size) - 16px);
-    border-radius:10px; user-select:none; border:1px solid var(--outline);
-    background:
-      radial-gradient(28px 28px at 50% 42%, var(--ring) 0 1px, transparent 2px),
-      linear-gradient(180deg,#182029,#11161c);
+    border-radius:10px; user-select:none; border:1px dashed var(--outline);
+    background:var(--ring);
     transition:transform .06s ease, box-shadow .12s ease, border-color .12s ease;
     pointer-events:auto; cursor:pointer;
   }
@@ -103,7 +102,6 @@
   }
   .pkg.is-selected{
     border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(217,179,106,.25);
     transform:scale(0.98);
   }
   .board-selecting .slot,
@@ -115,20 +113,20 @@
   /* Buttons */
   .actions{ display:flex; gap:8px; justify-content:center; }
   .btn{
-    border:1px solid var(--outline); background:#1a1f25;
+    border:1px dashed var(--outline); background:var(--btnclr);
     color:var(--ink); border-radius:10px; padding:6px 10px; font-weight:600;
     cursor:pointer; transition:transform .04s ease, border-color .12s ease;
   }
   .btn:hover{ border-color:var(--accent) }
   .btn[disabled]{ opacity:.5; cursor:not-allowed; }
-  .divider{ width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--outline), transparent); margin:4px 0; }
+  .divider{ width:100%; height:1px; background:var(--outline); }
 
   /* Overlay (long-press) */
   .overlay-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:999; }
-  .overlay-card{ width:min(480px, 92vw); background:linear-gradient(180deg, #1a1f25, #11161c 85%); border:1px solid var(--outline); border-radius:14px; padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03); display:flex; flex-direction:column; gap:10px; }
+  .overlay-card{ width:min(480px, 92vw); background:var(--bg); border:1px dashed var(--outline); border-radius:14px; padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03); display:flex; flex-direction:column; gap:10px; }
   .overlay-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .overlay-title{ font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
-  .overlay-close{ border:1px solid var(--outline); background:#1a1f25; color:var(--ink); border-radius:8px; padding:4px 8px; cursor:pointer; }
+  .overlay-close{ border:1px dashed var(--outline); background:#1a1f25; color:var(--ink); border-radius:8px; padding:4px 8px; cursor:pointer; }
   .overlay-body{ display:flex; gap:10px; align-items:flex-start; }
   .overlay-icon{ font-size:40px; line-height:1; }
   .overlay-texts{ display:flex; flex-direction:column; gap:6px; }
@@ -142,7 +140,7 @@
     flex:1;
     min-height:260px;
     background:#0f1318;
-    border:1px solid var(--outline);
+    border:1px dashed var(--outline);
     border-radius:10px;
     padding:10px;
     overflow:auto;
