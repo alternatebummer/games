@@ -234,26 +234,52 @@
     btnBuyMana.disabled = coins < 10;
   }
 
-  // Enable/disable "Begin Delivery" depending on Knight slot occupancy
-  function hasKnightPackage(){
-    return !!document.querySelector('.knight-slot .pkg');
-  }
-  function updateBeginEnabled(){
-    btnBegin.disabled = !hasKnightPackage();
-  }
+  // --- Gate "Begin Delivery" on Knight slot contents ---
+  const knightSlot = document.querySelector('.knight-slot');
+  function hasKnightPackage(){ return !!knightSlot.querySelector('.pkg'); }
+  function updateBeginEnabled(){ btnBegin.disabled = !hasKnightPackage(); }
+  updateBeginEnabled();
+  new MutationObserver(updateBeginEnabled).observe(knightSlot, { childList:true, subtree:true });
 
-  // Log helpers
+  // --- Delivery log helpers (no change if you already have these) ---
   function clearBattleLog(){ battleLogEl.textContent = ''; }
-  function playLog(lines, speed=40){
+  function streamLog(lines, delay=30){
     clearBattleLog();
     let i = 0;
     (function step(){
-      if(i >= lines.length) { battleLogEl.scrollTop = battleLogEl.scrollHeight; return; }
-      battleLogEl.insertAdjacentText('beforeend', lines[i] + '\n');
+      if(i >= lines.length) return;
+      battleLogEl.insertAdjacentText('beforeend', lines[i++] + '\n');
       battleLogEl.scrollTop = battleLogEl.scrollHeight;
-      i++; setTimeout(step, speed);
+      setTimeout(step, delay);
     })();
   }
+
+  // --- Begin Delivery: Knight vs Wandering Blade, import from Netlify ---
+  btnBegin.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (btnBegin.disabled) return;
+
+    clearBattleLog();
+    battleLogEl.textContent = 'Starting delivery battle...';
+
+    try {
+      // Use HTTPS to avoid mixed-content blocks
+      const { runAutobattle } = await import('https://reptileroom.netlify.app/pkgknt/autobattle.js');
+
+      const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
+      streamLog(result.log, 30);
+
+      // TODO: on victory, award coins/mana using the package's data, then clear the Knight slot.
+      // if (result.winner === 'Knight') { ... }
+
+    } catch (err) {
+      battleLogEl.textContent =
+        'Could not load autobattle.js from Netlify.\n' +
+        'Tip: ensure this page also runs on https://reptileroom.netlify.app (same origin).\n\n' +
+        String(err);
+    }
+  });
+
 
   updateCurrencyUI();
   updateBeginEnabled();
