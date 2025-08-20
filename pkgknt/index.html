@@ -8,10 +8,9 @@
   :root{
     --bg:black; --panel:black; --ink:#9eba8f; --muted:#91a1aa;
     --accent:#d9b36a; --outline:#ad5b44; --slot:#0f1318;
-    --gap:16px; --slot-size:100px;
-    --gold-soft:#d9b36a;         /* coins */
-    --ice-soft:#8a9fb5;          /* mana */
-    --btnclr:#0f1318;
+    --gap:16px; --slot-size:100px;              /* desktop/base slot size */
+    --gold-soft:#d9b36a; --ice-soft:#8a9fb5; --btnclr:#0f1318;
+    --design-max: 500px;                        /* max layout width */
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -19,17 +18,24 @@
     margin:0; background:var(--bg); color:var(--ink);
     font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     display:flex; align-items:flex-start; justify-content:center;
+    overflow-x:hidden;                           /* prevent sideways scroll on mobile */
   }
 
-  .wrap{ padding:20px 16px 40px; display:flex; flex-direction:column; align-items:center; gap:var(--gap); }
+  /* Centered column container with max width; stretches down to 100vw on phones */
+  .wrap{
+    padding:0;
+    display:flex; flex-direction:column; align-items:center; gap:var(--gap);
+    width:min(100vw, var(--design-max));
+  }
 
-  /* Topbar */
+  /* Topbar should follow container width (not 100vw) so it shrinks with .wrap */
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
-    gap:12px; padding:0px 0px;
+    padding:0;
     background:var(--panel);
     border:0px dashed var(--outline); border-radius:12px;
-    width:100%; max-width:500px;
+    width:100%;                                   /* was 100vw */
+    max-width:none;                                /* let .wrap control width */
   }
   .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -44,25 +50,19 @@
 
   /* Column layout */
   .main{
-    display:flex;
-    flex-direction:column;
-    gap:var(--gap);
-    margin-top:16px;
-    align-items:center;
-    flex-wrap:nowrap;
+    display:flex; flex-direction:column; gap:var(--gap);
+    margin-top:16px; align-items:center; flex-wrap:nowrap;
+    width:100%;
   }
 
-  /* Fixed widths */
-  .wizardKnight{ min-width:100%; }
-  .inv{          width:100%; }
-  .delivery{     min-width:500px; }
+  /* Cards follow container width; no fixed/min widths that would overflow phones */
+  .wizardKnight, .inv, .delivery { width:100%; }
 
   /* Card base */
   .card{
     background:var(--panel);
     border:1px dashed var(--outline); border-radius:12px; padding:14px;
-    display:grid; align-items:center;
-    gap:10px;
+    display:grid; align-items:center; gap:10px;
   }
   .subhead{
     font-size:12px; color:var(--muted); margin:0;
@@ -70,21 +70,13 @@
   }
 
   /* STACKS */
-  /* Generic vertical stack for slot + button columns */
   .vstack{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:10px;
-    width:auto; /* don't force 100% so two columns can sit side-by-side */
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    width:auto;
   }
-  /* Two side-by-side columns inside wizardKnight */
   .wizardKnight .wk-row{
-    display:grid;
-    grid-template-columns: repeat(2, max-content);
-    gap:16px 32px;              /* row gap / column gap */
-    justify-content:center;
-    align-items:start;
+    display:grid; grid-template-columns: repeat(2, max-content);
+    gap:16px 32px; justify-content:center; align-items:start;
   }
 
   /* Slots */
@@ -100,11 +92,11 @@
   /* Inventory (horizontal row of 4) */
   .inv .grid{
     display:grid;
-    grid-template-columns: repeat(4, var(--slot-size));
+    grid-template-columns: repeat(4, var(--slot-size));   /* always 4 across */
     grid-auto-rows: var(--slot-size);
     gap:12px;
     justify-content:center;
-    overflow-x:auto;
+    overflow:hidden;                                      /* no horizontal scroll on phones */
   }
 
   /* Package chip */
@@ -122,13 +114,8 @@
     margin-top:2px; font-size:11px; color:var(--muted);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
   }
-  .pkg.is-selected{
-    border-color:var(--accent);
-    transform:scale(0.98);
-  }
-  .board-selecting .slot,
-  .board-selecting .knight-slot,
-  .board-selecting .inv-slot{
+  .pkg.is-selected{ border-color:var(--accent); transform:scale(0.98); }
+  .board-selecting .slot, .board-selecting .knight-slot, .board-selecting .inv-slot{
     outline:1px dashed rgba(217,179,106,.25);
   }
 
@@ -145,7 +132,7 @@
 
   /* Overlay (long-press) */
   .overlay-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:999; }
-  .overlay-card{ width:min(480px, 92vw); background:var(--bg); border:1px dashed var(--outline); border-radius:14px; padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03); display:flex; flex-direction:column; gap:10px; }
+  .overlay-card{ width:min(480px, 92vw); background:var(--bg); border:1px dashed var(--outline); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; }
   .overlay-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .overlay-title{ font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
   .overlay-close{ border:1px dashed var(--outline); background:#1a1f25; color:var(--ink); border-radius:8px; padding:4px 8px; cursor:pointer; }
@@ -168,7 +155,19 @@
     overflow:auto;
     white-space:pre-wrap;
   }
+
+  /* ===== Phone fit: shrink slots so 4-wide always fits viewport ===== */
+  @media (max-width: 500px){
+    /* Compute slot size so: 4*slot + 3*gap(12) + card padding(14*2) fits 100vw */
+    :root{
+      --slot-size: calc((100vw - 36px - 28px) / 4);  /* 36 = 3 gaps, 28 = card paddings */
+    }
+    .wrap{ width:100vw; }            /* container follows viewport on phones */
+    .wizardKnight .wk-row{ gap:12px 24px; }
+    .btn, .btn-buy{ padding:10px 14px; }
+  }
 </style>
+
 </head>
 <body>
   <div class="wrap">
