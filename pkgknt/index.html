@@ -18,56 +18,74 @@
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    display:flex; align-items:flex-start; justify-content:flex-start;
+    display:flex; align-items:flex-start; justify-content:center;
   }
 
-  .wrap{ padding:20px 16px 40px; display:grid; gap:var(--gap); }
+  .wrap{ padding:20px 16px 40px; display:flex; flex-direction:column; align-items:center; gap:var(--gap); }
 
   /* Topbar */
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
-    gap:12px; padding:12px 16px;
+    gap:12px; padding:0px 0px;
     background:var(--panel);
-    border:1px dashed var(--outline); border-radius:12px;
-    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-    width:100%; max-width:1000px;
+    border:0px dashed var(--outline); border-radius:12px;
+    width:100%; max-width:500px;
   }
   .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .btn-buy{
     border:1px dashed var(--outline); background:var(--btnclr); color:var(--ink);
-    border-radius:10px; padding:6px 10px; font-weight:700; cursor:pointer;
+    border-radius:10px; padding:12px 20px; font-weight:700; cursor:pointer;
   }
-  .stat{ font-weight:700; padding:4px 8px; border:1px dashed var(--outline); border-radius:8px; background:#12171d; }
+  .btn-buy:hover{ border-color:var(--accent) }
+  .stat{ font-weight:700; padding:5px 10px; border:0px dashed var(--outline); border-radius:8px; background:#12171d; }
   .stat.coins{ color:var(--gold-soft); }
   .stat.mana{ color:var(--ice-soft); }
 
-  /* Row of cards */
+  /* Column layout */
   .main{
-    display:flex; gap:var(--gap);
+    display:flex;
+    flex-direction:column;
+    gap:var(--gap);
     margin-top:16px;
-    align-items:stretch;
+    align-items:center;
     flex-wrap:nowrap;
   }
 
   /* Fixed widths */
-  .wizardKnight{ width:200px; flex:0 0 200px; }
-  .inv{          width:200px; flex:0 0 200px; }
-  .delivery{     width:500px; flex:0 0 500px; }
+  .wizardKnight{ min-width:100%; }
+  .inv{          width:100%; }
+  .delivery{     min-width:500px; }
 
   /* Card base */
   .card{
     background:var(--panel);
     border:1px dashed var(--outline); border-radius:12px; padding:14px;
-    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    gap:10px; flex:none;
+    display:grid; align-items:center;
+    gap:10px;
   }
   .subhead{
-    width:100%; font-size:12px; color:var(--muted); margin:0;
+    font-size:12px; color:var(--muted); margin:0;
     text-transform:uppercase; letter-spacing:.06em; text-align:center;
   }
-  .vstack{ display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
+
+  /* STACKS */
+  /* Generic vertical stack for slot + button columns */
+  .vstack{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    width:auto; /* don't force 100% so two columns can sit side-by-side */
+  }
+  /* Two side-by-side columns inside wizardKnight */
+  .wizardKnight .wk-row{
+    display:grid;
+    grid-template-columns: repeat(2, max-content);
+    gap:16px 32px;              /* row gap / column gap */
+    justify-content:center;
+    align-items:start;
+  }
 
   /* Slots */
   .slot, .knight-slot, .inv-slot{
@@ -79,10 +97,14 @@
   .slot:hover, .knight-slot:hover, .inv-slot:hover{ border-color:var(--accent); }
   .placeholder{ color:var(--muted); font-size:12px; opacity:.9; }
 
-  /* Inventory (vertical) */
+  /* Inventory (horizontal row of 4) */
   .inv .grid{
-    display:grid; grid-template-columns: var(--slot-size);
-    grid-auto-rows: var(--slot-size); gap:12px; justify-content:center; margin-top:4px;
+    display:grid;
+    grid-template-columns: repeat(4, var(--slot-size));
+    grid-auto-rows: var(--slot-size);
+    gap:12px;
+    justify-content:center;
+    overflow-x:auto;
   }
 
   /* Package chip */
@@ -114,7 +136,7 @@
   .actions{ display:flex; gap:8px; justify-content:center; }
   .btn{
     border:1px dashed var(--outline); background:var(--btnclr);
-    color:var(--ink); border-radius:10px; padding:6px 10px; font-weight:600;
+    color:var(--ink); border-radius:10px; padding:12px 20px; font-weight:600;
     cursor:pointer; transition:transform .04s ease, border-color .12s ease;
   }
   .btn:hover{ border-color:var(--accent) }
@@ -151,11 +173,11 @@
 <body>
   <div class="wrap">
     <!-- Title -->
+    <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
     <header class="topbar">
-      <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
       <div class="stats">
-        <button class="btn-buy" id="btn-buy-mana" type="button">Buy Mana Crystal (10 Coins ea.)</button>
-        <div class="stat coins" id="coins-readout">Coin(s): 10</div>
+        <button class="btn-buy" id="btn-buy-mana" type="button">Buy Mana Crystal (10 Coins)</button>
+        <div class="stat coins" id="coins-readout">Coins: 10</div>
         <div class="stat mana" id="mana-readout">Mana Crystals: 50</div>
       </div>
     </header>
@@ -164,25 +186,27 @@
     <div class="main" id="board">
       <!-- wizardKnight (merged) -->
       <section class="card wizardKnight" aria-label="wizardKnight">
-        <div class="subhead">Package Portal</div>
-        <div class="vstack" aria-label="Package Portal section">
-          <div class="slot" id="portal-slot" aria-label="Portal slot">
-            <div class="placeholder">empty</div>
+        <div class="wk-row">
+          <!-- Column 1: Portal slot + Activate -->
+          <div class="vstack" aria-label="Package Portal section">
+            <div class="subhead">Package Portal</div>
+            <div class="slot" id="portal-slot" aria-label="Portal slot">
+              <div class="placeholder">empty</div>
+            </div>
+            <div class="actions">
+              <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+            </div>
           </div>
-          <div class="actions">
-            <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
-          </div>
-        </div>
 
-        <div class="divider" role="separator" aria-hidden="true"></div>
-
-        <div class="subhead">Package Knight</div>
-        <div class="vstack" aria-label="Knight section">
-          <div class="knight-slot" aria-label="Knight slot">
-            <div class="placeholder">no package</div>
-          </div>
-          <div class="actions">
-            <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+          <!-- Column 2: Knight header + slot + Begin -->
+          <div class="vstack" aria-label="Knight section">
+            <div class="subhead">Package Knight</div>
+            <div class="knight-slot" aria-label="Knight slot">
+              <div class="placeholder">no package</div>
+            </div>
+            <div class="actions">
+              <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+            </div>
           </div>
         </div>
       </section>
@@ -195,7 +219,6 @@
           <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 5"><div class="placeholder">empty</div></div>
         </div>
       </section>
 
@@ -227,7 +250,7 @@
 
   function updateCurrencyUI(){
     manaReadout.textContent = `Mana Crystals: ${mana}`;
-    coinsReadout.textContent = `Coin(s): ${coins}`;
+    coinsReadout.textContent = `Coins: ${coins}`;
     btnActivate.disabled = mana < 15;
     btnBuyMana.disabled = coins < 10;
   }
