@@ -52,7 +52,7 @@
         </div>
         <div>
           <div class="pill" id="nameB">Goblin</div>
-          <div class="small">HP <span id="goblinHP" class="hp">–</span> · Blood Potions <span id="goblinPobs">–</span></div>
+          <div class="small">HP <span id="goblinHP" class="hp">–</span> · Potions <span id="goblinPobs">–</span></div>
         </div>
       </div>
       <div class="sep"></div>
@@ -86,7 +86,6 @@
     </div>
   </section>
 </div>
-
 <script>
 (function(){
   const logEl   = document.getElementById('log');
@@ -117,9 +116,9 @@
   const fmt = (d)=> (d>=0? `+${d}` : `${d}`);
 
   // ===== Stats tracking (chart + move counts) =====
-  const Fighters = ['Knight','Goblin','Wandering Blade','Knave'];
+  const Fighters = ['Knight','Goblin Sapper','Wandering Blade','Knave'];
   const stats = {
-    wins: { 'Knight':0, 'Goblin':0, 'Wandering Blade':0, 'Knave':0 },
+    wins: { 'Knight':0, 'Goblin Sapper':0, 'Wandering Blade':0, 'Knave':0 },
     timeline: [],
     moves: {}
   };
@@ -131,11 +130,11 @@
     'Knight|block':'Knight — Block',
     'Knight|counter':'Knight — Counter',
 
-    'Goblin|normal':'Goblin — Normal Attack',
-    'Goblin|bomb':'Goblin — Goblin Bomb',
-    'Goblin|perry':'Goblin — Perry',
-    'Goblin|block':'Goblin — Block',
-    'Goblin|counter':'Goblin — Counter',
+    'Goblin Sapper|normal':'Goblin Sapper — Fire Cracker',
+    'Goblin Sapper|bomb':'Goblin Sapper — Goblin Bomb',
+    'Goblin Sapper|perry':'Goblin Sapper — Perry',
+    'Goblin Sapper|block':'Goblin Sapper — Block',
+    'Goblin Sapper|counter':'Goblin Sapper — Counter',
 
     'Wandering Blade|normal':'Wandering Blade — Normal Attack',
     'Wandering Blade|poised_charge':'Wandering Blade — Poised (Defensive Stance)',
@@ -169,7 +168,7 @@
     }).join('');
     movesBody.innerHTML = rows || `<tr><td class="muted" colspan="2">No moves yet.</td></tr>`;
   }
-  const lineColors = { 'Knight':'#9fc46b', 'Goblin':'#8eb3ff', 'Wandering Blade':'#d9b36a', 'Knave':'#c98bd8' };
+  const lineColors = { 'Knight':'#9fc46b', 'Goblin Sapper':'#8eb3ff', 'Wandering Blade':'#d9b36a', 'Knave':'#c98bd8' };
   function drawChart(){
     const pad = 30;
     const W = chart.width, H = chart.height;
@@ -218,13 +217,13 @@
     const before = target.hp;
     target.hp = clamp(target.hp - amount, 0, target.maxHp);
     append(`${label} <span class="hp">${before}</span> → <span class="hp">${target.hp}</span>.`);
-    return before - target.hp; // damage dealt (>=0)
+    return before - target.hp;
   }
   function healImmediate(target, amount, label){
     const before = target.hp;
     target.hp = clamp(target.hp + amount, 0, target.maxHp);
     append(`${label} <span class="hp">${before}</span> → <span class="hp">${target.hp}</span>.`);
-    return target.hp - before; // healing gained (>=0)
+    return target.hp - before;
   }
   function makeFighter(cfg){
     return {
@@ -254,9 +253,19 @@
     elGHP.textContent = `${b.hp}/${b.maxHp}`;
     elGPobs.textContent = `${b.bloodPotions}`;
   }
+
+  // NEW: status string for recap
+  function getStatus(f){
+    const s = [];
+    if(f.stunTurns > 0) s.push('stunned');
+    if(f.hidden) s.push('hidden');
+    if(f.bloodlustTurns > 0) s.push('blood lust');
+    if(f.poisoned) s.push('poisoned');
+    return s.length ? s.push(', ') : 'none';
+  }
+
   function rollDefenseChoice(defender, opts){
     if(opts && opts.unblockable) return 'none';
-    // If hidden, no defense (but normally attacks can't even target while hidden)
     if(defender.hidden) return 'none';
     const canPerry   = chance(defender.defenseRates.perry);
     const canCounter = chance(defender.defenseRates.counter);
@@ -275,7 +284,6 @@
       return { finalDamage: incoming };
     }
     if (defender.hidden){
-      // should not reach here because attacker can't target hidden, but safe-guard
       return { finalDamage: 0 };
     }
     const def = rollDefenseChoice(defender, opts);
@@ -315,7 +323,6 @@
       return { ended:false };
     }
 
-    // start-of-turn regen
     if(actor.regenTicks > 0){
       healImmediate(actor, 2, `<span class="pill">${actor.name}</span> regenerates:`);
       actor.regenTicks -= 1;
@@ -325,7 +332,6 @@
     actor.ai.preAction?.(actor, target, append, healImmediate, hudUpdate);
     hudUpdate();
 
-    // If target is hidden, attacks cannot target them
     if(target.hidden){
       append(`<span class="pill">${actor.name}</span> can't find the Knave..!`);
       return { ended:false };
@@ -343,7 +349,7 @@
       dealImmediate(target, finalDamage, `<span class="pill">${actor.name}</span> deals <span class="hp">${finalDamage}</span> damage:`);
       hudUpdate();
       if(target.hp <= 0){
-        moveResult.after?.(actor, target, append); // after-effects still run
+        moveResult.after?.(actor, target, append);
         return { ended:true, winner:actor.name };
       }
     }
@@ -373,7 +379,7 @@
       }
     },
     chooseMove(actor){
-      const canFlourish = (actor.hp < 5) && chance(0.20);
+      const canFlourish = (actor.hp < 10) && chance(0.20);
       const canDouble = chance(0.10);
       if(canFlourish) return 'flourish';
       if(canDouble) return 'double';
@@ -382,28 +388,28 @@
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
       if(move === 'flourish'){
-        const roll = r(3,6);
+        const roll = r(1,5);
         let total = roll + 2;
         if(isCrit) total *= 2;
         append(`<span class="pill">Knight</span> uses Improvised Flourish (${roll}+2${isCrit?' ×2 CRIT':''}).`);
         return {
           rawDamage: total,
           onHit(a, t){
-            if(chance(0.20)){
+            if(chance(0.30)){
               t.stunTurns = Math.max(t.stunTurns, 1);
             }
           }
         };
       }
       if(move === 'double'){
-        const a = r(3,6), b = r(3,6);
+        const a = r(1,3), b = r(3,5);
         const total = isCrit ? (a*2 + b*2) : (a + b);
-        append(`<span class="pill">Knight</span> uses Double Strike (${a}${isCrit?'×2':''}+${b}${isCrit?'×2':''}).`);
+        append(`<span class="pill">Knight</span> uses Sidearm Assisted Strike (${a}${isCrit?'×2':''}+${b}${isCrit?'×2':''}).`);
         return { rawDamage: total };
       }
-      const roll = r(3,6);
+      const roll = r(3,5);
       const total = isCrit ? roll*2 : roll;
-      append(`<span class="pill">Knight</span> attacks (${isCrit?roll+"×2":roll}).`);
+      append(`<span class="pill">Knight</span> uses Heavy Strike (${isCrit?roll+"×2":roll}).`);
       return { rawDamage: total };
     }
   };
@@ -413,7 +419,7 @@
       if(actor.hp < 5 && actor.bloodlustTurns === 0 && actor.bloodPotions > 0){
         actor.bloodPotions -= 1;
         actor.bloodlustTurns = 3;
-        append(`<span class="pill">Goblin</span> quaffs a blood potion and now has Blood Lust! <span class="hp">+2 damage</span> for 3 turns. ${actor.bloodPotions} left`);
+        append(`<span class="pill">Goblin Sapper</span> quaffs a blood potion and now has Blood Lust! <span class="hp">+2 damage</span> for 3 turns. ${actor.bloodPotions} left`);
         hud();
       }
     },
@@ -423,20 +429,41 @@
     },
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
-      let base, metaStun = false, label;
 
       if(move === 'bomb'){
-        base = r(3,6);
-        metaStun = chance(0.10);
-        label = `<span class="pill">Goblin</span> uses Goblin Bomb (${isCrit?base+"×2":base}).`;
-      } else {
-        base = r(1,3);
-        label = `<span class="pill">Goblin</span> attacks (${isCrit?base+"×2":base}).`;
+        const base = r(3,6);
+        const metaStun = chance(0.10);
+        let total = isCrit ? base*2 : base;
+
+        append(`<span class="pill">Goblin Sapper</span> uses Goblin Bomb (${isCrit?base+"×2":base}).`);
+
+        if(actor.bloodlustTurns > 0){
+          const before = total;
+          total += 2;
+          append(`Blood Lust adds <span class="hp">+2</span> damage (<span class="hp">${before}</span> → <span class="hp">${total}</span>).`);
+          actor.bloodlustTurns -= 1;
+        }
+
+        return {
+          rawDamage: total,
+          unblockable: true,
+          onHit(a, t){
+            if(metaStun){
+              t.stunTurns = Math.max(t.stunTurns, 1);
+            }
+          }
+        };
       }
 
-      let total = isCrit ? base*2 : base;
+      // Fire Cracker (normal attack): roll 1–2 three times and sum; crit doubles the total
+      const a = r(1,1), b = r(1,2), c = r(1,3);
+      const baseSum = a + b + c;
+      let total = isCrit ? baseSum * 2 : baseSum;
 
-      append(label);
+      append(
+        `<span class="pill">Goblin Sapper</span> uses Fire Cracker (${a}+${b}+${c}` +
+        `${isCrit ? ` = ${baseSum} ×2` : ''}).`
+      );
 
       if(actor.bloodlustTurns > 0){
         const before = total;
@@ -445,23 +472,16 @@
         actor.bloodlustTurns -= 1;
       }
 
-      return {
-        rawDamage: total,
-        unblockable: (move === 'bomb'),
-        onHit(a, t){
-          if(move === 'bomb' && metaStun){
-            t.stunTurns = Math.max(t.stunTurns, 1);
-          }
-        }
-      };
+      return { rawDamage: total, unblockable: true };
     }
   };
+
 
   const BladeAI = {
     preAction(actor, target, log, heal, hud){
       if(actor.potions > 0){
         actor.potions -= 1;
-        heal(actor, 2, `<span class="pill">Wandering Blade</span> drinks a regen potion:`);
+        heal(actor, 2, `<span class="pill">Wandering Blade</span> drinks Regen Potion:`);
         actor.regenTicks += 2;
         hud();
       }
@@ -476,7 +496,7 @@
 
       if(move === 'poised_charge'){
         actor.poisedQueued = true;
-        append(`<span class="pill">Wandering Blade</span> switches to a defensive stance.`);
+        append(`<span class="pill">Wandering Blade</span> switches to Defensive Stance.`);
         return { rawDamage: 0, unblockable: true };
       }
 
@@ -484,32 +504,24 @@
         actor.poisedQueued = false;
         const base = r(4,8);
         const total = isCrit ? base*2 : base;
-        append(`<span class="pill">Wandering Blade</span> unleashes a poised strike! (${isCrit?base+"×2":base}).`);
+        append(`<span class="pill">Wandering Blade</span> unleashes Poised Strike! (${isCrit?base+"×2":base}).`);
         return { rawDamage: total };
       }
 
-      const base = r(3,5);
+      const base = r(1,5);
       const total = isCrit ? base*2 : base;
-      append(`<span class="pill">Wandering Blade</span> attacks (${isCrit?base+"×2":base}).`);
+      append(`<span class="pill">Wandering Blade</span> uses Quick Slash (${isCrit?base+"×2":base}).`);
       return { rawDamage: total };
     }
   };
 
-  // ===== NEW: Knave =====
+  // Knave
   const KnaveAI = {
-    preAction(){ /* no potions */ },
+    preAction(){},
     chooseMove(actor, target){
-      const oppPoisoned = !!target.poisoned;
-      if(actor.hidden){
-        // Poison has priority over everything if opponent not poisoned (20% chance to be available)
-        if(!oppPoisoned && chance(0.25)) return 'poison';
-        // While hidden, 25% chance to Snipe
-        if(chance(0.25)) return 'snipe';
-        return 'normal'; // reveals if hidden
-      } else {
-        if(!oppPoisoned && chance(0.25)) return 'poison';
-        return 'normal';
-      }
+      if(!target.poisoned && chance(0.20)) return 'poison';
+      if(actor.hidden && chance(0.25)) return 'snipe';
+      return 'normal';
     },
     executeMove(actor, target, move){
       const isCrit = chance(actor.crit);
@@ -517,16 +529,14 @@
       if(move === 'snipe'){
         const base = r(5,7);
         const total = isCrit ? base*2 : base;
-        append(`<span class="pill">Knave</span> snipes from the shadows! (${isCrit?base+"×2":base}).`);
+        append(`<span class="pill">Knave</span> uses Snipe from the shadows! (${isCrit?base+"×2":base}).`);
         recordMove('Knave','snipe');
-        // stays hidden; no smoke check
         return { rawDamage: total };
       }
 
-      // If hidden and using normal/poison, reveal first
       if(actor.hidden && (move === 'normal' || move === 'poison')){
         actor.hidden = false;
-        append(`<span class="pill">Knave</span> reveals themself!`);
+        append(`<span class="pill">Knave</span> reveals itself!`);
       }
 
       if(move === 'poison'){
@@ -542,27 +552,25 @@
             }
           },
           after(a, t){
-            // 25% Smoke Bomb after using poison
-            if(chance(0.33)){
+            if(chance(0.35)){
               a.hidden = true;
               recordMove('Knave','smoke');
-              append(`<span class="pill">Knave</span> vanishes in a smoke bomb (Hidden).`);
+              append(`<span class="pill">Knave</span> vanishes in the smoke.`);
             }
           }
         };
       }
 
-      // normal
       const base = r(2,4);
       const total = isCrit ? base*2 : base;
-      append(`<span class="pill">Knave</span> attacks (${isCrit?base+"×2":base}).`);
+      append(`<span class="pill">Knave</span> uses Shank (${isCrit?base+"×2":base}).`);
       return {
         rawDamage: total,
         after(a, t){
           if(chance(0.25)){
             a.hidden = true;
             recordMove('Knave','smoke');
-            append(`<span class="pill">Knave</span> vanishes in a smoke bomb (Hidden).`);
+            append(`<span class="pill">Knave</span> vanishes in the smoke.`);
           }
         }
       };
@@ -572,12 +580,12 @@
   // ===== Roster =====
   const ROSTER = {
     Knight: ()=> makeFighter({
-      name:'Knight', maxHp:12, crit:0.15, potions:2,
+      name:'Knight', maxHp:12, crit:0.15, potions:1,
       defenseRates:{ perry:0.10, counter:0.10, block:0.10 },
       counterBase:2, ai: KnightAI
     }),
-    Goblin: ()=> makeFighter({
-      name:'Goblin', maxHp:10, crit:0.10, bloodPotions:1,
+    'Goblin Sapper': ()=> makeFighter({
+      name:'Goblin Sapper', maxHp:8, crit:0.10, bloodPotions:1,
       defenseRates:{ perry:0.10, counter:0.10, block:0.10 },
       counterBase:2, ai: GoblinAI
     }),
@@ -588,7 +596,6 @@
     }),
     Knave: ()=> makeFighter({
       name:'Knave', maxHp:7, crit:0.15,
-      // When revealed: perry > counter > block by priority, with these chances:
       defenseRates:{ perry:0.15, counter:0.20, block:0.05 },
       counterBase:2, ai: KnaveAI
     })
@@ -597,7 +604,7 @@
   function pickTwo(){
     const picks = [];
     if(pickKnight.checked) picks.push('Knight');
-    if(pickGoblin.checked) picks.push('Goblin');
+    if(pickGoblin.checked) picks.push('Goblin Sapper');
     if(pickBlade.checked)  picks.push('Wandering Blade');
     if(pickKnave.checked)  picks.push('Knave');
     return picks.slice(0, 2);
@@ -609,7 +616,7 @@
     }
     stats.timeline.push({
       'Knight':stats.wins['Knight'],
-      'Goblin':stats.wins['Goblin'],
+      'Goblin Sapper':stats.wins['Goblin Sapper'],
       'Wandering Blade':stats.wins['Wandering Blade'],
       'Knave':stats.wins['Knave']
     });
@@ -641,7 +648,7 @@
     while(A.hp > 0 && B.hp > 0 && round < 200){
       append(`<span class="muted">— Round ${round} —</span>`);
 
-      // Poison tick once per round, at round start
+      // Poison tick at start of round
       if(A.poisoned){
         dealImmediate(A, 1, `<span class="pill">${A.name}</span> suffers poison:`);
         if(A.hp<=0){ hud(); append(`<span class="pill">${B.name}</span> wins!`); finalizeStats(B.name); return; }
@@ -672,6 +679,9 @@
         return;
       }
 
+      // END-OF-ROUND RECAP (requested format)
+      append(`<span class="pill">${A.name}:</span> <span style="color:#c46058;">${A.hp}<b>/${A.maxHp}</b></span>, <span class="pill">${B.name}:</span> <span style="color:#c46058;">${B.hp}/<b>${B.maxHp}</b></span></span>`);
+
       sep();
       round++;
     }
@@ -687,5 +697,6 @@
   drawChart();
 })();
 </script>
+
 </body>
 </html>

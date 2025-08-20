@@ -8,78 +8,82 @@
   :root{
     --bg:#0b0e12; --panel:#15181d; --ink:#cfe3ee; --muted:#91a1aa;
     --accent:#d9b36a; --outline:#2c313a; --slot:#1f232a;
-    --gap:16px;
-    --slot-size:100px;
+    --gap:16px; --slot-size:100px;
+    --gold-soft:#d9b36a;         /* coins */
+    --ice-soft:#a8c7d9;          /* mana */
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    display:grid; place-items:start center;
+    display:flex; align-items:flex-start; justify-content:flex-start;
   }
 
-  .wrap{
-    width:min(1024px,95vw);
-    padding:20px 16px 40px;
-    display:grid; gap:var(--gap);
-  }
+  .wrap{ padding:20px 16px 40px; display:grid; gap:var(--gap); }
 
-  /* Title card */
+  /* Topbar */
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     gap:12px; padding:12px 16px;
     background:linear-gradient(180deg, var(--panel), #0f1216 85%);
     border:1px solid var(--outline); border-radius:12px;
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+    width:100%; max-width:1000px;
   }
   .title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
-  .mana{ font-weight:700 }
-
-  /* Board layout: Gen + Knight side-by-side; Inventory full width below */
-  .main{
-    display:flex; flex-wrap:wrap; gap:var(--gap);
-    width:600px; max-width:600px; margin:0 auto;
+  .stats{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   }
-  .gen, .knight{ flex:0 0 calc((600px - var(--gap))/2); min-width:0; }
-  .inv{ flex:0 0 100%; }
+  .btn-buy{
+    border:1px solid var(--outline); background:#1a1f25; color:var(--ink);
+    border-radius:10px; padding:6px 10px; font-weight:700; cursor:pointer;
+  }
+  .stat{ font-weight:700; padding:4px 8px; border:1px solid var(--outline); border-radius:8px; background:#12171d; }
+  .stat.coins{ color:var(--gold-soft); }
+  .stat.mana{ color:var(--ice-soft); }
 
-  /* Cards */
+  /* Row of cards */
+  .main{
+    display:flex; gap:var(--gap);
+    margin-top:16px;
+    align-items:stretch;
+    flex-wrap:nowrap;
+  }
+
+  /* Fixed widths */
+  .wizardKnight{ width:200px; flex:0 0 200px; }
+  .inv{          width:200px; flex:0 0 200px; }
+  .delivery{     width:500px; flex:0 0 500px; }
+
+  /* Card base */
   .card{
     background:linear-gradient(180deg, var(--panel), #0f1216 85%);
     border:1px solid var(--outline); border-radius:12px; padding:14px;
     box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-    min-height:160px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    gap:10px; flex:none;
   }
   .subhead{
-    width:100%;
-    font-size:12px; color:var(--muted);
-    margin:0 0 8px; text-transform:uppercase; letter-spacing:.06em;
+    width:100%; font-size:12px; color:var(--muted); margin:0;
+    text-transform:uppercase; letter-spacing:.06em; text-align:center;
   }
+  .vstack{ display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
 
-  /* Slots (square) */
+  /* Slots */
   .slot, .knight-slot, .inv-slot{
     width:var(--slot-size); height:var(--slot-size);
-    background:var(--slot);
-    border:1px dashed var(--outline);
-    border-radius:12px;
-    display:grid; place-items:center;
+    background:var(--slot); border:1px dashed var(--outline);
+    border-radius:12px; display:grid; place-items:center; cursor:pointer;
     position:relative; overflow:hidden;
-    transition:border-color .15s ease, background .15s ease, transform .06s ease;
-    cursor:pointer;
   }
   .slot:hover, .knight-slot:hover, .inv-slot:hover{ border-color:var(--accent); }
-
   .placeholder{ color:var(--muted); font-size:12px; opacity:.9; }
 
-  /* Inventory grid: 5 slots */
+  /* Inventory (vertical) */
   .inv .grid{
-    display:grid;
-    grid-template-columns: repeat(5, var(--slot-size));
-    gap:12px;
-    justify-content:center;
-    margin-top:8px;
+    display:grid; grid-template-columns: var(--slot-size);
+    grid-auto-rows: var(--slot-size); gap:12px; justify-content:center; margin-top:4px;
   }
 
   /* Package chip */
@@ -99,24 +103,58 @@
     margin-top:2px; font-size:11px; color:var(--muted);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90%;
   }
-
-  /* Selection states */
   .pkg.is-selected{
     border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(217,179,106,.25);
     transform:scale(0.98);
   }
+
   .board-selecting .slot,
   .board-selecting .knight-slot,
   .board-selecting .inv-slot{
     outline:1px dashed rgba(217,179,106,.25);
   }
 
-  /* Interaction niceties */
-  .main, .main *{
-    -webkit-user-select:none; user-select:none;
-    -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent;
+  /* Buttons */
+  .actions{ display:flex; gap:8px; justify-content:center; }
+  .btn{
+    border:1px solid var(--outline); background:#1a1f25;
+    color:var(--ink); border-radius:10px; padding:6px 10px; font-weight:600;
+    cursor:pointer; transition:transform .04s ease, border-color .12s ease;
   }
+  .btn:hover{ border-color:var(--accent) }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+  .divider{ width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--outline), transparent); margin:4px 0; }
+
+  /* === Overlay for long-press package info === */
+  .overlay-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    display:flex; align-items:center; justify-content:center;
+    z-index:999;
+  }
+  .overlay-card{
+    width:min(480px, 92vw);
+    background:linear-gradient(180deg, #1a1f25, #11161c 85%);
+    border:1px solid var(--outline); border-radius:14px; padding:14px;
+    box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .overlay-header{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .overlay-title{
+    font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+  }
+  .overlay-close{
+    border:1px solid var(--outline); background:#1a1f25; color:var(--ink);
+    border-radius:8px; padding:4px 8px; cursor:pointer;
+  }
+  .overlay-body{ display:flex; gap:10px; align-items:flex-start; }
+  .overlay-icon{ font-size:40px; line-height:1; }
+  .overlay-texts{ display:flex; flex-direction:column; gap:6px; }
+  .overlay-name{ font-weight:700; }
+  .overlay-desc{ color:var(--muted); font-size:13px; white-space:pre-line; }
+  .overlay-metrics{ font-size:12px; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -124,24 +162,37 @@
     <!-- Title -->
     <header class="topbar">
       <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
-      <div class="mana">Mana Crystals: 50/50</div>
+      <div class="stats">
+        <button class="btn-buy" id="btn-buy-mana" type="button">Buy Mana Crystal (10 Coins ea.)</button>
+        <div class="stat coins" id="coins-readout">Coin(s): 10</div>
+        <div class="stat mana" id="mana-readout">Mana Crystals: 50</div>
+      </div>
     </header>
 
     <!-- Board -->
     <div class="main" id="board">
-      <!-- Generator -->
-      <section class="card gen" aria-label="Generator">
-        <div class="subhead">Generator</div>
-        <div class="slot" aria-label="Generator slot">
-          <div class="placeholder">empty</div>
+      <!-- wizardKnight (merged) -->
+      <section class="card wizardKnight" aria-label="wizardKnight">
+        <div class="subhead">Package Portal</div>
+        <div class="vstack" aria-label="Package Portal section">
+          <div class="slot" id="portal-slot" aria-label="Portal slot">
+            <div class="placeholder">empty</div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+          </div>
         </div>
-      </section>
 
-      <!-- Package Knight -->
-      <section class="card knight" aria-label="Package Knight">
+        <div class="divider" role="separator" aria-hidden="true"></div>
+
         <div class="subhead">Package Knight</div>
-        <div class="knight-slot" aria-label="Knight slot">
-          <div class="placeholder">no package</div>
+        <div class="vstack" aria-label="Knight section">
+          <div class="knight-slot" aria-label="Knight slot">
+            <div class="placeholder">no package</div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+          </div>
         </div>
       </section>
 
@@ -149,28 +200,174 @@
       <section class="card inv" aria-label="Inventory">
         <div class="subhead">Inventory</div>
         <div class="grid">
-          <!-- Slot 1 starts with a package -->
-          <div class="inv-slot" aria-label="Inventory slot 1">
-            <div class="pkg" data-id="parcel">
-              <div class="icon">📦</div>
-              <div class="tag">Standard Parcel</div>
-            </div>
-          </div>
+          <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 5"><div class="placeholder">empty</div></div>
         </div>
       </section>
+
+      <!-- Delivery -->
+      <section class="card delivery" aria-label="Delivery">
+        <div class="subhead">Delivery</div>
+        <div style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center; color:var(--muted);">
+          (Delivery UI coming soon)
+        </div>
+      </section>
     </div>
   </div>
 
 <script>
-/* Click-to-select, click-to-place movement (no drag/drop) */
+/* Click-to-move + Mana/Coins + Generator + Long-press overlay */
 (function(){
   const board = document.getElementById('board');
   const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
+  const portalSlot = document.getElementById('portal-slot');
 
+  // Currency state
+  let mana = 50;
+  let coins = 10;
+
+  const manaReadout = document.getElementById('mana-readout');
+  const coinsReadout = document.getElementById('coins-readout');
+  const btnActivate = document.getElementById('btn-activate');
+  const btnBegin = document.getElementById('btn-begin');
+  const btnBuyMana = document.getElementById('btn-buy-mana');
+
+  function updateCurrencyUI(){
+    manaReadout.textContent = `Mana Crystals: ${mana}`;
+    coinsReadout.textContent = `Coin(s): ${coins}`;
+    btnActivate.disabled = mana < 15;
+    btnBuyMana.disabled = coins < 10;
+  }
+  updateCurrencyUI();
+
+  // Buy mana: 10 coins -> +1 mana
+  btnBuyMana.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if (coins >= 10){
+      coins -= 10;
+      mana += 1;
+      updateCurrencyUI();
+    }
+  });
+
+  // ===== Generator Data =====
+  const Sizes = [
+    {name:'small', c:1},
+    {name:'large', c:2},
+    {name:'huge',  c:3},
+  ];
+  const Weights = [
+    {name:'light',        c:1},
+    {name:'iron-plated',  c:2},
+    {name:'supermassive', c:3},
+  ];
+  const Grips = [
+    {name:'sticky',    c:1},
+    {name:'manageable',c:2},
+    {name:'slimy',     c:3},
+  ];
+  const Types = [
+    {name:'letter', c:1, icon:'✉️'},
+    {name:'parcel', c:2, icon:'📦'},
+    {name:'crate',  c:3, icon:'🗃️'},
+  ];
+  const Destinations = [
+    'Rockslide Inn, New Claudia',
+    'Red Temple, Pilgrim Lake',
+    "Wuulk's Spawning Grounds, Badlands",
+  ];
+  const Senders = [
+    {name:'Sibil the Miraculous', m:5, c:0},
+    {name:'Bork the Wealthy',     m:2, c:30},
+  ];
+  const SpecialInstructions = [
+    "Please do not shake, and definitely do not light on fire.",
+    "Package contains a philosophical pleasure experiment. Never open and keep out of reach of animals.",
+    "Originally intended for a lover, but now? My mother.",
+    "Very old, over 5,000 years. handle with care.",
+    "Wizard's eyes only. No naughty knights allowed!",
+    // +15 more:
+    "If it hums, hum back until it stops.",
+    "Keep upright. If inverted, apologize loudly three times.",
+    "Do not expose to moonlight after midnight.",
+    "This side toward destiny.",
+    "Scented with juniper; if odor fades, delivery is late.",
+    "Rattling is normal; clanking is a catastrophe.",
+    "Avoid bridges guarded by riddlers.",
+    "Not edible, even if it begs.",
+    "If it attempts to sign for itself, refuse politely.",
+    "Fragility varies with gossip; do not discuss en route.",
+    "Open only when the wind holds its breath.",
+    "Do not let the package see its reflection.",
+    "If warm, you are being followed.",
+    "Sprinkle with salt before sunrise, never after.",
+    "May spontaneously produce paperwork—ignore all forms."
+  ];
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function makePackage(){
+    const size = pick(Sizes);
+    const weight = pick(Weights);
+    const grip = pick(Grips);
+    const type = pick(Types);
+    const dest = pick(Destinations);
+    const sender = pick(Senders);
+    const note = pick(SpecialInstructions);
+
+    const baseCoin = size.c + weight.c + grip.c + type.c; // c1/2/3 → 1/2/3
+    const coinTotal = baseCoin + sender.c;
+    const manaBonus = sender.m;
+
+    const name = `${capitalize(type.name)}`;
+    const descLines = [
+      `A ${size.name}, ${weight.name}, ${grip.name} ${type.name}.`,
+      `Base value: ${baseCoin} coin(s).`,
+      `Destination: ${dest}`,
+      `Sender: ${sender.name} (m${sender.m}${sender.c?`, c${sender.c}`:''})`,
+      ``,
+      note
+    ];
+    const desc = descLines.join('\n');
+
+    const chip = document.createElement('div');
+    chip.className = 'pkg';
+    chip.dataset.name = name;
+    chip.dataset.icon = type.icon;
+    chip.dataset.desc = desc;
+    chip.dataset.coinsBase = baseCoin;
+    chip.dataset.coinsSender = sender.c;
+    chip.dataset.coinsTotal = coinTotal;
+    chip.dataset.manaSender = manaBonus;
+    chip.innerHTML = `
+      <div class="icon">${type.icon}</div>
+      <div class="tag">${capitalize(type.name)}</div>
+    `;
+    return chip;
+  }
+
+  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  // Activate generates a new package into the portal slot (replacing any existing one)
+  btnActivate.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (mana < 15) return;
+    mana -= 15;
+    updateCurrencyUI();
+
+    const chip = makePackage();
+    portalSlot.replaceChildren(chip);
+  });
+
+  // Begin Delivery (no-op for now)
+  btnBegin.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  // ===== Click-to-move selection/placement =====
   let selectedChip = null;
   let selectedFrom = null;
 
@@ -198,48 +395,127 @@
 
   function moveChipTo(slot){
     if (!selectedChip) return;
+    if (slot === selectedFrom){ clearSelection(); return; }
 
-    // If destination is same as source, just deselect
-    if (slot === selectedFrom){
-      clearSelection();
-      return;
-    }
-
-    // Place chip into destination (replace contents)
     slot.replaceChildren(selectedChip);
 
-    // Ensure source shows a placeholder after moving out
     if (selectedFrom && selectedFrom.children.length === 0){
       selectedFrom.appendChild(makePlaceholderFor(selectedFrom));
     }
 
-    // Remove placeholder from destination if it existed
     const ph = slot.querySelector('.placeholder');
     if (ph) ph.remove();
 
     clearSelection();
   }
 
-  // Delegate clicks for packages (select) and slots (place)
+  // ===== Long-press detection (mouse & touch) =====
+  const LONG_PRESS_MS = 550;
+  const MOVE_CANCEL_PX = 10;
+  let lpTimer = null;
+  let lpStartX = 0, lpStartY = 0;
+  let longPressTriggered = false;
+
+  function startLongPress(e, chip){
+    if (!chip) return;
+    longPressTriggered = false;
+    const p = getPoint(e);
+    lpStartX = p.x; lpStartY = p.y;
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(() => {
+      longPressTriggered = true;
+      openPkgOverlay(chip);
+    }, LONG_PRESS_MS);
+  }
+  function moveLongPress(e){
+    if (!lpTimer) return;
+    const p = getPoint(e);
+    const dx = Math.abs(p.x - lpStartX);
+    const dy = Math.abs(p.y - lpStartY);
+    if (dx > MOVE_CANCEL_PX || dy > MOVE_CANCEL_PX) cancelLongPress();
+  }
+  function cancelLongPress(){ clearTimeout(lpTimer); lpTimer = null; }
+  function endLongPress(){ cancelLongPress(); }
+  function getPoint(e){
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX ?? 0, y: e.clientY ?? 0 };
+  }
+
+  board.addEventListener('contextmenu', (e)=> {
+    if (e.target.closest('.pkg')) e.preventDefault();
+  });
+  board.addEventListener('mousedown', (e) => {
+    const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip);
+  });
+  board.addEventListener('mousemove', moveLongPress);
+  board.addEventListener('mouseup', endLongPress);
+  board.addEventListener('mouseleave', cancelLongPress);
+  board.addEventListener('touchstart', (e) => {
+    const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip);
+  }, { passive:true });
+  board.addEventListener('touchmove', moveLongPress, { passive:true });
+  board.addEventListener('touchend', endLongPress);
+  board.addEventListener('touchcancel', cancelLongPress);
+
+  // Click handler (selection / placement) — ignore if a long-press just fired
   board.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    if (longPressTriggered) { longPressTriggered = false; return; }
+
     const chip = e.target.closest('.pkg');
     const slot = e.target.closest(SLOT_SEL);
 
-    if (chip){
-      // Select the clicked chip; prevent slot handler from firing on same click
-      e.stopPropagation();
-      selectChip(chip);
-      return;
-    }
-
-    if (slot){
-      moveChipTo(slot);
-      return;
-    }
-
-    // Clicked outside interactive elements -> clear selection
+    if (chip){ e.stopPropagation(); selectChip(chip); return; }
+    if (slot){ moveChipTo(slot); return; }
     clearSelection();
   });
+
+  // ===== Overlay =====
+  function openPkgOverlay(chip){
+    const name = chip.dataset.name || chip.querySelector('.tag')?.textContent?.trim() || 'Package';
+    const icon = chip.dataset.icon || chip.querySelector('.icon')?.textContent?.trim() || '📦';
+    const desc = chip.dataset.desc || 'No description available.';
+    const coinsTotal = chip.dataset.coinsTotal ?? '?';
+    const coinsBase  = chip.dataset.coinsBase ?? '?';
+    const manaSender = chip.dataset.manaSender ?? '0';
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'overlay-backdrop';
+    backdrop.setAttribute('role', 'dialog'); backdrop.setAttribute('aria-modal', 'true');
+
+    const card = document.createElement('div');
+    card.className = 'overlay-card';
+    card.innerHTML = `
+      <div class="overlay-header">
+        <div class="overlay-title">Package Details</div>
+        <button class="overlay-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-icon">${icon}</div>
+        <div class="overlay-texts">
+          <div class="overlay-name">${name}</div>
+          <div class="overlay-desc">${desc}</div>
+          <div class="overlay-metrics">Total coin on return: <b>${coinsTotal}</b> (base ${coinsBase}${chip.dataset.coinsSender?` + sender ${chip.dataset.coinsSender}`:''}); Mana bonus on return: <b>m${manaSender}</b></div>
+        </div>
+      </div>
+    `;
+    backdrop.appendChild(card);
+    document.body.appendChild(backdrop);
+
+    function close(){
+      document.removeEventListener('keydown', onKey);
+      backdrop.removeEventListener('click', onBackdrop);
+      backdrop.remove();
+    }
+    function onBackdrop(ev){
+      if (ev.target === backdrop || ev.target.classList.contains('overlay-close')) close();
+    }
+    function onKey(ev){ if (ev.key === 'Escape') close(); }
+
+    backdrop.addEventListener('click', onBackdrop);
+    document.addEventListener('keydown', onKey);
+  }
 })();
 </script>
 </body>
