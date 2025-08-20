@@ -32,9 +32,7 @@
     width:100%; max-width:1000px;
   }
   .title{ margin:0; font-size:20px; color:var(--accent); letter-spacing:.5px }
-  .stats{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  }
+  .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .btn-buy{
     border:1px solid var(--outline); background:#1a1f25; color:var(--ink);
     border-radius:10px; padding:6px 10px; font-weight:700; cursor:pointer;
@@ -108,7 +106,6 @@
     box-shadow:0 0 0 3px rgba(217,179,106,.25);
     transform:scale(0.98);
   }
-
   .board-selecting .slot,
   .board-selecting .knight-slot,
   .board-selecting .inv-slot{
@@ -126,35 +123,31 @@
   .btn[disabled]{ opacity:.5; cursor:not-allowed; }
   .divider{ width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--outline), transparent); margin:4px 0; }
 
-  /* === Overlay for long-press package info === */
-  .overlay-backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,.6);
-    display:flex; align-items:center; justify-content:center;
-    z-index:999;
-  }
-  .overlay-card{
-    width:min(480px, 92vw);
-    background:linear-gradient(180deg, #1a1f25, #11161c 85%);
-    border:1px solid var(--outline); border-radius:14px; padding:14px;
-    box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
-    display:flex; flex-direction:column; gap:10px;
-  }
-  .overlay-header{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .overlay-title{
-    font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
-  }
-  .overlay-close{
-    border:1px solid var(--outline); background:#1a1f25; color:var(--ink);
-    border-radius:8px; padding:4px 8px; cursor:pointer;
-  }
+  /* Overlay (long-press) */
+  .overlay-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:999; }
+  .overlay-card{ width:min(480px, 92vw); background:linear-gradient(180deg, #1a1f25, #11161c 85%); border:1px solid var(--outline); border-radius:14px; padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03); display:flex; flex-direction:column; gap:10px; }
+  .overlay-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .overlay-title{ font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .overlay-close{ border:1px solid var(--outline); background:#1a1f25; color:var(--ink); border-radius:8px; padding:4px 8px; cursor:pointer; }
   .overlay-body{ display:flex; gap:10px; align-items:flex-start; }
   .overlay-icon{ font-size:40px; line-height:1; }
   .overlay-texts{ display:flex; flex-direction:column; gap:6px; }
   .overlay-name{ font-weight:700; }
   .overlay-desc{ color:var(--muted); font-size:13px; white-space:pre-line; }
   .overlay-metrics{ font-size:12px; color:var(--muted); }
+
+  /* Delivery panel log */
+  .battle-log{
+    width:100%;
+    flex:1;
+    min-height:260px;
+    background:#0f1318;
+    border:1px solid var(--outline);
+    border-radius:10px;
+    padding:10px;
+    overflow:auto;
+    white-space:pre-wrap;
+  }
 </style>
 </head>
 <body>
@@ -211,19 +204,18 @@
       <!-- Delivery -->
       <section class="card delivery" aria-label="Delivery">
         <div class="subhead">Delivery</div>
-        <div style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center; color:var(--muted);">
-          (Delivery UI coming soon)
-        </div>
+        <div id="battle-log" class="battle-log" aria-live="polite"></div>
       </section>
     </div>
   </div>
 
 <script>
-/* Click-to-move + Mana/Coins + Generator + Long-press overlay */
+/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Delivery log + Autobattle hook */
 (function(){
   const board = document.getElementById('board');
   const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
   const portalSlot = document.getElementById('portal-slot');
+  const battleLogEl = document.getElementById('battle-log');
 
   // Currency state
   let mana = 50;
@@ -241,38 +233,48 @@
     btnActivate.disabled = mana < 15;
     btnBuyMana.disabled = coins < 10;
   }
+
+  // Enable/disable "Begin Delivery" depending on Knight slot occupancy
+  function hasKnightPackage(){
+    return !!document.querySelector('.knight-slot .pkg');
+  }
+  function updateBeginEnabled(){
+    btnBegin.disabled = !hasKnightPackage();
+  }
+
+  // Log helpers
+  function clearBattleLog(){ battleLogEl.textContent = ''; }
+  function playLog(lines, speed=40){
+    clearBattleLog();
+    let i = 0;
+    (function step(){
+      if(i >= lines.length) { battleLogEl.scrollTop = battleLogEl.scrollHeight; return; }
+      battleLogEl.insertAdjacentText('beforeend', lines[i] + '\n');
+      battleLogEl.scrollTop = battleLogEl.scrollHeight;
+      i++; setTimeout(step, speed);
+    })();
+  }
+
   updateCurrencyUI();
+  updateBeginEnabled();
 
   // Buy mana: 10 coins -> +1 mana
   btnBuyMana.addEventListener('click', (e)=>{
     e.stopPropagation();
     if (coins >= 10){
-      coins -= 10;
-      mana += 1;
+      coins -= 10; mana += 1;
       updateCurrencyUI();
     }
   });
 
   // ===== Generator Data =====
-  const Sizes = [
-    {name:'small', c:1},
-    {name:'large', c:2},
-    {name:'huge',  c:3},
-  ];
-  const Weights = [
-    {name:'light',        c:1},
-    {name:'iron-plated',  c:2},
-    {name:'supermassive', c:3},
-  ];
-  const Grips = [
-    {name:'sticky',    c:1},
-    {name:'manageable',c:2},
-    {name:'slimy',     c:3},
-  ];
+  const Sizes = [ {name:'small', c:1}, {name:'large', c:2}, {name:'huge', c:3} ];
+  const Weights = [ {name:'light', c:1}, {name:'iron-plated', c:2}, {name:'supermassive', c:3} ];
+  const Grips = [ {name:'sticky', c:1}, {name:'manageable', c:2}, {name:'slimy', c:3} ];
   const Types = [
     {name:'letter', c:1, icon:'✉️'},
     {name:'parcel', c:2, icon:'📦'},
-    {name:'crate',  c:3, icon:'🗃️'},
+    {name:'crate',  c:3, icon:'🗃️'}
   ];
   const Destinations = [
     'Rockslide Inn, New Claudia',
@@ -289,7 +291,6 @@
     "Originally intended for a lover, but now? My mother.",
     "Very old, over 5,000 years. handle with care.",
     "Wizard's eyes only. No naughty knights allowed!",
-    // +15 more:
     "If it hums, hum back until it stops.",
     "Keep upright. If inverted, apologize loudly three times.",
     "Do not expose to moonlight after midnight.",
@@ -308,6 +309,7 @@
   ];
 
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 
   function makePackage(){
     const size = pick(Sizes);
@@ -317,8 +319,7 @@
     const dest = pick(Destinations);
     const sender = pick(Senders);
     const note = pick(SpecialInstructions);
-
-    const baseCoin = size.c + weight.c + grip.c + type.c; // c1/2/3 → 1/2/3
+    const baseCoin = size.c + weight.c + grip.c + type.c;
     const coinTotal = baseCoin + sender.c;
     const manaBonus = sender.m;
 
@@ -349,8 +350,6 @@
     return chip;
   }
 
-  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
   // Activate generates a new package into the portal slot (replacing any existing one)
   btnActivate.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -362,9 +361,21 @@
     portalSlot.replaceChildren(chip);
   });
 
-  // Begin Delivery (no-op for now)
-  btnBegin.addEventListener('click', (e) => {
+  // Begin Delivery — runs Knight vs Wandering Blade, logs to Delivery panel
+  btnBegin.addEventListener('click', async (e) => {
     e.stopPropagation();
+    if (btnBegin.disabled) return;
+
+    // Optional: clear log first
+    clearBattleLog();
+
+    // Dynamic import so we don't have to convert the whole file to type="module"
+    const { runAutobattle } = await import('./autobattle.js');
+
+    const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
+    // Stream the log so it "plays out"
+    playLog(result.log, 40);
+    // (Later: reward coins/mana on victory, consume package, etc.)
   });
 
   // ===== Click-to-move selection/placement =====
@@ -407,14 +418,12 @@
     if (ph) ph.remove();
 
     clearSelection();
+    updateBeginEnabled(); // <-- re-evaluate button after any move
   }
 
-  // ===== Long-press detection (mouse & touch) =====
-  const LONG_PRESS_MS = 550;
-  const MOVE_CANCEL_PX = 10;
-  let lpTimer = null;
-  let lpStartX = 0, lpStartY = 0;
-  let longPressTriggered = false;
+  // ===== Long-press detection (mouse & touch) for package info =====
+  const LONG_PRESS_MS = 550, MOVE_CANCEL_PX = 10;
+  let lpTimer = null, lpStartX = 0, lpStartY = 0, longPressTriggered = false;
 
   function startLongPress(e, chip){
     if (!chip) return;
@@ -422,41 +431,29 @@
     const p = getPoint(e);
     lpStartX = p.x; lpStartY = p.y;
     clearTimeout(lpTimer);
-    lpTimer = setTimeout(() => {
-      longPressTriggered = true;
-      openPkgOverlay(chip);
-    }, LONG_PRESS_MS);
+    lpTimer = setTimeout(() => { longPressTriggered = true; openPkgOverlay(chip); }, LONG_PRESS_MS);
   }
   function moveLongPress(e){
     if (!lpTimer) return;
     const p = getPoint(e);
-    const dx = Math.abs(p.x - lpStartX);
-    const dy = Math.abs(p.y - lpStartY);
-    if (dx > MOVE_CANCEL_PX || dy > MOVE_CANCEL_PX) cancelLongPress();
+    if (Math.abs(p.x - lpStartX) > MOVE_CANCEL_PX || Math.abs(p.y - lpStartY) > MOVE_CANCEL_PX) clearTimeout(lpTimer), lpTimer=null;
   }
-  function cancelLongPress(){ clearTimeout(lpTimer); lpTimer = null; }
-  function endLongPress(){ cancelLongPress(); }
+  function endLongPress(){ clearTimeout(lpTimer); lpTimer=null; }
   function getPoint(e){
     if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
     if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
     return { x: e.clientX ?? 0, y: e.clientY ?? 0 };
   }
 
-  board.addEventListener('contextmenu', (e)=> {
-    if (e.target.closest('.pkg')) e.preventDefault();
-  });
-  board.addEventListener('mousedown', (e) => {
-    const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip);
-  });
+  board.addEventListener('contextmenu', (e)=> { if (e.target.closest('.pkg')) e.preventDefault(); });
+  board.addEventListener('mousedown', (e) => { const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip); });
   board.addEventListener('mousemove', moveLongPress);
   board.addEventListener('mouseup', endLongPress);
-  board.addEventListener('mouseleave', cancelLongPress);
-  board.addEventListener('touchstart', (e) => {
-    const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip);
-  }, { passive:true });
+  board.addEventListener('mouseleave', endLongPress);
+  board.addEventListener('touchstart', (e) => { const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip); }, { passive:true });
   board.addEventListener('touchmove', moveLongPress, { passive:true });
   board.addEventListener('touchend', endLongPress);
-  board.addEventListener('touchcancel', cancelLongPress);
+  board.addEventListener('touchcancel', endLongPress);
 
   // Click handler (selection / placement) — ignore if a long-press just fired
   board.addEventListener('click', (e) => {
@@ -471,7 +468,7 @@
     clearSelection();
   });
 
-  // ===== Overlay =====
+  // ===== Overlay for package details =====
   function openPkgOverlay(chip){
     const name = chip.dataset.name || chip.querySelector('.tag')?.textContent?.trim() || 'Package';
     const icon = chip.dataset.icon || chip.querySelector('.icon')?.textContent?.trim() || '📦';
@@ -508,9 +505,7 @@
       backdrop.removeEventListener('click', onBackdrop);
       backdrop.remove();
     }
-    function onBackdrop(ev){
-      if (ev.target === backdrop || ev.target.classList.contains('overlay-close')) close();
-    }
+    function onBackdrop(ev){ if (ev.target === backdrop || ev.target.classList.contains('overlay-close')) close(); }
     function onKey(ev){ if (ev.key === 'Escape') close(); }
 
     backdrop.addEventListener('click', onBackdrop);
