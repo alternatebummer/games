@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Open World ASCII — Forest Layer + FoW + Palette</title>
+<style>
+  :root{ --bg:#0e0e0e; --ink:#e8e6df; --muted:#9aa4ad; --panel:500px; --midcol:240px; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; flex-direction:column; gap:12px; padding:12px; align-items:center;
+  }
+  h1{margin:0; font-size:16px}
+  .controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+  textarea{
+    width:min(100%,1040px); height:160px; resize:vertical;
+    background:#0b0b0b; color:var(--ink); border:1px solid #333; border-radius:8px; padding:10px; white-space:pre;
+  }
+  input[type="text"]{
+    background:#0b0b0b; color:var(--ink); border:1px solid #333; border-radius:8px; padding:8px 10px; width:180px;
+  }
+  button{
+    background:#111; color:var(--ink); border:1px solid #444; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer;
+  }
+  .status{ font-size:12px; color:#c9a86a; }
+  .label{font-size:12px; color:var(--muted); text-align:center; margin-bottom:6px}
+
+  .row{
+    display:grid;
+    grid-template-columns: var(--panel) var(--midcol) var(--panel);
+    gap:16px; align-items:start; justify-content:center; width:100%;
+  }
+  .panel{ width:var(--panel); height:var(--panel); background:#000; border:none; display:block; }
+
+  /* Middle column with palette + fog + forest controls */
+  .midcol{
+    width:var(--midcol);
+    height:var(--panel);
+    display:flex; flex-direction:column; gap:10px;
+    overflow:auto;
+    padding:8px;
+    background:#0b0b0b; border:1px solid #333; border-radius:10px;
+  }
+  .group{ display:flex; flex-direction:column; gap:8px }
+  .group h2{ margin:0; font-size:13px; color:#c9d3db }
+  .rowline{ display:flex; align-items:center; justify-content:space-between; gap:8px }
+  .rowline small{ color:var(--muted) }
+  .rowline .hex{ font-size:12px; min-width:80px; text-transform:uppercase; text-align:right }
+  .swatch{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:#0e0e0e; border:1px solid #333; border-radius:8px; padding:6px 8px;
+  }
+  .tile{
+    width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    background:#111; border-radius:6px; font-weight:700;
+  }
+  .swatch label{ font-size:12px; color:var(--muted) }
+  .swatch input[type="color"]{ width:34px; height:26px; border:none; background:none; padding:0; cursor:pointer; }
+  input[type="range"]{ width:100%; }
+</style>
+</head>
+<body>
+  <h1>Open World ASCII</h1>
+
+  <textarea id="mapInput" spellcheck="false" placeholder="Paste any-size ASCII map here (3–9, #, ▦). I’ll normalize to 100×100."></textarea>
+  <div class="controls">
+    <button id="applyBtn">Apply Map</button>
+    <div class="status" id="status">Awaiting map…</div>
+  </div>
+
+  <div class="controls">
+    <label for="charInput">Display Character:</label>
+    <input id="charInput" type="text" maxlength="4" placeholder="e.g. · or ✣ or █">
+    <button id="applyCharBtn">Apply Character</button>
+    <button id="resetCharBtn" title="Show original glyphs">Reset Char</button>
+    <div class="status" id="charStatus">Showing original glyphs.</div>
+  </div>
+
+  <div class="row">
+    <!-- Left: World map -->
+    <div>
+      <div class="label">World Map (100×100 → 500px)</div>
+      <canvas id="world" class="panel" width="500" height="500" aria-label="world map"></canvas>
+    </div>
+
+    <!-- Middle: vertical controls -->
+    <div class="midcol" id="midcol">
+      <div class="group">
+        <h2>Fog of War</h2>
+        <div class="rowline">
+          <label>Fog color:</label>
+          <input type="color" id="fogColor">
+          <div class="hex" id="fogHex">#000000</div>
+        </div>
+        <div class="rowline">
+          <label>Fog opacity:</label>
+          <input type="range" id="fogAlpha" min="0" max="100" value="70">
+          <small id="fogAlphaLabel">70%</small>
+        </div>
+        <small>Undiscovered tiles are covered with this fog. Moving “@” reveals a circular radius.</small>
+      </div>
+
+      <div class="group">
+        <div class="rowline">
+          <h2>Forest</h2>
+          <button id="genTreesBtn" title="Generate forest overlay">Generate Trees</button>
+        </div>
+        <div class="rowline">
+          <label>Tree opacity:</label>
+          <input type="range" id="treeAlpha" min="0" max="100" value="85">
+          <small id="treeAlphaLabel">85%</small>
+        </div>
+        <div class="rowline">
+          <label>Tree color:</label>
+          <div class="hex" id="treeHex">#0e7a2d</div>
+        </div>
+        <small>Trees (A) appear above terrain but below fog. They’re passable and procedurally clustered on hills (6).</small>
+      </div>
+
+      <div class="group">
+        <div class="rowline">
+          <h2>Palette</h2>
+          <button id="resetColorsBtn" title="Restore default HEX for all tiles">Reset</button>
+        </div>
+        <div id="palette"></div>
+      </div>
+    </div>
+
+    <!-- Right: Player view -->
+    <div>
+      <div class="label">Player Map (21×21 → 500px)</div>
+      <canvas id="player" class="panel" width="500" height="500" aria-label="player map"></canvas>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ---- Config ----
+  const WORLD_SIZE = 100, WORLD_PIX = 500, WORLD_CELL = WORLD_PIX / WORLD_SIZE;     // 5px squares
+  const PLAYER_VIEW = 21,  PLAYER_PIX = 500, PLAYER_CELL = PLAYER_PIX / PLAYER_VIEW; // ~23.81px squares
+  const START = { x: Math.floor(WORLD_SIZE/2), y: Math.floor(WORLD_SIZE/2) };
+
+  // Tighten spacing
+  const FIT_WORLD  = 1.18;
+  const FIT_PLAYER = 1.14;
+  const Y_TWEAK    = -0.06;
+
+  // Vision (radius of visibility, in world cells)
+  const VISION_RADIUS = 7; // circular reveal
+
+  // Impassable tiles
+  const IMPASSABLE = new Set(['#','9','8','7','3']);
+  const isBlocked = ch => IMPASSABLE.has(ch);
+
+  // Default palette
+  const DEFAULT_COLOR = {
+    '3':'#0f3a6d', '4':'#2f7d32', '5':'#6a8f3a', '6':'#8f7b3a',
+    '7':'#7a5a40', '8':'#6b6b6b', '9':'#d9d9d9', '#':'#6b6b6b', '▦':'#5495b8'
+  };
+  const TILES = ['3','4','5','6','7','8','9','#','▦'];
+  const COLOR = {...DEFAULT_COLOR};
+
+  // Forest defaults
+  const TREE_COLOR = '#0e7a2d';
+  let treeAlpha = 0.85;
+
+  // Fog defaults
+  let fogColorHex = '#000000';
+  let fogAlpha = 0.70;
+
+  // World state
+  let world = Array.from({length:WORLD_SIZE}, () => Array.from({length:WORLD_SIZE}, ()=>'3'));
+  let discovered = Array.from({length:WORLD_SIZE}, () => Array.from({length:WORLD_SIZE}, ()=>false));
+  let player = { ...START };
+  let displayChar = null;
+
+  // Forest state (boolean grid)
+  let trees = Array.from({length:WORLD_SIZE}, () => Array.from({length:WORLD_SIZE}, ()=>false));
+
+  // DOM
+  const elIn = document.getElementById('mapInput');
+  const elBtn = document.getElementById('applyBtn');
+  const elStatus = document.getElementById('status');
+  const wctx = document.getElementById('world').getContext('2d');
+  const pctx = document.getElementById('player').getContext('2d');
+  const elCharInput = document.getElementById('charInput');
+  const elApplyChar = document.getElementById('applyCharBtn');
+  const elResetChar = document.getElementById('resetCharBtn');
+  const elCharStatus = document.getElementById('charStatus');
+  const elPalette = document.getElementById('palette');
+  const elResetColors = document.getElementById('resetColorsBtn');
+
+  const elGenTrees = document.getElementById('genTreesBtn');
+  const elTreeAlpha = document.getElementById('treeAlpha');
+  const elTreeAlphaLabel = document.getElementById('treeAlphaLabel');
+  const elTreeHex = document.getElementById('treeHex');
+
+  const elFogColor = document.getElementById('fogColor');
+  const elFogHex = document.getElementById('fogHex');
+  const elFogAlpha = document.getElementById('fogAlpha');
+  const elFogAlphaLabel = document.getElementById('fogAlphaLabel');
+
+  // ---- Map normalization ----
+  function normalizeTo100x100(raw){
+    const allowed = new Set(TILES);
+    const lines = raw.replace(/\r/g,'').split('\n').map(l => l.trimEnd()).filter(l => l.length>0);
+    const origRows = lines.length;
+
+    const cleaned = (lines.length ? lines : ['']).map(line =>
+      Array.from(line).map(ch => allowed.has(ch) ? ch : '3').join('')
+    );
+
+    // Ensure 100 rows
+    const rows = cleaned.slice(0, WORLD_SIZE);
+    while (rows.length < WORLD_SIZE) rows.push(rows[rows.length-1] || ''.padEnd(WORLD_SIZE,'3'));
+
+    // Rows to exactly 100 chars
+    const rowFixes = [];
+    const arr = rows.map((row, i) => {
+      if (row.length < WORLD_SIZE){ rowFixes.push(`row ${i+1}: +${WORLD_SIZE-row.length}`); return row + '3'.repeat(WORLD_SIZE-row.length); }
+      if (row.length > WORLD_SIZE){ rowFixes.push(`row ${i+1}: -${row.length-WORLD_SIZE}`); return row.slice(0, WORLD_SIZE); }
+      return row;
+    });
+
+    const status = [`rows in: ${origRows} → 100`];
+    if (rowFixes.length) status.push(`${rowFixes.length} rows adjusted`);
+    return { grid: arr.map(r => Array.from(r)), status: status.join(' • ') };
+  }
+
+  // Spawn safety
+  function findNearestFree(cx, cy){
+    const inBounds = (x,y)=> x>=0 && x<WORLD_SIZE && y>=0 && y<WORLD_SIZE;
+    for (let r=0; r<WORLD_SIZE; r++){
+      for (let dy=-r; dy<=r; dy++){
+        for (let dx=-r; dx<=r; dx++){
+          const x = cx + dx, y = cy + dy;
+          if (!inBounds(x,y)) continue;
+          if (!isBlocked(world[y][x])) return {x,y};
+        }
+      }
+    }
+    return null;
+  }
+
+  // ---- Fractal value-noise (deterministic per (x,y)) for forest generation ----
+  function hash2(ix, iy, seed){
+    // 32-bit hash → [0,1)
+    let h = 2166136261 ^ seed;
+    h = Math.imul(h ^ ix, 16777619);
+    h = Math.imul(h ^ iy, 16777619);
+    h ^= h >>> 13; h = Math.imul(h, 1274126177);
+    return ((h >>> 0) / 4294967296);
+  }
+  function smooth(t){ return t*t*(3 - 2*t); } // smoothstep
+  function valueNoise(x, y, scale, seed){
+    x /= scale; y /= scale;
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = x - ix, fy = y - iy;
+    const v00 = hash2(ix+0, iy+0, seed);
+    const v10 = hash2(ix+1, iy+0, seed);
+    const v01 = hash2(ix+0, iy+1, seed);
+    const v11 = hash2(ix+1, iy+1, seed);
+    const sx = smooth(fx), sy = smooth(fy);
+    const a = v00*(1-sx) + v10*sx;
+    const b = v01*(1-sx) + v11*sx;
+    return a*(1-sy) + b*sy; // 0..1
+  }
+  function fbm(x, y, seed){
+    // 4-octave fractal value noise (mix of clumps + detail)
+    let amp = 1, freq = 32, sum = 0, ampSum = 0;
+    for (let i=0; i<4; i++){
+      sum += amp * valueNoise(x, y, freq, seed + i*101);
+      ampSum += amp;
+      amp *= 0.5;     // persistence
+      freq *= 0.5;    // larger features
+    }
+    return sum / ampSum; // 0..1
+  }
+
+  function hillAdjacencyBonus(x,y){
+    // bonus if near hills (6). radius 2
+    let count = 0, total = 0;
+    for (let dy=-2; dy<=2; dy++){
+      const yy = y + dy; if (yy<0 || yy>=WORLD_SIZE) continue;
+      for (let dx=-2; dx<=2; dx++){
+        const xx = x + dx; if (xx<0 || xx>=WORLD_SIZE) continue;
+        total++;
+        if (world[yy][xx] === '6') count++;
+      }
+    }
+    return total ? (count / total) : 0;
+  }
+
+  // Generate forest overlay (passable), biased to hills
+  function generateTrees(){
+    const seed = 1337; // fixed seed; change if you want different layouts
+    trees = Array.from({length:WORLD_SIZE}, () => Array.from({length:WORLD_SIZE}, ()=>false));
+
+    for (let y=0; y<WORLD_SIZE; y++){
+      for (let x=0; x<WORLD_SIZE; x++){
+        const tile = world[y][x];
+
+        // Hard exclusions
+        if (tile === '8' || tile === '3' || tile === '9') { trees[y][x] = false; continue; }
+
+        // Base suitability by tile
+        let base =
+          tile === '6' ? 0.70 :
+          tile === '5' ? 0.45 :
+          tile === '4' ? 0.28 :
+          tile === '7' ? 0.12 :
+          tile === '#' ? 0.12 :
+          tile === '▦' ? 0.00 : 0.10;
+
+        // Noise: low-frequency clumps + a touch of high-frequency speckle
+        const clump = fbm(x, y, seed);                // 0..1
+        const detail = valueNoise(x, y, 3, seed+999); // small stands
+
+        // Hill proximity bonus
+        const nearHills = hillAdjacencyBonus(x,y);    // 0..1
+
+        // Combine (weights tuned for "gather on 6, sparse nearby")
+        let p = 0.55*base + 0.35*clump + 0.20*nearHills + 0.10*detail;
+        // Slightly suppress on steep 7 so they’re rarer
+        if (tile === '7') p *= 0.75;
+
+        trees[y][x] = (p > 0.58);
+      }
+    }
+    render();
+  }
+
+  // ---- Color helpers ----
+  function hexToRgb(hex){
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!m) return {r:0,g:0,b:0};
+    return { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) };
+  }
+
+  // ---- Drawing helpers ----
+  function setFont(ctx, px){
+    ctx.font = `bold ${Math.ceil(px)}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+  }
+
+  function drawWorld(){
+    wctx.fillStyle = '#000'; wctx.fillRect(0,0,WORLD_PIX,WORLD_PIX);
+    setFont(wctx, WORLD_CELL * FIT_WORLD);
+
+    // Base topography (with optional displayChar override)
+    for (let y=0; y<WORLD_SIZE; y++){
+      for (let x=0; x<WORLD_SIZE; x++){
+        const ch = world[y][x];
+        const glyph = displayChar ?? ch;
+        wctx.fillStyle = COLOR[ch] || '#777';
+        const cx = x*WORLD_CELL + WORLD_CELL/2;
+        const cy = y*WORLD_CELL + WORLD_CELL/2 + WORLD_CELL*Y_TWEAK;
+        wctx.fillText(glyph, cx, cy);
+      }
+    }
+
+    // Forest overlay (between topography and fog)
+    if (treeAlpha > 0){
+      wctx.save();
+      wctx.globalAlpha = treeAlpha;
+      wctx.fillStyle = TREE_COLOR;
+      for (let y=0; y<WORLD_SIZE; y++){
+        for (let x=0; x<WORLD_SIZE; x++){
+          if (!trees[y][x]) continue;
+          const cx = x*WORLD_CELL + WORLD_CELL/2;
+          const cy = y*WORLD_CELL + WORLD_CELL/2 + WORLD_CELL*Y_TWEAK;
+          wctx.fillText('A', cx, cy);
+        }
+      }
+      wctx.restore();
+    }
+
+    // Fog (hides undiscovered)
+    applyFog(wctx, WORLD_CELL, discovered);
+
+    // Player marker
+    wctx.fillStyle = '#fff';
+    wctx.fillText('@',
+      player.x*WORLD_CELL + WORLD_CELL/2,
+      player.y*WORLD_CELL + WORLD_CELL/2 + WORLD_CELL*Y_TWEAK
+    );
+  }
+
+  function drawPlayerView(){
+    pctx.fillStyle = '#000'; pctx.fillRect(0,0,PLAYER_PIX,PLAYER_PIX);
+    setFont(pctx, PLAYER_CELL * FIT_PLAYER);
+    const half = Math.floor(PLAYER_VIEW/2);
+
+    // Base topography (viewport)
+    for (let vy=0; vy<PLAYER_VIEW; vy++){
+      for (let vx=0; vx<PLAYER_VIEW; vx++){
+        const wx = player.x + (vx - half);
+        const wy = player.y + (vy - half);
+        const ch = (wx>=0 && wx<WORLD_SIZE && wy>=0 && wy<WORLD_SIZE) ? world[wy][wx] : ' ';
+        const glyph = displayChar ?? ch;
+        const cx = vx*PLAYER_CELL + PLAYER_CELL/2;
+        const cy = vy*PLAYER_CELL + PLAYER_CELL/2 + PLAYER_CELL*Y_TWEAK;
+        pctx.fillStyle = COLOR[ch] || '#444';
+        pctx.fillText(glyph, cx, cy);
+      }
+    }
+
+    // Forest overlay (viewport)
+    if (treeAlpha > 0){
+      pctx.save();
+      pctx.globalAlpha = treeAlpha;
+      pctx.fillStyle = TREE_COLOR;
+      for (let vy=0; vy<PLAYER_VIEW; vy++){
+        for (let vx=0; vx<PLAYER_VIEW; vx++){
+          const wx = player.x + (vx - half);
+          const wy = player.y + (vy - half);
+          if (wx<0 || wy<0 || wx>=WORLD_SIZE || wy>=WORLD_SIZE) continue;
+          if (!trees[wy][wx]) continue;
+          const cx = vx*PLAYER_CELL + PLAYER_CELL/2;
+          const cy = vy*PLAYER_CELL + PLAYER_CELL/2 + PLAYER_CELL*Y_TWEAK;
+          pctx.fillText('A', cx, cy);
+        }
+      }
+      pctx.restore();
+    }
+
+    // Fog (viewport)
+    applyFogViewport(pctx, PLAYER_CELL, discovered, player.x, player.y, half);
+
+    // Player marker
+    pctx.fillStyle = '#fff';
+    pctx.fillText('@',
+      Math.floor(PLAYER_VIEW/2)*PLAYER_CELL + PLAYER_CELL/2,
+      Math.floor(PLAYER_VIEW/2)*PLAYER_CELL + PLAYER_CELL/2 + PLAYER_CELL*Y_TWEAK
+    );
+  }
+
+  // Fog (full/world)
+  function applyFog(ctx, cellSize, seen){
+    const {r,g,b} = hexToRgb(fogColorHex);
+    ctx.fillStyle = `rgba(${r},${g},${b},${fogAlpha})`;
+    for (let y=0; y<WORLD_SIZE; y++){
+      for (let x=0; x<WORLD_SIZE; x++){
+        if (!seen[y][x]){
+          ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
+        }
+      }
+    }
+  }
+  // Fog (viewport)
+  function applyFogViewport(ctx, cellSize, seen, px, py, half){
+    const {r,g,b} = hexToRgb(fogColorHex);
+    ctx.fillStyle = `rgba(${r},${g},${b},${fogAlpha})`;
+    for (let vy=0; vy<PLAYER_VIEW; vy++){
+      for (let vx=0; vx<PLAYER_VIEW; vx++){
+        const wx = px + (vx - half);
+        const wy = py + (vy - half);
+        if (wx<0 || wy<0 || wx>=WORLD_SIZE || wy>=WORLD_SIZE || !seen[wy][wx]){
+          ctx.fillRect(vx*cellSize, vy*cellSize, cellSize, cellSize);
+        }
+      }
+    }
+  }
+
+  function render(){ drawWorld(); drawPlayerView(); }
+
+  // ---- Movement ----
+  function revealAround(cx, cy, r=VISION_RADIUS){
+    const r2 = r*r;
+    const minY = Math.max(0, cy - r), maxY = Math.min(WORLD_SIZE-1, cy + r);
+    const minX = Math.max(0, cx - r), maxX = Math.min(WORLD_SIZE-1, cx + r);
+    for (let y=minY; y<=maxY; y++){
+      const dy = y - cy;
+      for (let x=minX; x<=maxX; x++){
+        const dx = x - cx;
+        if (dx*dx + dy*dy <= r2) discovered[y][x] = true;
+      }
+    }
+  }
+  function tryMove(dx,dy){
+    const nx = Math.max(0, Math.min(WORLD_SIZE-1, player.x+dx));
+    const ny = Math.max(0, Math.min(WORLD_SIZE-1, player.y+dy));
+    if (!isBlocked(world[ny][nx])){
+      player.x=nx; player.y=ny;
+      revealAround(player.x, player.y, VISION_RADIUS);
+      render();
+    }
+  }
+  window.addEventListener('keydown', e=>{
+    const k = e.key.toLowerCase();
+    if (k==='arrowup'||k==='w'){ e.preventDefault(); tryMove(0,-1); }
+    else if (k==='arrowdown'||k==='s'){ e.preventDefault(); tryMove(0,1); }
+    else if (k==='arrowleft'||k==='a'){ e.preventDefault(); tryMove(-1,0); }
+    else if (k==='arrowright'||k==='d'){ e.preventDefault(); tryMove(1,0); }
+  }, {passive:false});
+
+  // ---- Apply Map ----
+  elBtn.addEventListener('click', ()=>{
+    const txt = elIn.value || '';
+    const { grid, status } = normalizeTo100x100(txt);
+    world = grid;
+    discovered = Array.from({length:WORLD_SIZE}, () => Array.from({length:WORLD_SIZE}, ()=>false));
+    player = { ...START };
+    if (isBlocked(world[player.y][player.x])) {
+      const spot = findNearestFree(player.x, player.y);
+      if (spot) player = spot;
+    }
+    revealAround(player.x, player.y, VISION_RADIUS);
+    elStatus.textContent = `Loaded: ${status}`;
+    render();
+  });
+
+  // ---- Display Character Controls ----
+  function firstGrapheme(str){
+    const arr = Array.from((str || '').trim());
+    return arr.length ? arr[0] : null;
+  }
+  elApplyChar.addEventListener('click', ()=>{
+    const ch = firstGrapheme(elCharInput.value);
+    displayChar = ch || null;
+    elCharStatus.textContent = displayChar ? `Displaying “${displayChar}” (colors from tiles).` : 'Showing original glyphs.';
+    render();
+  });
+  elResetChar.addEventListener('click', ()=>{
+    displayChar = null; elCharInput.value = '';
+    elCharStatus.textContent = 'Showing original glyphs.';
+    render();
+  });
+
+  // ---- Palette UI (vertical) ----
+  function describeTile(ch){
+    switch(ch){
+      case '3': return '3 — sea level';
+      case '4': return '4 — low plains';
+      case '5': return '5 — meadows';
+      case '6': return '6 — hills';
+      case '7': return '7 — steep inclines';
+      case '8': return '8 — mountains';
+      case '9': return '9 — icecaps';
+      case '#': return '# — stone';
+      case '▦': return '▦ — teleport pad';
+      default:  return ch;
+    }
+  }
+  function buildPaletteUI(){
+    elPalette.innerHTML = '';
+    for (const key of TILES){
+      const row = document.createElement('div');
+      row.className = 'swatch';
+
+      const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='8px';
+      const tile = document.createElement('div'); tile.className='tile'; tile.textContent = key;
+      const label = document.createElement('label'); label.textContent = describeTile(key);
+      left.appendChild(tile); left.appendChild(label);
+
+      const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
+      const colorInput = document.createElement('input'); colorInput.type='color'; colorInput.value = COLOR[key];
+      const hex = document.createElement('div'); hex.className='hex'; hex.textContent = COLOR[key].toUpperCase();
+      colorInput.addEventListener('input', () => {
+        COLOR[key] = colorInput.value; hex.textContent = COLOR[key].toUpperCase(); render();
+      });
+      right.appendChild(colorInput); right.appendChild(hex);
+
+      row.appendChild(left); row.appendChild(right);
+      elPalette.appendChild(row);
+    }
+  }
+  document.getElementById('resetColorsBtn').addEventListener('click', ()=>{
+    for (const k of Object.keys(DEFAULT_COLOR)) COLOR[k] = DEFAULT_COLOR[k];
+    buildPaletteUI(); render();
+  });
+
+  // ---- Fog UI wiring ----
+  function updateFogUI(){
+    elFogColor.value = fogColorHex;
+    elFogHex.textContent = fogColorHex.toUpperCase();
+    elFogAlpha.value = Math.round(fogAlpha*100);
+    elFogAlphaLabel.textContent = `${Math.round(fogAlpha*100)}%`;
+  }
+  elFogColor.addEventListener('input', ()=>{
+    fogColorHex = elFogColor.value;
+    elFogHex.textContent = fogColorHex.toUpperCase();
+    render();
+  });
+  elFogAlpha.addEventListener('input', ()=>{
+    fogAlpha = Math.max(0, Math.min(1, parseInt(elFogAlpha.value,10)/100));
+    elFogAlphaLabel.textContent = `${Math.round(fogAlpha*100)}%`;
+    render();
+  });
+
+  // ---- Forest UI wiring ----
+  elTreeAlpha.addEventListener('input', ()=>{
+    treeAlpha = Math.max(0, Math.min(1, parseInt(elTreeAlpha.value,10)/100));
+    elTreeAlphaLabel.textContent = `${Math.round(treeAlpha*100)}%`;
+    render();
+  });
+  elGenTrees.addEventListener('click', generateTrees);
+  elTreeHex.textContent = TREE_COLOR.toUpperCase();
+
+  // Initial UI + first render
+  fogColorHex = '#000000'; fogAlpha = 0.70; updateFogUI();
+  buildPaletteUI();
+  elStatus.textContent = 'Paste your map and click “Apply Map”.';
+  revealAround(player.x, player.y, VISION_RADIUS); // reveal a small start area on default ocean
+  render();
+})();
+</script>
+</body>
+</html>
