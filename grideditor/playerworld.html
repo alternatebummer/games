@@ -519,7 +519,7 @@
           if (!flora[y][x]) continue;
           const cx = x*WORLD_CELL + WORLD_CELL/2;
           const cy = y*WORLD_CELL + WORLD_CELL/2 + WORLD_CELL*Y_TWEAK;
-          wctx.fillText('.', cx, cy);
+          wctx.fillText('""', cx, cy);
         }
       }
       wctx.restore();
@@ -580,7 +580,7 @@
           if (!flora[wy][wx]) continue;
           const cx = vx*PLAYER_CELL + PLAYER_CELL/2;
           const cy = vy*PLAYER_CELL + PLAYER_CELL/2 + PLAYER_CELL*Y_TWEAK;
-          pctx.fillText('.', cx, cy);
+          pctx.fillText('"', cx, cy);
         }
       }
       pctx.restore();

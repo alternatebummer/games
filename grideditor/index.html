@@ -1,227 +1,619 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>19×19 ASCII Editor</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ASCII Grid Editor — 800×800 Card (Cell Dotted Grid + Plaintext Mirror + Topography)</title>
 <style>
   :root{
-    --bg:#0e0e0e;
-    --fg:#e8e6df;
-    --grid:#2a2a2a;
-    --accent:#7bd389;
-    --cell:34px;
-    --font:20px;
-
-    /* palette from your spec (picked sensible hexes) */
-    --dark-grey:#6b7280;
-    --dark-yellow:#a39e5f;
-    --gunmetal:#6f818f;
-    --reddish-grey:#a46b6b;
-    --dark-sky:#5bc0eb;
-    --floor-grey:#383d42;
-    --kitchen-green:#6ba46b;
+    --bg:#0b0e12; --panel:#15181c; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b;
+    --card:800px; --radius:16px; --border:#2a2f36; --outline:#33404a;
   }
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; margin:0; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    background:var(--bg);
-    color:var(--fg);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    display:grid;
-    place-items:center;
-    padding:16px;
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
-  .wrap{ display:grid; gap:12px; width:min(95vw,760px); }
-  header{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-  h1{ margin:0; font-size:18px; color:var(--accent); letter-spacing:.5px; }
-  .controls{ display:flex; gap:8px; }
+
+  /* Layout: [Plaintext | Grid | Controls] */
+  .wrap{
+    max-width: calc(420px + var(--card) + 320px + 40px);
+    margin:0 auto; padding:16px;
+    display:grid; grid-template-columns:420px var(--card) 320px; gap:20px;
+  }
+
+  .card{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius); padding:12px; box-shadow:0 0 0 1px #000 inset;
+  }
+  h2{margin:0 0 10px;font-size:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+  input[type="number"], input[type="text"]{
+    background:#0e1317; color:var(--ink); border:1px solid var(--outline);
+    padding:8px 10px; border-radius:10px; width:110px;
+  }
+  input[type="text"]#regChar{width:72px;text-align:center}
+  input[type="text"]#regHex{width:130px}
+  input[type="color"]{width:44px;height:36px;border:none;background:transparent;padding:0}
   button{
-    background:#181818; color:var(--fg);
-    border:1px solid #333; border-radius:8px; padding:8px 12px; cursor:pointer;
+    background:#0f151a; color:var(--ink); border:1px solid var(--outline);
+    padding:8px 12px; border-radius:10px; cursor:pointer;
   }
-  button:hover{ background:#222; }
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(19, var(--cell));
-    grid-auto-rows:var(--cell);
-    border:1px solid var(--grid);
-    background:
-      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/var(--cell) var(--cell),
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/var(--cell) var(--cell);
-    padding:1px;
-    width:calc(19 * var(--cell) + 2px);
+  button.primary{border-color:var(--accent); box-shadow:0 0 0 1px #000 inset}
+  button[disabled]{opacity:.55;cursor:not-allowed}
+  .small{font-size:12px}
+
+  /* Plaintext card */
+  .plainBox{
+    width:100%; height: calc(var(--card) - 32px);
+    resize:none; border:1px solid var(--outline); border-radius:10px;
+    background:#0e1317; color:var(--ink); padding:10px;
+    font:13px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space:pre; overflow:auto;
   }
-  input.cell{
-    width:var(--cell); height:var(--cell);
-    border:none; margin:0; padding:0; background:transparent;
-    text-align:center; font-size:var(--font); line-height:var(--cell);
-    color:var(--fg);
-    outline:none; caret-color:transparent;
+  .plainHelp{color:var(--muted); font-size:12px; margin-top:6px}
+
+  /* Grid card */
+  .gridCard{display:flex;flex-direction:column;gap:10px}
+  .canvasWrap{
+    width:var(--card); height:var(--card); background:#000;
+    border:1px solid var(--outline); border-radius:10px; position:relative; overflow:hidden;
   }
-  input.cell:focus{ background:rgba(123,211,137,.15); }
-  footer{ font-size:12px; opacity:.85; }
-  @media (max-width:480px){ :root{ --cell:28px; --font:18px; } }
+  canvas{display:block;width:100%;height:100%}
+  .hint{
+    position:absolute; left:8px; bottom:8px; font-size:12px; color:#9aa8b4; opacity:.85;
+    background:rgba(15,20,25,.4); padding:4px 8px; border-radius:8px; border:1px solid #22303a
+  }
+
+  /* Controls stack (right) */
+  .stack{display:flex;flex-direction:column;gap:20px}
+  .palette{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px}
+  .swatch{
+    border:1px solid var(--outline); border-radius:10px; padding:8px; background:#0e1317;
+    display:flex; flex-direction:column; gap:6px; align-items:center; justify-content:center;
+    cursor:pointer; transition:.15s transform ease;
+  }
+  .swatch:hover{transform:translateY(-2px)}
+  .swatch.selected{outline:2px solid var(--accent)}
+  .glyph{
+    font-size:22px; line-height:1; width:28px; height:28px; display:grid; place-items:center;
+    border-radius:8px; background:#0b0f13; border:1px dashed #25303a;
+  }
+  .hex{font-size:11px;color:#9fb3c1}
+  .toolRow{display:flex;gap:8px;flex-wrap:wrap}
+  .toolBtn.active{outline:2px solid var(--accent)}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>19×19 ASCII Editor</h1>
-      <div class="controls">
-        <button id="copyBtn" title="Copy grid as text">Copy</button>
-        <button id="clearBtn" title="Clear to spaces">Clear</button>
+    <!-- LEFT: Plaintext mirror -->
+    <div class="card">
+      <h2>Plaintext</h2>
+      <textarea id="plainBox" class="plainBox" placeholder="This will mirror the grid (one line per row). You can also type here to update the grid."></textarea>
+      <div id="plainHelp" class="plainHelp">Edit here to change the grid. Lines = rows; longest line defines columns. Spaces are preserved.</div>
+    </div>
+
+    <!-- MIDDLE: Grid -->
+    <div class="card gridCard">
+      <h2>Grid</h2>
+      <div class="row">
+        <label>X (cols)
+          <input id="cols" type="number" min="1" max="1000" step="1" value="100">
+        </label>
+        <label>Y (rows)
+          <input id="rows" type="number" min="1" max="1000" step="1" value="100">
+        </label>
+        <button id="genBtn" class="primary">Generate Grid</button>
+        <button id="copyBtn" title="Copy with line breaks (one row per line)" disabled>Copy</button>
+        <button id="clearBtn" title="Clear grid to spaces" disabled>Clear</button>
+        <button id="topoBtn" title="Generate Perlin topography" disabled>Generate Topography</button>
       </div>
-    </header>
-    <div id="grid" class="grid" aria-label="ASCII grid editor" role="grid"></div>
-    <footer>Tip: Click a cell and type. Arrow keys move; Backspace/Delete clears to a space.</footer>
+      <div class="canvasWrap">
+        <canvas id="grid" width="800" height="800" aria-label="ASCII grid canvas"></canvas>
+        <div class="hint">Pen: click a cell • Bucket: fill all • Topography: Perlin 3–9 with west/east bias</div>
+      </div>
+      <div class="small" id="status">No grid yet.</div>
+    </div>
+
+    <!-- RIGHT: Controls -->
+    <div class="stack">
+      <div class="card">
+        <h2>Character Registration</h2>
+        <div class="row">
+          <label>Char
+            <input id="regChar" type="text" maxlength="1" placeholder="#" />
+          </label>
+          <label>Hex
+            <input id="regHex" type="text" placeholder="#516b96" />
+          </label>
+          <input id="regPicker" type="color" value="#516b96" title="Pick color"/>
+          <button id="addBtn">Register</button>
+        </div>
+        <div class="small" id="regMsg">Enter 1 character and a hex color (e.g., <code>#516b96</code>), then Register.</div>
+      </div>
+
+      <div class="card">
+        <h2>Palette</h2>
+        <div id="palette" class="palette"></div>
+        <div class="toolRow" style="margin-top:10px">
+          <button id="penBtn" class="toolBtn active" title="Paint one cell at a time">Pen</button>
+          <button id="bucketBtn" class="toolBtn" title="Fill entire grid with selected character">Bucket</button>
+          <button id="removeBtn" title="Remove selected swatch" disabled>Remove</button>
+        </div>
+        <div class="small" id="palMsg">Tip: select a swatch, then choose a tool.</div>
+      </div>
+    </div>
   </div>
 
 <script>
 (() => {
-  const SIZE = 19;
+  // ====== State ======
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const CARD_SIZE = 800;
+  const canvas = document.getElementById('grid');
+  const ctx = canvas.getContext('2d');
+  canvas.width = CARD_SIZE * dpr;
+  canvas.height = CARD_SIZE * dpr;
+  canvas.style.width = CARD_SIZE + 'px';
+  canvas.style.height = CARD_SIZE + 'px';
+  ctx.scale(dpr, dpr);
 
-  // Your starting design (19 rows × 19 columns). Spaces are significant.
-  const DESIGN = [
-    "                   ",
-    "                   ",
-    "                   ",
-    "                   ",
-    "        ◢═◣        ",
-    "       ◢▦▣▦◣       ",
-    "       ║▦□▦║       ",
-    "       ║▦□▦║       ",
-    "       ║▦□▣║       ",
-    "       ║▦□▦║       ",
-    "       ◢◩□▦◣       ",
-    "      ◢▦□□□▦◣      ",
-    "      ║▣□□□▤║      ",
-    "      ◥▦▦▦▦▦◤      ",
-    "       ◥☰☰☰◤       ",
-    "        ☶ ☶        ",
-    "                   ",
-    "                   ",
-    "                   "
+  let cols = 0, rows = 0;
+  let chars = [];   // length rows*cols, single-char strings
+  let colors = [];  // length rows*cols, hex strings for each cell
+  let cellSize = 0;
+  let offX = 0, offY = 0;
+
+  let palette = [];
+  let selectedId = null;
+  let tool = 'pen';
+
+  // ====== DOM ======
+  const $ = sel => document.querySelector(sel);
+  const genBtn = $('#genBtn');
+  const copyBtn = $('#copyBtn');
+  const clearBtn = $('#clearBtn');
+  const topoBtn =  $('#topoBtn');
+  const status = $('#status');
+  const plainBox = $('#plainBox');
+
+  const regChar = $('#regChar');
+  const regHex  = $('#regHex');
+  const regPicker = $('#regPicker');
+  const regMsg = $('#regMsg');
+  const addBtn = $('#addBtn');
+
+  const paletteEl = $('#palette');
+  const penBtn = $('#penBtn');
+  const bucketBtn = $('#bucketBtn');
+  const removeBtn = $('#removeBtn');
+  const palMsg = $('#palMsg');
+
+  // ====== Utils ======
+  const hexOK = h => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(h.trim());
+  const idx = (r, c) => r * cols + c;
+  const hasGrid = () => cols > 0 && rows > 0 && chars.length === rows*cols;
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+  function updateStatus(extra = '') {
+    const sel = palette.find(p => p.id === selectedId);
+    const selText = sel ? `Selected: ‘${sel.ch}’ ${sel.hex}` : 'Selected: none';
+    const toolText = `Tool: ${tool}`;
+    const gridText = hasGrid() ? `Grid: ${cols}×${rows}` : 'Grid: none';
+    status.textContent = [gridText, selText, toolText, extra].filter(Boolean).join(' — ');
+  }
+  function message(el, text, good=false) {
+    el.innerHTML = text;
+    el.style.color = good ? 'var(--accent)' : '#ff9b87';
+  }
+
+  // Palette helper: add or update a swatch for a given char/color
+  function addOrUpdateSwatch(ch, hex){
+    if (!ch || ch === ' ') return;
+    const found = palette.find(p => p.ch === ch);
+    if (found){ found.hex = hex; }
+    else { palette.push({ id: `${ch}_${hex}_${Date.now()}`, ch, hex }); }
+    renderPalette();
+  }
+
+  // ====== Grid / Rendering ======
+  function computeLayout(){
+    if (cols <= 0 || rows <= 0) { cellSize = 0; offX = offY = 0; return; }
+    cellSize = Math.min(CARD_SIZE / cols, CARD_SIZE / rows);
+    const usedW = cellSize * cols;
+    const usedH = cellSize * rows;
+    offX = (CARD_SIZE - usedW) / 2;
+    offY = (CARD_SIZE - usedH) / 2;
+  }
+  function clearCanvas(){
+    ctx.clearRect(0,0,CARD_SIZE,CARD_SIZE);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,CARD_SIZE,CARD_SIZE);
+  }
+  function drawAll(){
+    if (!hasGrid()) return;
+    computeLayout();
+    clearCanvas();
+
+    // characters
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const fontPx = Math.max(1, Math.floor(cellSize));
+    ctx.font = `${fontPx}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    for (let r=0; r<rows; r++){
+      for (let c=0; c<cols; c++){
+        const i = idx(r,c);
+        const ch = chars[i];
+        if (ch === ' ') continue;
+        const cx = offX + c*cellSize + cellSize/2;
+        const cy = offY + r*cellSize + cellSize/2;
+        ctx.fillStyle = colors[i] || '#cfe3ef';
+        ctx.fillText(ch, cx, cy);
+      }
+    }
+    ctx.restore();
+
+    // dotted grid lines
+    const left   = Math.floor(offX) + 0.5;
+    const top    = Math.floor(offY) + 0.5;
+    const width  = Math.floor(cellSize * cols) - 1;
+    const height = Math.floor(cellSize * rows) - 1;
+
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.strokeStyle = 'rgba(207,227,239,0.22)';
+
+    ctx.beginPath();
+    for (let c = 1; c < cols; c++){
+      const x = Math.round(left + c * cellSize) + 0.5;
+      ctx.moveTo(x, top); ctx.lineTo(x, top + height);
+    }
+    for (let r = 1; r < rows; r++){
+      const y = Math.round(top + r * cellSize) + 0.5;
+      ctx.moveTo(left, y); ctx.lineTo(left + width, y);
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.strokeRect(left, top, width, height);
+    ctx.restore();
+
+    // update plaintext mirror (debounced)
+    schedulePlaintextUpdate();
+  }
+
+  function placeAt(r, c, ch, hex){
+    if (!hasGrid()) return;
+    if (r < 0 || c < 0 || r >= rows || c >= cols) return;
+    const i = idx(r,c);
+    chars[i]  = ch;
+    colors[i] = hex;
+    drawAll();
+    clearBtn.disabled = chars.every(v => v === ' ');
+  }
+  function fillAll(ch, hex){
+    if (!hasGrid()) return;
+    const total = rows * cols;
+    for (let i=0; i<total; i++){ chars[i] = ch; colors[i] = hex; }
+    drawAll();
+    clearBtn.disabled = false;
+  }
+  function clearGrid(){
+    if (!hasGrid()) return;
+    chars.fill(' ');
+    drawAll();
+    clearBtn.disabled = true;
+    updateStatus('Grid cleared.');
+  }
+
+  // ====== Plaintext sync ======
+  function toPlaintext(){
+    if (!hasGrid()) return '';
+    let out = '';
+    for (let r = 0; r < rows; r++){
+      out += chars.slice(r*cols, (r+1)*cols).join('');
+      if (r < rows - 1) out += '\n';
+    }
+    return out;
+  }
+  function setFromPlaintext(text){
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const newRows = clamp(lines.length, 1, 1000);
+    let newCols = 1;
+    for (const line of lines){ newCols = Math.max(newCols, line.length); }
+    newCols = clamp(newCols, 1, 1000);
+
+    rows = newRows; cols = newCols;
+    $('#rows').value = rows; $('#cols').value = cols;
+
+    const total = rows * cols;
+    chars = new Array(total).fill(' ');
+    colors = new Array(total).fill('#cfe3ef');
+
+    for (let r=0; r<rows; r++){
+      const line = (lines[r] ?? '');
+      for (let c=0; c<Math.min(cols, line.length); c++){
+        chars[idx(r,c)] = line[c];
+      }
+    }
+    drawAll();
+    clearBtn.disabled = chars.every(v => v === ' ');
+    updateStatus('Grid updated from plaintext.');
+  }
+
+  // Debounce plaintext UI updates
+  let plainTimer = null;
+  let suppressPlainListener = false;
+  function schedulePlaintextUpdate(){
+    if (suppressPlainListener) return;
+    clearTimeout(plainTimer);
+    plainTimer = setTimeout(() => {
+      suppressPlainListener = true;
+      plainBox.value = toPlaintext();
+      suppressPlainListener = false;
+    }, 50);
+  }
+
+  // ====== Events ======
+  canvas.addEventListener('click', (e) => {
+    if (!hasGrid()) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const gx = x - offX;
+    const gy = y - offY;
+    if (gx < 0 || gy < 0 || gx >= cellSize*cols || gy >= cellSize*rows) return;
+
+    const c = Math.floor(gx / cellSize);
+    const r = Math.floor(gy / cellSize);
+
+    const sel = palette.find(p => p.id === selectedId);
+    if (!sel){ palMsg.textContent = 'Select a palette swatch first.'; return; }
+    if (tool === 'pen'){
+      placeAt(r, c, sel.ch, sel.hex);
+      updateStatus(`Painted (${c},${r})`);
+    } else {
+      fillAll(sel.ch, sel.hex);
+      updateStatus('Filled grid with bucket');
+    }
+  });
+
+  genBtn.addEventListener('click', () => {
+    const c = clamp(parseInt($('#cols').value,10) || 0, 1, 1000);
+    const r = clamp(parseInt($('#rows').value,10) || 0, 1, 1000);
+    cols = c; rows = r;
+    chars = new Array(rows*cols).fill(' ');
+    colors = new Array(rows*cols).fill('#cfe3ef');
+    drawAll();
+    copyBtn.disabled = false;
+    clearBtn.disabled = true;
+    topoBtn.disabled = false; // enable topography once a grid exists
+    updateStatus('Grid generated.');
+  });
+
+  // Copy WITH line breaks
+  copyBtn.addEventListener('click', async () => {
+    if (!hasGrid()) return;
+    try{
+      await navigator.clipboard.writeText(toPlaintext());
+      updateStatus('Copied to clipboard (with line breaks).');
+    }catch(err){
+      updateStatus('Copy failed — your browser may block clipboard.');
+    }
+  });
+  clearBtn.addEventListener('click', clearGrid);
+
+  // Tool switches
+  penBtn.addEventListener('click', () => {
+    tool = 'pen'; penBtn.classList.add('active'); bucketBtn.classList.remove('active'); updateStatus();
+  });
+  bucketBtn.addEventListener('click', () => {
+    tool = 'bucket'; bucketBtn.classList.add('active'); penBtn.classList.remove('active');
+    const sel = palette.find(p => p.id === selectedId);
+    if (sel && hasGrid()){ fillAll(sel.ch, sel.hex); updateStatus('Filled grid with bucket'); }
+    else updateStatus('Bucket selected.');
+  });
+
+  // Registration inputs sync
+  regPicker.addEventListener('input', () => { regHex.value = regPicker.value; });
+
+  addBtn.addEventListener('click', () => {
+    const ch = (regChar.value || '').slice(0,1);
+    const hex = (regHex.value || '').trim();
+    if (!ch){ message(regMsg, 'Please enter exactly 1 character.', false); return; }
+    if (!hexOK(hex)){ message(regMsg, 'Please enter a valid hex color like #516b96.', false); return; }
+    const id = `${ch}_${hex}_${Date.now()}`;
+    palette.push({id, ch, hex});
+    regChar.value = '';
+    message(regMsg, 'Registered ✓', true);
+    if (!selectedId){ selectedId = id; }
+    renderPalette();
+    updateStatus();
+  });
+
+  removeBtn.addEventListener('click', () => {
+    if (!selectedId) return;
+    const i = palette.findIndex(p => p.id === selectedId);
+    if (i >= 0){
+      palette.splice(i, 1);
+      selectedId = palette[0]?.id || null;
+      renderPalette();
+      updateStatus('Removed swatch.');
+    }
+  });
+
+  function renderPalette(){
+    paletteEl.innerHTML = '';
+    if (selectedId && !palette.some(p => p.id === selectedId)) selectedId = null;
+    for (const p of palette){
+      const el = document.createElement('div');
+      el.className = 'swatch' + (p.id === selectedId ? ' selected' : '');
+      el.title = `‘${p.ch}’ ${p.hex}`;
+      el.innerHTML = `
+        <div class="glyph" style="color:${p.hex}">${escapeHTML(p.ch)}</div>
+        <div class="hex">${p.hex}</div>
+      `;
+      el.addEventListener('click', () => {
+        selectedId = p.id;
+        renderPalette();
+        palMsg.textContent = `Selected ‘${p.ch}’ ${p.hex}`;
+        updateStatus();
+      });
+      paletteEl.appendChild(el);
+    }
+    removeBtn.disabled = !selectedId;
+  }
+
+  function escapeHTML(s){
+    return s.replace(/[&<>"']/g, c => (
+      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+    ));
+  }
+
+  // ====== Topography (Perlin) ======
+  // Seeded PRNG for permutation generation
+  function mulberry32(a){ return function(){ let t = a += 0x6D2B79F5; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+  function makePermutation(seed){
+    const rand = mulberry32(seed >>> 0);
+    const p = new Uint8Array(256);
+    for (let i=0;i<256;i++) p[i]=i;
+    // Fisher–Yates
+    for (let i=255;i>0;i--){
+      const j = Math.floor(rand()*(i+1));
+      const tmp = p[i]; p[i]=p[j]; p[j]=tmp;
+    }
+    // duplicate
+    const perm = new Uint8Array(512);
+    for (let i=0;i<512;i++) perm[i]=p[i & 255];
+    return perm;
+  }
+
+  function fade(t){ return t*t*t*(t*(t*6 - 15) + 10); }
+  function lerp(a,b,t){ return a + t*(b-a); }
+  // gradient dot
+  function grad(hash, x, y){
+    switch(hash & 3){
+      case 0: return  x + y;
+      case 1: return -x + y;
+      case 2: return  x - y;
+      default:return -x - y;
+    }
+  }
+  function perlin2(perm, x, y){
+    const X = Math.floor(x) & 255;
+    const Y = Math.floor(y) & 255;
+    const xf = x - Math.floor(x);
+    const yf = y - Math.floor(y);
+
+    const tl = perm[X   + perm[Y  ]];
+    const tr = perm[X+1 + perm[Y  ]];
+    const bl = perm[X   + perm[Y+1]];
+    const br = perm[X+1 + perm[Y+1]];
+
+    const u = fade(xf);
+    const v = fade(yf);
+
+    const x1 = lerp(grad(tl, xf,   yf  ), grad(tr, xf-1,   yf  ), u);
+    const x2 = lerp(grad(bl, xf,   yf-1), grad(br, xf-1,   yf-1), u);
+    const n  = lerp(x1, x2, v);
+    // n is ~[-1,1], normalize to [0,1]
+    return (n + 1) / 2;
+  }
+
+  // Map a 0..1 height to digits 3..9 with thresholds
+  const LEVELS = [
+    {digit:'3', color:'#1e3a8a', max:0.32}, // ocean/lakes
+    {digit:'4', color:'#16a34a', max:0.38}, // low plains
+    {digit:'5', color:'#84cc16', max:0.50}, // steppes
+    {digit:'6', color:'#b45309', max:0.62}, // cliffs
+    {digit:'7', color:'#9ca3af', max:0.74}, // sub-alpine
+    {digit:'8', color:'#f5f5f5', max:0.86}, // alpine
+    {digit:'9', color:'#dbeafe', max:1.01}, // glaciers
   ];
 
-  // Color map per symbol
-  const colorFor = ch => {
-    if (ch === ".") return getCSS("--dark-grey");
-    if (ch === "▤") return getCSS("--dark-yellow");
-    if (ch === "□") return getCSS("--floor-grey");
-    if (ch === "") return getCSS("--kitchen-green");
-    if (ch === "▦") return getCSS("--gunmetal");
-    if (ch === "▣") return getCSS("--reddish-grey");
-    if ("◢◣◥◤║═".includes(ch)) return getCSS("--gunmetal");
-    if ("☰☶".includes(ch)) return getCSS("--dark-sky");
-    // spaces or anything else:
-    return getCSS("--fg");
-  };
-  function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
-
-  const gridEl = document.getElementById("grid");
-  const cells = [];
-
-  // Build grid with initial design
-  for (let r = 0; r < SIZE; r++){
-    const row = (DESIGN[r] ?? "").padEnd(SIZE, " ").slice(0, SIZE);
-    for (let c = 0; c < SIZE; c++){
-      const inp = document.createElement("input");
-      inp.type = "text";
-      inp.className = "cell";
-      inp.maxLength = 1;                   // one visible char per cell
-      const ch = row[c];
-      inp.value = ch;
-      inp.style.color = colorFor(ch);
-      inp.dataset.r = r;
-      inp.dataset.c = c;
-      inp.setAttribute("role", "gridcell");
-      inp.setAttribute("aria-label", `Row ${r+1}, Column ${c+1}`);
-
-      // Keep one char; allow space; recolor on change
-      inp.addEventListener("input", (e) => {
-        let v = e.target.value;
-        if (v.length > 1) v = v.slice(-1);
-        e.target.value = v;
-        e.target.style.color = colorFor(v || " ");
-      });
-
-      // Navigation + clear to space
-      inp.addEventListener("keydown", (e) => {
-        const r = +e.target.dataset.r, c = +e.target.dataset.c;
-
-        if (e.key === "Backspace" || e.key === "Delete"){
-          e.preventDefault();
-          e.target.value = " ";
-          e.target.style.color = colorFor(" ");
-          if (e.key === "Backspace") focusCell(r, Math.max(0, c-1));
-          return;
-        }
-        if (e.key === "ArrowUp"){ e.preventDefault(); focusCell(Math.max(0, r-1), c); return; }
-        if (e.key === "ArrowDown"){ e.preventDefault(); focusCell(Math.min(SIZE-1, r+1), c); return; }
-        if (e.key === "ArrowLeft"){ e.preventDefault(); focusCell(r, Math.max(0, c-1)); return; }
-        if (e.key === "ArrowRight"){ e.preventDefault(); focusCell(r, Math.min(SIZE-1, c+1)); return; }
-        if (e.key === "Enter"){ e.preventDefault(); r < SIZE-1 ? focusCell(r+1, c) : focusCell(0, c); return; }
-        if (e.key === "Tab"){
-          e.preventDefault();
-          const next = r*SIZE + c + (e.shiftKey ? -1 : 1);
-          focusIndex(((next % (SIZE*SIZE)) + SIZE*SIZE) % (SIZE*SIZE));
-          return;
-        }
-      });
-
-      gridEl.appendChild(inp);
-      cells.push(inp);
+  function levelFor(v){
+    for (const L of LEVELS){
+      if (v <= L.max) return L;
     }
+    return LEVELS[LEVELS.length-1];
   }
 
-  function focusCell(r,c){ focusIndex(r*SIZE + c); }
-  function focusIndex(i){ cells[i]?.focus(); cells[i]?.select(); }
+  function generateTopography(){
+    if (!hasGrid()){
+      // if user hasn't generated, create grid from inputs first
+      const c = clamp(parseInt($('#cols').value,10) || 0, 1, 1000);
+      const r = clamp(parseInt($('#rows').value,10) || 0, 1, 1000);
+      cols = c; rows = r;
+      chars = new Array(rows*cols).fill(' ');
+      colors = new Array(rows*cols).fill('#cfe3ef');
+    }
 
-  // Buttons
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    cells.forEach(inp => { inp.value = " "; inp.style.color = colorFor(" "); });
-    focusCell(0,0);
-  });
+    // Ensure palette shows digits 3..9 with intended colors
+    for (const L of LEVELS) addOrUpdateSwatch(L.digit, L.color);
 
-  document.getElementById("copyBtn").addEventListener("click", async () => {
-    const lines = [];
-    for (let r = 0; r < SIZE; r++){
-      let row = "";
-      for (let c = 0; c < SIZE; c++){
-        const v = cells[r*SIZE + c].value;
-        row += (v && v.length) ? v : " ";
+    // Build permutation with a pseudo-random seed per click
+    const seed = (Date.now() ^ (rows*73856093) ^ (cols*19349663)) >>> 0;
+    const perm = makePermutation(seed);
+
+    const baseFreq = 0.08 * (Math.max(cols, rows) / 100); // scale with grid size
+    const freq1 = baseFreq;
+    const freq2 = baseFreq * 2.13; // second octave
+
+    const amp1 = 0.7;
+    const amp2 = 0.3;
+
+    // Bias: push heights lower on west (water), higher on east (mountain)
+    // u in [0,1] across columns; add eastBias, subtract westBias
+    const eastGain = 0.18; // mountain pull to the east
+    const westGain = 0.18; // water pull to the west
+
+    for (let r=0; r<rows; r++){
+      for (let c=0; c<cols; c++){
+        const u = cols > 1 ? c / (cols - 1) : 0.5; // 0 west .. 1 east
+        const x1 = c * freq1, y1 = r * freq1;
+        const x2 = c * freq2, y2 = r * freq2;
+
+        let n = perlin2(perm, x1, y1)*amp1 + perlin2(perm, x2, y2)*amp2;
+        // normalize a bit toward [0,1]
+        n = Math.min(1, Math.max(0, n));
+
+        // Apply linear bias: lower in west, higher in east
+        n += (u * eastGain) - ((1 - u) * westGain);
+
+        // Clamp final
+        n = Math.max(0, Math.min(1, n));
+
+        const L = levelFor(n);
+        const i = idx(r,c);
+        chars[i]  = L.digit;
+        colors[i] = L.color;
       }
-      lines.push(row);
     }
-    const text = lines.join("\n");
-    try {
-      await navigator.clipboard.writeText(text);
-      flash("Copied ASCII to clipboard");
-    } catch {
-      window.prompt("Copy ASCII:", text);
-    }
-  });
 
-  function flash(msg){
-    const t = document.createElement("div");
-    t.textContent = msg;
-    Object.assign(t.style, {
-      position:"fixed", bottom:"16px", left:"50%", transform:"translateX(-50%)",
-      background:"#181818", color:"var(--fg)", border:"1px solid #333",
-      padding:"8px 12px", borderRadius:"8px", opacity:"0",
-      transition:"opacity .2s ease", zIndex:"9999"
-    });
-    document.body.appendChild(t);
-    requestAnimationFrame(()=> t.style.opacity = "1");
-    setTimeout(()=> {
-      t.style.opacity = "0";
-      t.addEventListener("transitionend", ()=> t.remove(), { once:true });
-    }, 1200);
+    drawAll();
+    topoBtn.disabled = false;
+    clearBtn.disabled = false;
+    updateStatus('Topography generated.');
   }
 
-  // Start focused top-left
-  focusCell(0,0);
+  topoBtn.addEventListener('click', generateTopography);
+
+  // ====== Plaintext -> Grid (live)
+  plainBox.addEventListener('input', () => {
+    if (suppressPlainListener) return;
+    setFromPlaintext(plainBox.value);
+  });
+
+  // ====== Friendly defaults ======
+  palette.push({id:'ex1', ch:'#', hex:'#516b96'});
+  selectedId = 'ex1';
+  renderPalette();
+  updateStatus('Ready.');
 })();
 </script>
 </body>

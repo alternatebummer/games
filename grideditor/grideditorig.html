@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>19×19 ASCII Editor</title>
+<style>
+  :root{
+    --bg:#0e0e0e;
+    --fg:#e8e6df;
+    --grid:#2a2a2a;
+    --accent:#7bd389;
+    --cell:34px;
+    --font:20px;
+
+    /* palette from your spec (picked sensible hexes) */
+    --dark-grey:#6b7280;
+    --dark-yellow:#a39e5f;
+    --gunmetal:#6f818f;
+    --reddish-grey:#a46b6b;
+    --dark-sky:#5bc0eb;
+    --floor-grey:#383d42;
+    --kitchen-green:#6ba46b;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    display:grid;
+    place-items:center;
+    padding:16px;
+  }
+  .wrap{ display:grid; gap:12px; width:min(95vw,760px); }
+  header{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  h1{ margin:0; font-size:18px; color:var(--accent); letter-spacing:.5px; }
+  .controls{ display:flex; gap:8px; }
+  button{
+    background:#181818; color:var(--fg);
+    border:1px solid #333; border-radius:8px; padding:8px 12px; cursor:pointer;
+  }
+  button:hover{ background:#222; }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(19, var(--cell));
+    grid-auto-rows:var(--cell);
+    border:1px solid var(--grid);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/var(--cell) var(--cell),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/var(--cell) var(--cell);
+    padding:1px;
+    width:calc(19 * var(--cell) + 2px);
+  }
+  input.cell{
+    width:var(--cell); height:var(--cell);
+    border:none; margin:0; padding:0; background:transparent;
+    text-align:center; font-size:var(--font); line-height:var(--cell);
+    color:var(--fg);
+    outline:none; caret-color:transparent;
+  }
+  input.cell:focus{ background:rgba(123,211,137,.15); }
+  footer{ font-size:12px; opacity:.85; }
+  @media (max-width:480px){ :root{ --cell:28px; --font:18px; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>19×19 ASCII Editor</h1>
+      <div class="controls">
+        <button id="copyBtn" title="Copy grid as text">Copy</button>
+        <button id="clearBtn" title="Clear to spaces">Clear</button>
+      </div>
+    </header>
+    <div id="grid" class="grid" aria-label="ASCII grid editor" role="grid"></div>
+    <footer>Tip: Click a cell and type. Arrow keys move; Backspace/Delete clears to a space.</footer>
+  </div>
+
+<script>
+(() => {
+  const SIZE = 19;
+
+  // Your starting design (19 rows × 19 columns). Spaces are significant.
+  const DESIGN = [
+    "                   ",
+    "                   ",
+    "                   ",
+    "                   ",
+    "        ◢═◣        ",
+    "       ◢▦▣▦◣       ",
+    "       ║▦□▦║       ",
+    "       ║▦□▦║       ",
+    "       ║▦□▣║       ",
+    "       ║▦□▦║       ",
+    "       ◢◩□▦◣       ",
+    "      ◢▦□□□▦◣      ",
+    "      ║▣□□□▤║      ",
+    "      ◥▦▦▦▦▦◤      ",
+    "       ◥☰☰☰◤       ",
+    "        ☶ ☶        ",
+    "                   ",
+    "                   ",
+    "                   "
+  ];
+
+  // Color map per symbol
+  const colorFor = ch => {
+    if (ch === ".") return getCSS("--dark-grey");
+    if (ch === "▤") return getCSS("--dark-yellow");
+    if (ch === "□") return getCSS("--floor-grey");
+    if (ch === "") return getCSS("--kitchen-green");
+    if (ch === "▦") return getCSS("--gunmetal");
+    if (ch === "▣") return getCSS("--reddish-grey");
+    if ("◢◣◥◤║═".includes(ch)) return getCSS("--gunmetal");
+    if ("☰☶".includes(ch)) return getCSS("--dark-sky");
+    // spaces or anything else:
+    return getCSS("--fg");
+  };
+  function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+
+  const gridEl = document.getElementById("grid");
+  const cells = [];
+
+  // Build grid with initial design
+  for (let r = 0; r < SIZE; r++){
+    const row = (DESIGN[r] ?? "").padEnd(SIZE, " ").slice(0, SIZE);
+    for (let c = 0; c < SIZE; c++){
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "cell";
+      inp.maxLength = 1;                   // one visible char per cell
+      const ch = row[c];
+      inp.value = ch;
+      inp.style.color = colorFor(ch);
+      inp.dataset.r = r;
+      inp.dataset.c = c;
+      inp.setAttribute("role", "gridcell");
+      inp.setAttribute("aria-label", `Row ${r+1}, Column ${c+1}`);
+
+      // Keep one char; allow space; recolor on change
+      inp.addEventListener("input", (e) => {
+        let v = e.target.value;
+        if (v.length > 1) v = v.slice(-1);
+        e.target.value = v;
+        e.target.style.color = colorFor(v || " ");
+      });
+
+      // Navigation + clear to space
+      inp.addEventListener("keydown", (e) => {
+        const r = +e.target.dataset.r, c = +e.target.dataset.c;
+
+        if (e.key === "Backspace" || e.key === "Delete"){
+          e.preventDefault();
+          e.target.value = " ";
+          e.target.style.color = colorFor(" ");
+          if (e.key === "Backspace") focusCell(r, Math.max(0, c-1));
+          return;
+        }
+        if (e.key === "ArrowUp"){ e.preventDefault(); focusCell(Math.max(0, r-1), c); return; }
+        if (e.key === "ArrowDown"){ e.preventDefault(); focusCell(Math.min(SIZE-1, r+1), c); return; }
+        if (e.key === "ArrowLeft"){ e.preventDefault(); focusCell(r, Math.max(0, c-1)); return; }
+        if (e.key === "ArrowRight"){ e.preventDefault(); focusCell(r, Math.min(SIZE-1, c+1)); return; }
+        if (e.key === "Enter"){ e.preventDefault(); r < SIZE-1 ? focusCell(r+1, c) : focusCell(0, c); return; }
+        if (e.key === "Tab"){
+          e.preventDefault();
+          const next = r*SIZE + c + (e.shiftKey ? -1 : 1);
+          focusIndex(((next % (SIZE*SIZE)) + SIZE*SIZE) % (SIZE*SIZE));
+          return;
+        }
+      });
+
+      gridEl.appendChild(inp);
+      cells.push(inp);
+    }
+  }
+
+  function focusCell(r,c){ focusIndex(r*SIZE + c); }
+  function focusIndex(i){ cells[i]?.focus(); cells[i]?.select(); }
+
+  // Buttons
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    cells.forEach(inp => { inp.value = " "; inp.style.color = colorFor(" "); });
+    focusCell(0,0);
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    const lines = [];
+    for (let r = 0; r < SIZE; r++){
+      let row = "";
+      for (let c = 0; c < SIZE; c++){
+        const v = cells[r*SIZE + c].value;
+        row += (v && v.length) ? v : " ";
+      }
+      lines.push(row);
+    }
+    const text = lines.join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      flash("Copied ASCII to clipboard");
+    } catch {
+      window.prompt("Copy ASCII:", text);
+    }
+  });
+
+  function flash(msg){
+    const t = document.createElement("div");
+    t.textContent = msg;
+    Object.assign(t.style, {
+      position:"fixed", bottom:"16px", left:"50%", transform:"translateX(-50%)",
+      background:"#181818", color:"var(--fg)", border:"1px solid #333",
+      padding:"8px 12px", borderRadius:"8px", opacity:"0",
+      transition:"opacity .2s ease", zIndex:"9999"
+    });
+    document.body.appendChild(t);
+    requestAnimationFrame(()=> t.style.opacity = "1");
+    setTimeout(()=> {
+      t.style.opacity = "0";
+      t.addEventListener("transitionend", ()=> t.remove(), { once:true });
+    }, 1200);
+  }
+
+  // Start focused top-left
+  focusCell(0,0);
+})();
+</script>
+</body>
+</html>

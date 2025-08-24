@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>100×100 ASCII Topography (Fixed)</title>
+<style>
+  :root{ --bg:#0e0e0e; --fg:#e8e6df; --grid:#2a2a2a; --accent:#7bd389;
+    --cell:16px; --font:12px;}
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:var(--bg);color:var(--fg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:12px;}
+  .wrap{display:grid;gap:8px;width:min(98vw,2100px);margin:0 auto;}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  h1{margin:0;font-size:18px;color:var(--accent);}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;}
+  button{background:#181818;color:var(--fg);border:1px solid #333;
+    border-radius:8px;padding:6px 12px;cursor:pointer;}
+  button:hover{background:#222;}
+  .grid{display:grid;
+    grid-template-columns:repeat(100,var(--cell));
+    grid-auto-rows:var(--cell);
+    border:1px solid #2a2a2a;
+    background:
+      linear-gradient(#2a2a2a 1px, transparent 1px) 0 0/var(--cell) var(--cell),
+      linear-gradient(90deg, #2a2a2a 1px, transparent 1px) 0 0/var(--cell) var(--cell);
+    padding:1px;width:calc(100*var(--cell) + 2px);overflow:auto;}
+  input.cell{width:var(--cell);height:var(--cell);border:none;margin:0;padding:0;
+    background:transparent;text-align:center;font-size:var(--font);line-height:var(--cell);
+    color:var(--fg);outline:none;caret-color:transparent;}
+  input.cell:focus{background:rgba(123,211,137,.15);}
+  footer{font-size:12px;opacity:.85;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>100×100 ASCII Topography</h1>
+      <div class="controls">
+        <button id="copyBtn">Copy</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+    </header>
+
+    <div id="grid" class="grid"></div>
+
+    <footer>This map is fixed. Supports numbers 3–9 and <code>#</code> as a grey tile.</footer>
+  </div>
+
+<script>
+(() => {
+  const SIZE=100;
+  const gridEl=document.getElementById("grid"), cells=[];
+
+  // Your permanent map (replace with full 100 lines)
+  const fixedMap = `
+3333333333455543333333333333333444444443344455555555556666666677...
+`.trim().split("\n");
+
+  function colorFor(v){
+    if(v==="#") return "#888888"; // grey rock
+    return {3:"#0f3a6d",4:"#2f7d32",5:"#6a8f3a",6:"#8f7b3a",7:"#7a5a40",8:"#6b6b6b",9:"#d9d9d9"}[v]||"#fff";
+  }
+  function colorize(el,v){el.style.color=colorFor(v);}
+
+  // Build grid
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const inp=document.createElement("input");
+      inp.type="text";inp.className="cell";inp.maxLength=1;
+      const v = fixedMap[r][c] || "3";
+      inp.value=v; colorize(inp,v);
+      inp.dataset.r=r;inp.dataset.c=c;
+      inp.addEventListener("input",e=>{
+        let v=e.target.value.trim();
+        if(v==="#"){ e.target.value="#"; colorize(e.target,"#"); return; }
+        v=v.replace(/\D/g,""); // keep only digits
+        if(!v)v="3";v=v[v.length-1];
+        if(v<"3")v="3";if(v>"9")v="9";
+        e.target.value=v;colorize(e.target,v);
+      });
+      gridEl.appendChild(inp);cells.push(inp);
+    }
+  }
+
+  // Buttons
+  document.getElementById("clearBtn").onclick=()=>{cells.forEach(i=>{i.value="3";colorize(i,"3");});};
+  document.getElementById("copyBtn").onclick=async()=>{
+    const lines=[];for(let r=0;r<SIZE;r++){let row="";for(let c=0;c<SIZE;c++){row+=cells[r*SIZE+c].value;}lines.push(row);}
+    const text=lines.join("\n");
+    try{await navigator.clipboard.writeText(text);}catch{window.prompt("Copy:",text);}
+  };
+})();
+</script>
+</body>
+</html>
