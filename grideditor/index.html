@@ -49,7 +49,7 @@
   .plainBox{
     width:100%; height: calc(var(--card) - 32px);
     resize:none; border:1px solid var(--outline); border-radius:10px;
-    background:#0e1317; color:var(--ink); padding:10px;
+    background:#0e1317; color:#cfe3ef; padding:10px;
     font:13px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     white-space:pre; overflow:auto;
   }
@@ -112,7 +112,7 @@
       </div>
       <div class="canvasWrap">
         <canvas id="grid" width="800" height="800" aria-label="ASCII grid canvas"></canvas>
-        <div class="hint">Pen: click a cell • Bucket: fill all • Topography: Perlin 3–9 with west/east bias</div>
+        <div class="hint">Pen: click or drag to paint • Bucket: fill all • Topography: Perlin 3–9 with west/east bias</div>
       </div>
       <div class="small" id="status">No grid yet.</div>
     </div>
@@ -169,6 +169,10 @@
   let palette = [];
   let selectedId = null;
   let tool = 'pen';
+
+  // >>> new: drag drawing state
+  let isDrawing = false;
+  let lastPainted = { r: -1, c: -1 };
 
   // ====== DOM ======
   const $ = sel => document.querySelector(sel);
@@ -359,23 +363,81 @@
   }
 
   // ====== Events ======
-  canvas.addEventListener('click', (e) => {
-    if (!hasGrid()) return;
+
+  // Helper: compute cell from a pointer event, or null if outside
+  function cellFromEvent(e){
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const gx = x - offX;
     const gy = y - offY;
-    if (gx < 0 || gy < 0 || gx >= cellSize*cols || gy >= cellSize*rows) return;
-
+    if (gx < 0 || gy < 0 || gx >= cellSize*cols || gy >= cellSize*rows) return null;
     const c = Math.floor(gx / cellSize);
     const r = Math.floor(gy / cellSize);
+    return { r, c };
+  }
+
+  // >>> new: pointer-based continuous painting
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!hasGrid()) return;
+    if (tool !== 'pen') return; // only drag-paint in pen mode
+    const sel = palette.find(p => p.id === selectedId);
+    if (!sel){ palMsg.textContent = 'Select a palette swatch first.'; return; }
+
+    const cell = cellFromEvent(e);
+    if (!cell) return;
+
+    isDrawing = true;
+    lastPainted = { r: -1, c: -1 };
+    canvas.setPointerCapture(e.pointerId);
+
+    // paint immediately on press
+    if (cell.r !== lastPainted.r || cell.c !== lastPainted.c){
+      placeAt(cell.r, cell.c, sel.ch, sel.hex);
+      lastPainted = cell;
+      updateStatus(`Painted (${cell.c},${cell.r})`);
+    }
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!isDrawing) return;
+    if (!hasGrid()) return;
+    if (tool !== 'pen') return;
+    const sel = palette.find(p => p.id === selectedId);
+    if (!sel) return;
+
+    const cell = cellFromEvent(e);
+    if (!cell) return;
+
+    if (cell.r !== lastPainted.r || cell.c !== lastPainted.c){
+      placeAt(cell.r, cell.c, sel.ch, sel.hex);
+      lastPainted = cell;
+    }
+  });
+
+  function endDraw(e){
+    if (!isDrawing) return;
+    isDrawing = false;
+    lastPainted = { r: -1, c: -1 };
+    try { canvas.releasePointerCapture(e.pointerId); } catch(_) {}
+  }
+  canvas.addEventListener('pointerup', endDraw);
+  canvas.addEventListener('pointercancel', endDraw);
+  canvas.addEventListener('pointerleave', endDraw);
+
+  // (Single-click support for bucket or pen single taps outside drag)
+  canvas.addEventListener('click', (e) => {
+    if (!hasGrid()) return;
+    const cell = cellFromEvent(e);
+    if (!cell) return;
 
     const sel = palette.find(p => p.id === selectedId);
     if (!sel){ palMsg.textContent = 'Select a palette swatch first.'; return; }
+
     if (tool === 'pen'){
-      placeAt(r, c, sel.ch, sel.hex);
-      updateStatus(`Painted (${c},${r})`);
+      // click = single paint (handled also by pointerdown path, but safe here)
+      placeAt(cell.r, cell.c, sel.ch, sel.hex);
+      updateStatus(`Painted (${cell.c},${cell.r})`);
     } else {
       fillAll(sel.ch, sel.hex);
       updateStatus('Filled grid with bucket');
@@ -409,13 +471,11 @@
 
   // Tool switches
   penBtn.addEventListener('click', () => {
-    tool = 'pen'; penBtn.classList.add('active'); bucketBtn.classList.remove('active'); updateStatus();
+    tool = 'pen'; penBtn.classList.add('active'); bucketBtn.classList.remove('active'); updateStatus('Pen mode (drag to paint).');
   });
   bucketBtn.addEventListener('click', () => {
     tool = 'bucket'; bucketBtn.classList.add('active'); penBtn.classList.remove('active');
-    const sel = palette.find(p => p.id === selectedId);
-    if (sel && hasGrid()){ fillAll(sel.ch, sel.hex); updateStatus('Filled grid with bucket'); }
-    else updateStatus('Bucket selected.');
+    updateStatus('Bucket selected.');
   });
 
   // Registration inputs sync
@@ -475,27 +535,21 @@
   }
 
   // ====== Topography (Perlin) ======
-  // Seeded PRNG for permutation generation
   function mulberry32(a){ return function(){ let t = a += 0x6D2B79F5; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-
   function makePermutation(seed){
     const rand = mulberry32(seed >>> 0);
     const p = new Uint8Array(256);
     for (let i=0;i<256;i++) p[i]=i;
-    // Fisher–Yates
     for (let i=255;i>0;i--){
       const j = Math.floor(rand()*(i+1));
       const tmp = p[i]; p[i]=p[j]; p[j]=tmp;
     }
-    // duplicate
     const perm = new Uint8Array(512);
     for (let i=0;i<512;i++) perm[i]=p[i & 255];
     return perm;
   }
-
   function fade(t){ return t*t*t*(t*(t*6 - 15) + 10); }
   function lerp(a,b,t){ return a + t*(b-a); }
-  // gradient dot
   function grad(hash, x, y){
     switch(hash & 3){
       case 0: return  x + y;
@@ -509,23 +563,18 @@
     const Y = Math.floor(y) & 255;
     const xf = x - Math.floor(x);
     const yf = y - Math.floor(y);
-
     const tl = perm[X   + perm[Y  ]];
     const tr = perm[X+1 + perm[Y  ]];
     const bl = perm[X   + perm[Y+1]];
     const br = perm[X+1 + perm[Y+1]];
-
     const u = fade(xf);
     const v = fade(yf);
-
     const x1 = lerp(grad(tl, xf,   yf  ), grad(tr, xf-1,   yf  ), u);
     const x2 = lerp(grad(bl, xf,   yf-1), grad(br, xf-1,   yf-1), u);
     const n  = lerp(x1, x2, v);
-    // n is ~[-1,1], normalize to [0,1]
     return (n + 1) / 2;
   }
 
-  // Map a 0..1 height to digits 3..9 with thresholds
   const LEVELS = [
     {digit:'3', color:'#1e3a8a', max:0.32}, // ocean/lakes
     {digit:'4', color:'#16a34a', max:0.38}, // low plains
@@ -535,57 +584,41 @@
     {digit:'8', color:'#f5f5f5', max:0.86}, // alpine
     {digit:'9', color:'#dbeafe', max:1.01}, // glaciers
   ];
-
   function levelFor(v){
-    for (const L of LEVELS){
-      if (v <= L.max) return L;
-    }
+    for (const L of LEVELS){ if (v <= L.max) return L; }
     return LEVELS[LEVELS.length-1];
   }
 
   function generateTopography(){
     if (!hasGrid()){
-      // if user hasn't generated, create grid from inputs first
       const c = clamp(parseInt($('#cols').value,10) || 0, 1, 1000);
       const r = clamp(parseInt($('#rows').value,10) || 0, 1, 1000);
       cols = c; rows = r;
       chars = new Array(rows*cols).fill(' ');
       colors = new Array(rows*cols).fill('#cfe3ef');
     }
-
-    // Ensure palette shows digits 3..9 with intended colors
     for (const L of LEVELS) addOrUpdateSwatch(L.digit, L.color);
 
-    // Build permutation with a pseudo-random seed per click
     const seed = (Date.now() ^ (rows*73856093) ^ (cols*19349663)) >>> 0;
     const perm = makePermutation(seed);
 
-    const baseFreq = 0.08 * (Math.max(cols, rows) / 100); // scale with grid size
+    const baseFreq = 0.08 * (Math.max(cols, rows) / 100);
     const freq1 = baseFreq;
-    const freq2 = baseFreq * 2.13; // second octave
+    const freq2 = baseFreq * 2.13;
+    const amp1 = 0.7, amp2 = 0.3;
 
-    const amp1 = 0.7;
-    const amp2 = 0.3;
-
-    // Bias: push heights lower on west (water), higher on east (mountain)
-    // u in [0,1] across columns; add eastBias, subtract westBias
-    const eastGain = 0.18; // mountain pull to the east
-    const westGain = 0.18; // water pull to the west
+    const eastGain = 0.18;
+    const westGain = 0.18;
 
     for (let r=0; r<rows; r++){
       for (let c=0; c<cols; c++){
-        const u = cols > 1 ? c / (cols - 1) : 0.5; // 0 west .. 1 east
+        const u = cols > 1 ? c / (cols - 1) : 0.5;
         const x1 = c * freq1, y1 = r * freq1;
         const x2 = c * freq2, y2 = r * freq2;
 
         let n = perlin2(perm, x1, y1)*amp1 + perlin2(perm, x2, y2)*amp2;
-        // normalize a bit toward [0,1]
         n = Math.min(1, Math.max(0, n));
-
-        // Apply linear bias: lower in west, higher in east
         n += (u * eastGain) - ((1 - u) * westGain);
-
-        // Clamp final
         n = Math.max(0, Math.min(1, n));
 
         const L = levelFor(n);
@@ -594,16 +627,14 @@
         colors[i] = L.color;
       }
     }
-
     drawAll();
     topoBtn.disabled = false;
     clearBtn.disabled = false;
     updateStatus('Topography generated.');
   }
-
   topoBtn.addEventListener('click', generateTopography);
 
-  // ====== Plaintext -> Grid (live)
+  // Plaintext -> Grid (live)
   plainBox.addEventListener('input', () => {
     if (suppressPlainListener) return;
     setFromPlaintext(plainBox.value);
