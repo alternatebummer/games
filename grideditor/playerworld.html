@@ -191,7 +191,7 @@
   const VISION_RADIUS = 7;
 
   // Impassables
-  const IMPASSABLE = new Set(['#','9','8','7','3']);
+  const IMPASSABLE = new Set(['#','9','8','7','6','3']);
   const isBlocked = ch => IMPASSABLE.has(ch);
 
   // Default palette
@@ -199,7 +199,7 @@
     '3':'#0f3a6d','4':'#2f7d32','5':'#6a8f3a','6':'#8f7b3a',
     '7':'#7a5a40','8':'#6b6b6b','9':'#d9d9d9','#':'#6b6b6b','▦':'#5495b8'
   };
-  const TILES = ['3','4','5','6','7','8','9','#','▦'];
+  const TILES = ['2','3','4','5','6','7','8','9','#','▦'];
   const COLOR = {...DEFAULT_COLOR};
 
   // Overlays
@@ -711,6 +711,7 @@
   // ---- Palette UI ----
   function describeTile(ch){
     switch(ch){
+      case '2': return '2 — subterrain';
       case '3': return '3 — sea level';
       case '4': return '4 — low plains';
       case '5': return '5 — meadows';
