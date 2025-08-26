@@ -50,7 +50,7 @@ export function createAssassinGame({
 
   .assassin-log{
     height:120px;
-    overflow:auto;                         /* auto scroll */
+    overflow:auto;
     border:1px solid #26313a;border-radius:10px;padding:8px;background:#11151a;margin-top:12px
   }
   /* Scrollbar styled with grass color */
@@ -78,6 +78,21 @@ export function createAssassinGame({
   .marker{color:#e8d37b} /* H */
 
   .warn{color:#ff7a7a}.good{color:#9fc46b}.dim{color:#8aa2b3}
+
+  /* Lightweight battle overlay */
+  .ab-backdrop{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:5; }
+  .ab-card{
+    width:min(480px, 92%);
+    max-height:90%;
+    display:flex; flex-direction:column; gap:8px;
+    background:#0d1116; border:1px dashed #2b3640; border-radius:12px; padding:10px;
+    color:var(--ink);
+  }
+  .ab-title{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .ab-log{ flex:1 1 auto; overflow:auto; background:#0f1418; border:1px solid #25303a; border-radius:8px; padding:8px; white-space:pre-wrap; }
+  .ab-actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .ab-btn{ background:black; color:var(--ink); border:1px dashed #2b3640; border-radius:8px; padding:8px 12px; cursor:pointer; }
+  .ab-btn:hover{ border-color:#3a4854; }
   `;
   document.head.appendChild(style);
 
@@ -112,6 +127,8 @@ export function createAssassinGame({
     MARKER:'H', DEST:'⯐'
   };
 
+  const ENEMY_TYPES = ['Goblin Sapper', 'Wandering Blade', 'Knave'];
+
   const state = {
     part: 1,
     hp: 8,
@@ -120,20 +137,19 @@ export function createAssassinGame({
     fog: true,
     px: 0, py: 0,
     lastDx: 0, lastDy: -1,
-    enemies: [], // {x,y,dir:[dx,dy],patrolTimer:int}
+    enemies: [], // {id, kind, x, y, dir:[dx,dy], patrolTimer:int}
     destination: null
   };
+  let enemyIdSeq = 1;
 
   const DIRS = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
   const DIRDEG = (d)=> (d[0]===1&&d[1]===0)?0 : (d[0]===0&&d[1]===1)?90 : (d[0]===-1&&d[1]===0)?180 : -90;
   const isBlocked = (t)=> (t===TILES.TREE || t===TILES.STONE);
 
-  // Input gating
+  // Input & autobattle gating
   let inputEnabled = true;
-
-  // Autobattle gating
-  let losArmed = false;           // becomes true only after the player has moved
-  let inAutobattle = false;       // prevents re-entry while a battle is running
+  let losArmed = false;     // set true after first successful player move
+  let inAutobattle = false;
 
   // ---------- UI helpers ----------
   const gridEl = byId('ass-grid');
@@ -208,7 +224,14 @@ export function createAssassinGame({
       if(ex<=borderL || ex>=W-borderR) continue;
       if((m[ey][ex]===TILES.DIRT || m[ey][ex]===TILES.GRASS) &&
          !(ey===bottomY && ex===bottomX) && !(ey===topY && ex===topX)){
-        enemies.push({x:ex,y:ey,dir:choice(dirChoices),patrolTimer:rnd(6)+3}); ecount--;
+        enemies.push({
+          id: enemyIdSeq++,
+          kind: choice(ENEMY_TYPES),
+          x:ex,y:ey,
+          dir:choice(dirChoices),
+          patrolTimer:rnd(6)+3
+        });
+        ecount--;
       }
     }
 
@@ -249,7 +272,6 @@ export function createAssassinGame({
   }
 
   function enemySeesPoint(g, x, y){
-    // Raycast 4 forward tiles; return true if it reaches (x,y) before hitting a blocker
     let cx=g.x, cy=g.y;
     for(let r=1;r<=4;r++){
       cx+=g.dir[0]; cy+=g.dir[1]; if(!inBounds(cx,cy)) break;
@@ -259,40 +281,112 @@ export function createAssassinGame({
     return false;
   }
 
-  function anyEnemySeesPlayer(){
+  function firstEnemyThatSeesPlayer(){
     for(const g of state.enemies){
-      if(enemySeesPoint(g, state.px, state.py)) return true;
+      if(enemySeesPoint(g, state.px, state.py)) return g;
     }
-    return false;
+    return null;
   }
 
-  // ---------- Autobattle handshake ----------
-  async function triggerAutobattle(reason='spotted'){
+  // ---------- Autobattle overlay & handshake ----------
+  function openBattleOverlay(battleData){
+    const { log, winner, finalHP, enemy } = battleData;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'ab-backdrop';
+
+    const card = document.createElement('div');
+    card.className = 'ab-card';
+    card.innerHTML = `
+      <div class="ab-title">Autobattle — ${enemy.kind}</div>
+      <div class="ab-log"></div>
+      <div class="ab-actions">
+        <button class="ab-btn" data-action="close">Return to trail</button>
+        <button class="ab-btn" data-action="tower" style="display:none">Return to tower</button>
+      </div>
+    `;
+    const logBox = card.querySelector('.ab-log');
+    logBox.textContent = log.join('\n');
+
+    const btnClose = card.querySelector('[data-action="close"]');
+    const btnTower = card.querySelector('[data-action="tower"]');
+
+    // If Knight dead, swap buttons
+    const knightHp = finalHP?.Knight ?? 0;
+    if (knightHp <= 0 || winner !== 'Knight') {
+      btnClose.style.display = 'none';
+      btnTower.style.display = '';
+    }
+
+    backdrop.appendChild(card);
+    wrap.querySelector('.assassin-gridWrap').appendChild(backdrop);
+
+    function cleanup(){
+      backdrop.remove();
+    }
+
+    btnClose.addEventListener('click', ()=>{ cleanup(); resumeAfterBattle(enemy, { winner, finalHP }); });
+    btnTower.addEventListener('click', ()=>{
+      cleanup();
+      // Emit a custom event so the host UI can transition to the tower screen
+      wrap.dispatchEvent(new CustomEvent('assassin:return-to-tower', { bubbles:true }));
+      // Keep input disabled; host should tear down or newRun().
+    });
+  }
+
+  async function triggerAutobattle(reason='line-of-sight'){
     if (inAutobattle) return;
     inAutobattle = true;
     inputEnabled = false;
-    log(`Enemy sighted (${reason}). Entering autobattle...`, 'warn');
+
+    const enemy = firstEnemyThatSeesPlayer();
+    if(!enemy){
+      // No longer in LOS (e.g., race condition) — just resume
+      inAutobattle = false;
+      inputEnabled = true;
+      return;
+    }
+    log(`Enemy sighted (${reason}): ${enemy.kind}.`, 'warn');
+
     try{
-      const { beginAutoBattle } = await import('./autobattle.js');
-      // Pass minimal context; expand later as needed
-      const result = await beginAutoBattle?.({ part: state.part, hp: state.hp }) ?? { outcome:'resume' };
-      // Handle basic outcomes
-      if(result.outcome === 'defeat'){
-        log('Defeated in battle. Mission failed.', 'warn');
-        state.hp = 0;
-      }else if(result.hpDelta){
-        state.hp = Math.max(0, state.hp + result.hpDelta);
-        log(`Battle ends. HP ${state.hp}`, result.hpDelta < 0 ? 'warn':'good');
-      }else{
-        log('Battle ends. You slip back onto the trail...', 'dim');
+      // Import autobattle logic
+      const { runAutobattle } = await import('./autobattle.js');
+      const result = runAutobattle({ fighters: ['Knight', enemy.kind] });
+
+      // Update player HP from result
+      const knightHP = result.finalHP?.Knight ?? 0;
+      state.hp = knightHP;
+
+      // If Knight won, remove THIS enemy by id
+      if(result.winner === 'Knight'){
+        const idx = state.enemies.findIndex(e=> e.id === enemy.id);
+        if(idx >= 0) state.enemies.splice(idx,1);
+        log(`${enemy.kind} defeated.`, 'good');
+      } else {
+        log(`Defeated by ${enemy.kind}.`, 'warn');
       }
+
+      // Show battle log overlay
+      openBattleOverlay({ log: result.log, winner: result.winner, finalHP: result.finalHP, enemy });
+
     }catch(err){
       log(`Autobattle error: ${String(err)}`, 'warn');
-    }finally{
+      // If battle failed to run, allow player to continue
+      inputEnabled = true;
       inAutobattle = false;
-      inputEnabled = state.hp > 0; // resume only if alive
       render();
     }
+  }
+
+  function resumeAfterBattle(enemy, { winner, finalHP }){
+    inAutobattle = false;
+    inputEnabled = state.hp > 0;
+
+    // If alive but still in same LOS tile, don't instantly re-trigger:
+    // require another player move before LOS can fire again.
+    losArmed = false;
+
+    render();
   }
 
   // ---------- Rendering (cropped to 17 rows centered on player) ----------
@@ -372,7 +466,7 @@ export function createAssassinGame({
 
     state.px=nx; state.py=ny; state.lastDx=dx; state.lastDy=dy;
 
-    // We only arm LOS after the first successful move in a part/run
+    // Arm LOS after a successful move; prevents battle at spawn
     if(!losArmed) losArmed = true;
 
     postMove();
@@ -383,7 +477,7 @@ export function createAssassinGame({
     const here = state.map[state.py][state.px];
     if(state.part < PARTS && here===TILES.MARKER){
       state.part++;
-      losArmed = false;          // disarm on load of the next section to avoid instant battles
+      losArmed = false;          // disarm LOS at section start
       log('You advance to the next section of the trail...', 'dim');
       startPart();
       return;
@@ -395,15 +489,17 @@ export function createAssassinGame({
       return;
     }
 
-    // LOS check ONLY when player moves, and ONLY if LOS is armed
-    if(losArmed && anyEnemySeesPlayer()){
-      // Pause and enter autobattle; render first so highlights reflect the risky tile
-      render();
-      triggerAutobattle('line-of-sight');
-      return;
+    // LOS check ONLY on player move, and ONLY when LOS is armed
+    if(losArmed){
+      const spotter = firstEnemyThatSeesPlayer();
+      if(spotter){
+        render();                 // show the “risky” tile before pausing
+        triggerAutobattle('line-of-sight');
+        return;
+      }
     }
 
-    // Then enemies move (but their LOS won’t trigger autobattle — only collisions can)
+    // Enemies take their turn (no LOS triggers here; collision can still trigger battle)
     enemiesAct();
     render();
   }
@@ -411,17 +507,14 @@ export function createAssassinGame({
   function enemiesAct(){
     const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
     for(const g of state.enemies){
-      // (No pre-LOS check here — per spec, only player movement triggers LOS battles)
-
       let nx=g.x+g.dir[0], ny=g.y+g.dir[1];
       const pass = (nx>=0&&ny>=0&&nx<W&&ny<H) && !isBlocked(state.map[ny][nx]);
       if(pass){ g.x=nx; g.y=ny; } else { g.dir = choice(dirChoices); }
 
       g.patrolTimer--; if(g.patrolTimer<=0){ g.dir = choice(dirChoices); g.patrolTimer=rnd(6)+3; }
 
-      // (No post-LOS check here either)
+      // Direct collision also triggers battle
       if(g.x===state.px && g.y===state.py){
-        // Direct collision can also trigger autobattle
         render();
         triggerAutobattle('collision');
         return;
