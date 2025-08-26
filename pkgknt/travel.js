@@ -1,4 +1,4 @@
-// travel.js — ES module (cropped viewport + autobattle hook)
+// travel.js — ES module (minimal UI, embedded panel version)
 // Usage:
 //   import { createAssassinGame } from './travel.js';
 //   const game = createAssassinGame({ mount: document.getElementById('someDiv') });
@@ -6,14 +6,12 @@
 export function createAssassinGame({
   mount,
   gridSize = 40,         // logical grid (gridSize x gridSize)
-  boxPx = 500,           // square render width in pixels
+  boxPx = 500,           // square render size in pixels
   parts = 3,             // number of trail parts
-  leftBorder = () => 8 + Math.floor(Math.random()*3),
-  rightBorder = () => 8 + Math.floor(Math.random()*3),
-  visibleRows = 17       // cropped vertical viewport (must be odd)
+  leftBorder = () => 8 + Math.floor(Math.random()*3),  // left treeline width (cols)
+  rightBorder = () => 8 + Math.floor(Math.random()*3), // right treeline width (cols)
 } = {}) {
   if (!mount) throw new Error('createAssassinGame: mount element is required');
-  if (visibleRows % 2 === 0) throw new Error('visibleRows must be odd');
 
   // ---------- DOM + Styles ----------
   const style = document.createElement('style');
@@ -21,6 +19,7 @@ export function createAssassinGame({
   :root{
     --bg:#0b0e12; --panel:#11151a; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a;
     --guard-fov-bg:#705f1a;
+    --grass:#99b67a;
   }
   *{box-sizing:border-box}
   .assassin-wrap{max-width:${boxPx}px;margin:0 auto;padding:0;display:grid;gap:12px;color:var(--ink);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -29,11 +28,11 @@ export function createAssassinGame({
   .assassin-grid{width:100%;height:100%;white-space:normal;font-size:0;line-height:0;color:#cfe3ef}
   .assassin-cell{
     display:inline-block;
-    width:calc(${boxPx}px / var(--W));             /* full map width across */
-    height:calc(${boxPx}px / var(--VH));           /* cropped rows tall */
-    line-height:calc(${boxPx}px / var(--VH));
+    width:calc(${boxPx}px / var(--W));
+    height:calc(${boxPx}px / var(--H));
+    line-height:calc(${boxPx}px / var(--H));
     text-align:center;vertical-align:top;
-    font-weight:900;font-size:calc(${boxPx}px / var(--VH));
+    font-weight:900;font-size:calc(${boxPx}px / var(--H));
     transform-origin:center center;
   }
 
@@ -49,18 +48,16 @@ export function createAssassinGame({
     backdrop-filter:saturate(120%) blur(2px);
   }
 
-  /* Log: scrollable with grass-colored scrollbar */
   .assassin-log{
-    height:120px; overflow:auto;
+    height:120px;
+    overflow:auto;                         /* auto scroll */
     border:1px solid #26313a;border-radius:10px;padding:8px;background:#11151a;margin-top:12px
   }
-  /* Firefox */
-  .assassin-log{ scrollbar-color:#99b67a #11151a; scrollbar-width:thin; }
-  /* WebKit */
+  /* Scrollbar styled with grass color */
   .assassin-log::-webkit-scrollbar{ width:10px; height:10px; }
-  .assassin-log::-webkit-scrollbar-track{ background:#11151a; }
-  .assassin-log::-webkit-scrollbar-thumb{ background:#99b67a; border-radius:8px; }
-  .assassin-log::-webkit-scrollbar-thumb:hover{ background:#88a86e; }
+  .assassin-log::-webkit-scrollbar-track{ background:#0f1418; }
+  .assassin-log::-webkit-scrollbar-thumb{ background:var(--grass); border-radius:8px; }
+  .assassin-log{ scrollbar-color: var(--grass) #0f1418; scrollbar-width: thin; }
 
   /* Glow */
   .p,.e,.dest{ text-shadow:0 0 2px currentColor, 0 0 6px currentColor; }
@@ -106,9 +103,6 @@ export function createAssassinGame({
   // ---------- Game constants/state ----------
   const W = gridSize, H = gridSize;
   const PARTS = parts;
-  const VROWS = Math.min(visibleRows, H); // clamp just in case
-  const UP = Math.floor(VROWS/2);         // rows above player
-  const DOWN = VROWS - 1 - UP;            // rows below player
 
   const rnd = (n) => Math.floor(Math.random()*n);
   const choice = (arr) => arr[rnd(arr.length)];
@@ -134,9 +128,12 @@ export function createAssassinGame({
   const DIRDEG = (d)=> (d[0]===1&&d[1]===0)?0 : (d[0]===0&&d[1]===1)?90 : (d[0]===-1&&d[1]===0)?180 : -90;
   const isBlocked = (t)=> (t===TILES.TREE || t===TILES.STONE);
 
-  // Input & battle gating
+  // Input gating
   let inputEnabled = true;
-  let inBattle = false;
+
+  // Autobattle gating
+  let losArmed = false;           // becomes true only after the player has moved
+  let inAutobattle = false;       // prevents re-entry while a battle is running
 
   // ---------- UI helpers ----------
   const gridEl = byId('ass-grid');
@@ -152,7 +149,6 @@ export function createAssassinGame({
 
   // ---------- Map generation (forest trail) ----------
   function genTrailMap(finalPart=false){
-    // base grass
     const m = Array.from({length:H},()=>Array.from({length:W},()=>TILES.GRASS));
 
     // scatter trees + stones
@@ -252,72 +248,76 @@ export function createAssassinGame({
     state.seenMask = seen;
   }
 
-  function enemySeesPlayer(g){
-    let x=g.x, y=g.y;
+  function enemySeesPoint(g, x, y){
+    // Raycast 4 forward tiles; return true if it reaches (x,y) before hitting a blocker
+    let cx=g.x, cy=g.y;
     for(let r=1;r<=4;r++){
-      x+=g.dir[0]; y+=g.dir[1]; if(!inBounds(x,y)) break;
-      const t=state.map[y][x]; if(isBlocked(t)) return false;
-      if(x===state.px && y===state.py) return true;
+      cx+=g.dir[0]; cy+=g.dir[1]; if(!inBounds(cx,cy)) break;
+      const t=state.map[cy][cx]; if(isBlocked(t)) return false;
+      if(cx===x && cy===y) return true;
     }
     return false;
   }
 
-  // ---------- Autobattle integration (stub hook) ----------
-  async function initiateBattle(cause='LOS'){
-    if (inBattle) return;
-    inBattle = true;
-    inputEnabled = false;
-    log(cause === 'COLLIDE' ? 'An enemy barrels into you! Engaging auto-battle...' : 'Spotted! Engaging auto-battle...', 'warn');
+  function anyEnemySeesPlayer(){
+    for(const g of state.enemies){
+      if(enemySeesPoint(g, state.px, state.py)) return true;
+    }
+    return false;
+  }
 
+  // ---------- Autobattle handshake ----------
+  async function triggerAutobattle(reason='spotted'){
+    if (inAutobattle) return;
+    inAutobattle = true;
+    inputEnabled = false;
+    log(`Enemy sighted (${reason}). Entering autobattle...`, 'warn');
     try{
-      // Expect autobattle.js to export runAutoBattle() or default()
-      const mod = await import('./autobattle.js');
-      const run = mod.runAutoBattle || mod.default;
-      if (typeof run === 'function'){
-        // You can pass context if you want later (stats, items, etc.)
-        const result = await run({ part: state.part });
-        // TODO: interpret result (e.g., damage, remove enemy, etc.)
-        // For now we simply resume regardless of outcome.
-        log('Auto-battle resolved. Resuming the trail...', 'good');
+      const { beginAutoBattle } = await import('./autobattle.js');
+      // Pass minimal context; expand later as needed
+      const result = await beginAutoBattle?.({ part: state.part, hp: state.hp }) ?? { outcome:'resume' };
+      // Handle basic outcomes
+      if(result.outcome === 'defeat'){
+        log('Defeated in battle. Mission failed.', 'warn');
+        state.hp = 0;
+      }else if(result.hpDelta){
+        state.hp = Math.max(0, state.hp + result.hpDelta);
+        log(`Battle ends. HP ${state.hp}`, result.hpDelta < 0 ? 'warn':'good');
       }else{
-        log('Auto-battle module missing entry function. Resuming...', 'warn');
+        log('Battle ends. You slip back onto the trail...', 'dim');
       }
     }catch(err){
-      log('Auto-battle failed to load. Resuming...', 'warn');
-      console.error(err);
+      log(`Autobattle error: ${String(err)}`, 'warn');
     }finally{
-      inBattle = false;
-      inputEnabled = true;
+      inAutobattle = false;
+      inputEnabled = state.hp > 0; // resume only if alive
       render();
     }
   }
 
-  // ---------- Rendering (cropped rows) ----------
+  // ---------- Rendering (cropped to 17 rows centered on player) ----------
   function render(){
     fov();
     if(!gridEl) return;
     gridEl.style.setProperty('--W', W);
-    gridEl.style.setProperty('--VH', VROWS);   // visible rows for cell height/font-size
-
-    // Determine vertical window centered on player
-    let top = state.py - UP;
-    if (top < 0) top = 0;
-    if (top > H - VROWS) top = H - VROWS;
-    const bottom = top + VROWS - 1;
+    gridEl.style.setProperty('--H', H);
 
     const highlight = new Set();
     for(const g of state.enemies){
       if(state.fog && !(state.seenMask[g.y] && state.seenMask[g.y][g.x])) continue;
-      for(const [hx,hy] of tilesInEnemyFOV(g)){
-        if (hy >= top && hy <= bottom) highlight.add(hy*W+hx);
-      }
+      for(const [hx,hy] of tilesInEnemyFOV(g)) highlight.add(hy*W+hx);
     }
 
     const eIndex = new Map();
     for(const g of state.enemies) eIndex.set(g.y*W+g.x, g);
 
+    // Cropping window: 17 rows total (8 up, self, 8 down)
+    const viewHalf = 8;
+    const yStart = Math.max(0, Math.min(H - (2*viewHalf + 1), state.py - viewHalf));
+    const yEnd = Math.min(H - 1, yStart + 2*viewHalf); // inclusive
+
     let html='';
-    for(let y=top;y<=bottom;y++){
+    for(let y=yStart; y<=yEnd; y++){
       for(let x=0;x<W;x++){
         const visible = !state.fog || (state.seenMask[y] && state.seenMask[y][x]);
         const key=y*W+x;
@@ -369,29 +369,49 @@ export function createAssassinGame({
     if(!inputEnabled) return;
     const nx=state.px+dx, ny=state.py+dy; if(!(nx>=0&&ny>=0&&nx<W&&ny<H)) return;
     const t=state.map[ny][nx]; if(isBlocked(t)) return;
-    state.px=nx; state.py=ny; state.lastDx=dx; state.lastDy=dy; postMove();
+
+    state.px=nx; state.py=ny; state.lastDx=dx; state.lastDy=dy;
+
+    // We only arm LOS after the first successful move in a part/run
+    if(!losArmed) losArmed = true;
+
+    postMove();
   }
 
   function postMove(){
-    // progression
+    // Progression checks happen first
     const here = state.map[state.py][state.px];
-    if(state.part < PARTS && here===TILES.MARKER){ state.part++; log('You advance to the next section of the trail...', 'dim'); startPart(); return; }
-    if(state.part===PARTS && state.destination && state.px===state.destination.x && state.py===state.destination.y){ return win(); }
-
-    // LOS detection -> autobattle (do not end run)
-    for(const g of state.enemies){
-      if(enemySeesPlayer(g)) { initiateBattle('LOS'); render(); return; }
+    if(state.part < PARTS && here===TILES.MARKER){
+      state.part++;
+      losArmed = false;          // disarm on load of the next section to avoid instant battles
+      log('You advance to the next section of the trail...', 'dim');
+      startPart();
+      return;
+    }
+    if(state.part===PARTS && state.destination && state.px===state.destination.x && state.py===state.destination.y){
+      inputEnabled = false;
+      log('You reach the rendezvous point. Mission complete.', 'good');
+      render();
+      return;
     }
 
+    // LOS check ONLY when player moves, and ONLY if LOS is armed
+    if(losArmed && anyEnemySeesPlayer()){
+      // Pause and enter autobattle; render first so highlights reflect the risky tile
+      render();
+      triggerAutobattle('line-of-sight');
+      return;
+    }
+
+    // Then enemies move (but their LOS won’t trigger autobattle — only collisions can)
     enemiesAct();
     render();
   }
 
   function enemiesAct(){
-    if (inBattle) return; // frozen during autobattle
     const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
     for(const g of state.enemies){
-      if(enemySeesPlayer(g)) { initiateBattle('LOS'); return; }
+      // (No pre-LOS check here — per spec, only player movement triggers LOS battles)
 
       let nx=g.x+g.dir[0], ny=g.y+g.dir[1];
       const pass = (nx>=0&&ny>=0&&nx<W&&ny<H) && !isBlocked(state.map[ny][nx]);
@@ -399,8 +419,13 @@ export function createAssassinGame({
 
       g.patrolTimer--; if(g.patrolTimer<=0){ g.dir = choice(dirChoices); g.patrolTimer=rnd(6)+3; }
 
-      if(enemySeesPlayer(g)) { initiateBattle('LOS'); return; }
-      if(g.x===state.px && g.y===state.py) { initiateBattle('COLLIDE'); return; }
+      // (No post-LOS check here either)
+      if(g.x===state.px && g.y===state.py){
+        // Direct collision can also trigger autobattle
+        render();
+        triggerAutobattle('collision');
+        return;
+      }
     }
   }
 
@@ -408,19 +433,17 @@ export function createAssassinGame({
     const final = (state.part===PARTS);
     const {m, enemies, px, py, destination} = genTrailMap(final);
     state.map=m; state.enemies=enemies; state.px=px; state.py=py; state.destination=destination;
+    losArmed = false;          // disarm LOS on fresh part
+    inputEnabled = true;       // ensure controls are on
     if(final){ log('Final stretch. Reach the destination at the top.', 'good'); }
     else { log(`Forest trail — part ${state.part}. Head north.`, 'dim'); }
     render();
   }
 
-  function win(){
-    inputEnabled = false;
-    log('You reach the rendezvous point. Mission complete.', 'good');
-    state.hp=0; render();
-  }
-
   function newRun(){
-    inputEnabled = true; inBattle = false;
+    inputEnabled = true;
+    losArmed = false;
+    inAutobattle = false;
     state.part=1; state.hp=8; state.fog = true; state.lastDx=0; state.lastDy=-1;
     if(logEl) logEl.innerHTML='';
     log("The forest is silent. Begin at the trailhead and move north. w,a,s,d for movement. Avoid enemy line of sight and survive 'til you reach the package's destination.", 'dim');
@@ -446,7 +469,7 @@ export function createAssassinGame({
     newRun,
     freeze: (on=true)=> { inputEnabled = !on; },
     setFog: (on)=> { state.fog = !!on; render(); },
-    config: { get gridSize(){return gridSize;}, get boxPx(){return boxPx;}, get parts(){return PARTS;}, get visibleRows(){return VROWS;}},
+    config: { get gridSize(){return gridSize;}, get boxPx(){return boxPx;}, get parts(){return PARTS;}},
     destroy: ()=>{
       window.removeEventListener('keydown', onKeydown);
       if (wrap.parentNode === mount) mount.removeChild(wrap);
