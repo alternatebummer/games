@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ninja Assassin — ASCII Roguelike</title>
+<title>ASSASSIN</title>
 <style>
   :root{
     --bg:#0b0e12; --panel:#11151a; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a;
@@ -88,7 +88,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>🗡️ Ninja Assassin — ASCII Roguelike</h1>
+    <h1>ASSASSIN</h1>
   </header>
   <div class="panel log" id="log" aria-live="polite"></div>
 
@@ -133,7 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const choice = (arr) => arr[rnd(arr.length)];
 
   // ===== Tiles =====
-  const TILES = { WALL:'#', FLOOR:'.', STAIRS:'>', SHURIKEN:'*', SMOKE:'~', TARGET:'T' };
+  const TILES = { WALL:'⯀', FLOOR:'□', STAIRS:'H', SHURIKEN:'x', SMOKE:'o', TARGET:'⯐' };
 
   // ===== State =====
   const state = {
@@ -183,7 +183,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     let placed=false; let watchdog=0; while(!placed && watchdog++<5000){ const x=rnd(W), y=rnd(H); if(m[y][x]===TILES.FLOOR){ m[y][x]= finalFloor? TILES.TARGET : TILES.STAIRS; placed=true; }}
 
-    const guards=[]; let gcount = 5 + rnd(3); const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
+    const guards = [];
+    // base + per-floor + small randomness
+    let gcount = 10 + (state.floor - 1) * 3 + rnd(3);  // F1≈6–8, F2≈9–11, F3≈12–14
+
+     const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
     let guardWatch=0; while(gcount>0 && guardWatch++<10000){ const x=rnd(W), y=rnd(H); if(m[y][x]===TILES.FLOOR){ guards.push({x,y,dir:choice(dirChoices),patrolTimer:rnd(6)+3}); gcount--; }}
 
     let px=1, py=1; if(rooms[0]){ px=Math.floor(rooms[0].x+rooms[0].w/2); py=Math.floor(rooms[0].y+rooms[0].h/2); }
@@ -313,7 +317,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setUIFrozen(false);
     state.floor=1; state.hp=8; state.shuriken=2; state.smoke=1; state.smokeTurns=0; state.fog = true; state.lastDx=1; state.lastDy=0;
     const fog=document.getElementById('chkFog'); if(fog) fog.checked = true;
-    if(logEl) logEl.innerHTML=''; log('A moonless night. You slip over the wall...', 'dim');
+    if(logEl) logEl.innerHTML=''; log('Your target is on the 3rd floor. Stick to the shadows.', 'dim');
     startFloor();
   }
 
@@ -327,8 +331,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function autoPickup(){
     const t=state.map[state.py][state.px];
-    if(t===TILES.SHURIKEN){ state.shuriken++; state.map[state.py][state.px]=TILES.FLOOR; log('You pocket a shuriken.'); }
-    else if(t===TILES.SMOKE){ state.smoke++; state.map[state.py][state.px]=TILES.FLOOR; log('You collect a smoke bomb.'); }
+    if(t===TILES.SHURIKEN){ state.shuriken++; state.map[state.py][state.px]=TILES.FLOOR; log('You find a shuriken.'); }
+    else if(t===TILES.SMOKE){ state.smoke++; state.map[state.py][state.px]=TILES.FLOOR; log('You find a smoke bomb.'); }
   }
 
   function postMove(){
@@ -354,7 +358,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function win(){
   setUIFrozen(true);
-  log('The blade finds its mark. The tyrant falls. Mission complete.', 'good');
+  log('The blade finds its mark. Your target falls. Mission complete.', 'good');
   state.hp=0;
   render();
 }
