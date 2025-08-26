@@ -10,7 +10,7 @@
     --accent:#d9b36a; --outline:#ad5b44; --slot:#0f1318;
     --gap:16px; --slot-size:100px;              /* desktop/base slot size */
     --gold-soft:#d9b36a; --ice-soft:#8a9fb5; --btnclr:#0f1318;
-    --design-max: 500px;                        /* max layout width */
+    --design-max: 1100px;                       /* allow two-column layout */
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -34,8 +34,8 @@
     padding:0;
     background:var(--panel);
     border:0px dashed var(--outline); border-radius:12px;
-    width:100%;                                   /* was 100vw */
-    max-width:none;                                /* let .wrap control width */
+    width:100%;
+    max-width:none;
   }
   .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -48,11 +48,21 @@
   .stat.coins{ color:var(--gold-soft); }
   .stat.mana{ color:var(--ice-soft); }
 
-  /* Column layout */
+  /* ===== Two-column Board layout ===== */
   .main{
-    display:flex; flex-direction:column; gap:var(--gap);
-    margin-top:16px; align-items:center; flex-wrap:nowrap;
+    display:grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+    gap: var(--gap);
+    margin-top:16px;
+    align-items:start;
     width:100%;
+  }
+  .leftCol{
+    display:grid;
+    gap: var(--gap);
+  }
+  .rightCol{
+    display:block;
   }
 
   /* Cards follow container width; no fixed/min widths that would overflow phones */
@@ -143,26 +153,16 @@
   .overlay-desc{ color:var(--muted); font-size:13px; white-space:pre-line; }
   .overlay-metrics{ font-size:12px; color:var(--muted); }
 
-  /* Delivery panel log */
-  .battle-log{
-    width:100%;
-    flex:1;
-    min-height:260px;
-    background:#0f1318;
-    border:1px dashed var(--outline);
-    border-radius:10px;
-    padding:10px;
-    overflow:auto;
-    white-space:pre-wrap;
-  }
+  /* Delivery panel mount for travel.js */
+  .travel-mount{ width:100%; display:block; }
 
-  /* ===== Phone fit: shrink slots so 4-wide always fits viewport ===== */
+  /* ===== Phone fit: stack columns and shrink slots so 4-wide always fits viewport ===== */
+  @media (max-width: 900px){
+    .main{ grid-template-columns: 1fr; }
+  }
   @media (max-width: 500px){
-    /* Compute slot size so: 4*slot + 3*gap(12) + card padding(14*2) fits 100vw */
-    :root{
-      --slot-size: calc((100vw - 36px - 28px) / 4);  /* 36 = 3 gaps, 28 = card paddings */
-    }
-    .wrap{ width:100vw; }            /* container follows viewport on phones */
+    :root{ --slot-size: calc((100vw - 36px - 28px) / 4); }  /* 36 = gaps, 28 = paddings */
+    .wrap{ width:100vw; }
     .wizardKnight .wk-row{ gap:12px 24px; }
     .btn, .btn-buy{ padding:10px 14px; }
   }
@@ -183,59 +183,64 @@
 
     <!-- Board -->
     <div class="main" id="board">
-      <!-- wizardKnight (merged) -->
-      <section class="card wizardKnight" aria-label="wizardKnight">
-        <div class="wk-row">
-          <!-- Column 1: Portal slot + Activate -->
-          <div class="vstack" aria-label="Package Portal section">
-            <div class="subhead">Package Portal</div>
-            <div class="slot" id="portal-slot" aria-label="Portal slot">
-              <div class="placeholder">empty</div>
+      <!-- LEFT column: Wizard/Knight + Inventory -->
+      <div class="leftCol">
+        <!-- wizardKnight (merged) -->
+        <section class="card wizardKnight" aria-label="wizardKnight">
+          <div class="wk-row">
+            <!-- Column 1: Portal slot + Activate -->
+            <div class="vstack" aria-label="Package Portal section">
+              <div class="subhead">Package Portal</div>
+              <div class="slot" id="portal-slot" aria-label="Portal slot">
+                <div class="placeholder">empty</div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+              </div>
             </div>
-            <div class="actions">
-              <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+
+            <!-- Column 2: Knight header + slot + Begin -->
+            <div class="vstack" aria-label="Knight section">
+              <div class="subhead">Package Knight</div>
+              <div class="knight-slot" aria-label="Knight slot">
+                <div class="placeholder">no package</div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+              </div>
             </div>
           </div>
+        </section>
 
-          <!-- Column 2: Knight header + slot + Begin -->
-          <div class="vstack" aria-label="Knight section">
-            <div class="subhead">Package Knight</div>
-            <div class="knight-slot" aria-label="Knight slot">
-              <div class="placeholder">no package</div>
-            </div>
-            <div class="actions">
-              <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
-            </div>
+        <!-- Inventory -->
+        <section class="card inv" aria-label="Inventory">
+          <div class="subhead">Inventory</div>
+          <div class="grid">
+            <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <!-- Inventory -->
-      <section class="card inv" aria-label="Inventory">
-        <div class="subhead">Inventory</div>
-        <div class="grid">
-          <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
-        </div>
-      </section>
-
-      <!-- Delivery -->
-      <section class="card delivery" aria-label="Delivery">
-        <div class="subhead">Delivery</div>
-        <div id="battle-log" class="battle-log" aria-live="polite"></div>
-      </section>
+      <!-- RIGHT column: Delivery -->
+      <div class="rightCol">
+        <section class="card delivery" aria-label="Delivery">
+          <div class="subhead">Delivery</div>
+          <!-- travel.js mounts here -->
+          <div id="travel-mount" class="travel-mount" aria-live="polite"></div>
+        </section>
+      </div>
     </div>
   </div>
 
 <script>
-/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Delivery log + Autobattle hook */
+/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Travel (Assassin) mount */
 (function(){
   const board = document.getElementById('board');
   const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
   const portalSlot = document.getElementById('portal-slot');
-  const battleLogEl = document.getElementById('battle-log');
 
   // Currency state
   let mana = 50;
@@ -260,46 +265,6 @@
   function updateBeginEnabled(){ btnBegin.disabled = !hasKnightPackage(); }
   updateBeginEnabled();
   new MutationObserver(updateBeginEnabled).observe(knightSlot, { childList:true, subtree:true });
-
-  // --- Delivery log helpers (no change if you already have these) ---
-  function clearBattleLog(){ battleLogEl.textContent = ''; }
-  function streamLog(lines, delay=30){
-    clearBattleLog();
-    let i = 0;
-    (function step(){
-      if(i >= lines.length) return;
-      battleLogEl.insertAdjacentText('beforeend', lines[i++] + '\n');
-      battleLogEl.scrollTop = battleLogEl.scrollHeight;
-      setTimeout(step, delay);
-    })();
-  }
-
-  // --- Begin Delivery: Knight vs Wandering Blade, import from Netlify ---
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
-
-    clearBattleLog();
-    battleLogEl.textContent = 'Starting delivery battle...';
-
-    try {
-      // Use HTTPS to avoid mixed-content blocks
-      const { runAutobattle } = await import('https://reptileroom.netlify.app/pkgknt/autobattle.js');
-
-      const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-      streamLog(result.log, 30);
-
-      // TODO: on victory, award coins/mana using the package's data, then clear the Knight slot.
-      // if (result.winner === 'Knight') { ... }
-
-    } catch (err) {
-      battleLogEl.textContent =
-        'Could not load autobattle.js from Netlify.\n' +
-        'Tip: ensure this page also runs on https://reptileroom.netlify.app (same origin).\n\n' +
-        String(err);
-    }
-  });
-
 
   updateCurrencyUI();
   updateBeginEnabled();
@@ -402,23 +367,6 @@
 
     const chip = makePackage();
     portalSlot.replaceChildren(chip);
-  });
-
-  // Begin Delivery — runs Knight vs Wandering Blade, logs to Delivery panel
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
-
-    // Optional: clear log first
-    clearBattleLog();
-
-    // Dynamic import so we don't have to convert the whole file to type="module"
-    const { runAutobattle } = await import('./autobattle.js');
-
-    const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-    // Stream the log so it "plays out"
-    playLog(result.log, 40);
-    // (Later: reward coins/mana on victory, consume package, etc.)
   });
 
   // ===== Click-to-move selection/placement =====
@@ -554,6 +502,43 @@
     backdrop.addEventListener('click', onBackdrop);
     document.addEventListener('keydown', onKey);
   }
+
+  // ====== TRAVEL INTEGRATION (replaces battlesystem.js) ======
+  const travelMount = document.getElementById('travel-mount');
+  let travelGame = null;
+
+  btnBegin.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (btnBegin.disabled) return;
+
+    try{
+      // Clear any existing run
+      if (travelGame && typeof travelGame.destroy === 'function') {
+        travelGame.destroy();
+        travelGame = null;
+      }
+      travelMount.innerHTML = '';
+
+      // Dynamically import travel.js (exports createAssassinGame)
+      const { createAssassinGame } = await import('./travel.js');
+
+      // Mount the travel game inside the Delivery card
+      travelGame = createAssassinGame({ mount: travelMount });
+
+      // Optional: if you want to consume the package immediately on begin:
+      // knightSlot.replaceChildren((() => { const ph=document.createElement('div'); ph.className='placeholder'; ph.textContent='no package'; return ph; })());
+      // updateBeginEnabled();
+
+    } catch(err){
+      // Minimal inline error surface
+      const msg = document.createElement('div');
+      msg.style.color = '#ff7a7a';
+      msg.style.whiteSpace = 'pre-wrap';
+      msg.textContent = 'Could not load travel.js\n' + String(err);
+      travelMount.innerHTML = '';
+      travelMount.appendChild(msg);
+    }
+  });
 })();
 </script>
 </body>
