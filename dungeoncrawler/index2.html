@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ASSASSIN — Forest Trail</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#11151a; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a;
+    --guard-fov-bg:#705f1a; /* yellow-ish background for enemy vision */
+  }
+  /* Layout & chrome */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .wrap{max-width:500px;margin:0 auto;padding:16px;display:grid;gap:12px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  h1{margin:0;font-size:18px;color:var(--ink)}
+  .hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .badge{background:var(--panel);border:1px solid #26313a;padding:6px 10px;border-radius:10px}
+  .board{display:grid;grid-template-columns:1fr;gap:8px}
+  .panel{display:inline-block}
+
+  /* 500×500 square grid container */
+  .gridWrap{width:500px;height:500px}
+
+  /* Square-cell grid rendering */
+  .grid{
+    width:100%; height:100%;
+    white-space:normal; font-size:0; line-height:0; color:#cfe3ef;
+  }
+  .cell{
+    display:inline-block;
+    width:calc(500px / var(--W));
+    height:calc(500px / var(--H));
+    line-height:calc(500px / var(--H));
+    text-align:center; vertical-align:top;
+    font-weight:900; font-size:calc(500px / var(--H));
+    transform-origin:center center; /* for rotating ➤ */
+  }
+  /* Faint, color-matched glow on key glyphs */
+.p, .e, .dest {
+  /* a touch stronger for actors/goal */
+  text-shadow:
+    0 0 2px currentColor,
+    0 0 6px currentColor;
+}
+
+/* Subtle glow for terrain & markers */
+.tree, .stone, .dirt, .grass, .marker {
+  text-shadow:
+    0 0 1px currentColor,
+    0 0 3px currentColor;
+}
+
+/* Optional: keep glow visible even in vision highlight */
+.gv .p, .gv .e, .gv .dest,
+.gv .tree, .gv .stone, .gv .dirt, .gv .grass, .gv .marker {
+  text-shadow:
+    0 0 2px currentColor,
+    0 0 6px currentColor;
+}
+
+  /* Colors & highlights */
+  .gv{background:var(--guard-fov-bg)}
+  .p{color:#ff4d4d}      /* player ➤ */
+  .e{color:#ff9a3a}      /* enemy ➤ */
+  .dest{color:#5ad16a}   /* destination glyph */
+
+  /* Terrain colors */
+  .tree{color:#5aa36a}     /* A */
+  .stone{color:#9aa7b3}    /* ◍ */
+  .dirt{color:#caa27a}     /* . */
+  .grass{color:#99b67a}    /* " */
+  .marker{color:#e8d37b}   /* trail markers H */
+
+  .log{height:120px;overflow:hidden}
+
+  /* Controls */
+  .controls{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
+  .dpad{display:grid;grid-template-columns:60px 60px 60px;grid-template-rows:60px 60px 60px;gap:14px}
+  .dpad button { width:70px; height:70px; }
+
+  .action button { min-width:120px; height:60px; margin-bottom:60px; }
+
+  button:disabled{ opacity:.5; pointer-events:none; cursor:not-allowed; }
+  button{background:black;color:white;border:2px dashed #2a3640;border-radius:10px;padding:8px 10px;cursor:pointer}
+  button:hover{border-color:#3a4854}
+
+  /* Log text colors */
+  .warn{color:#ff7a7a}.good{color:#9fc46b}.dim{color:#8aa2b3}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ASSASSIN</h1>
+  </header>
+  <div class="panel log" id="log" aria-live="polite"></div>
+
+  <div class="board">
+    <div class="panel">
+      <div class="gridWrap"><pre id="grid" class="grid" aria-label="map" role="img"></pre></div>
+    </div>
+    <div class="hud">
+      <div class="badge" id="floorBadge">Trail 1 / 3</div>
+      <div class="badge" id="hpBadge">HP 8</div>
+      <button id="btnNew">New Run</button>
+    </div>
+    <div class="controls">
+      <div class="dpad">
+        <span></span><button id="btnUp" aria-label="Up">W</button><span></span>
+        <button id="btnLeft" aria-label="Left">A</button><button id="btnDown" aria-label="Down">S</button><button id="btnRight" aria-label="Right">D</button>
+        <span></span><span></span><span></span>
+      </div>
+      <div class="action">
+        <button id="btnShuriken" aria-label="Throw shuriken">Shuriken (0)</button>
+        <button id="btnSmoke" aria-label="Use smoke bomb">Smoke Bomb (0)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('error', (e)=>{
+    try{ const l=document.getElementById('log'); if(l) l.insertAdjacentHTML('beforeend', `<div class="warn">JS Error: ${e.message}</div>`);}catch(err){}
+  });
+
+  // ===== Config: true square grid rendered into 500x500 =====
+  const SIZE = 40;            // logical grid (SIZE x SIZE)
+  const W = SIZE, H = SIZE;
+  const PARTS = 3;            // trail parts (replaces floors)
+
+  // ===== Utility =====
+  const rnd = (n) => Math.floor(Math.random()*n);
+  const choice = (arr) => arr[rnd(arr.length)];
+
+  // ===== Tiles =====
+  const TILES = {
+    TREE:'A',         // impassable
+    STONE:'◍',        // impassable (rock)
+    GRASS:'"',        // walkable
+    DIRT:'.',         // walkable (trail)
+    MARKER:'H',       // trail marker/start/end for parts 1 & 2
+    DEST:'⯐',         // final destination on part 3
+    SHURIKEN:'x',
+    SMOKE:'o'
+  };
+
+  // ===== State =====
+  const state = {
+    part: 1, hp: 8,
+    shuriken: 2, smoke: 1,
+    smokeTurns: 0,
+    map: [], seenMask: [], fog: true,
+    px: 0, py: 0, lastDx: 1, lastDy: 0,
+    enemies: [], // {x,y,dir:[dx,dy],patrolTimer:int}
+    destination: null,
+  };
+
+  const DIRS = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
+  const DIRDEG = (d)=> (d[0]===1&&d[1]===0)?0 : (d[0]===0&&d[1]===1)?90 : (d[0]===-1&&d[1]===0)?180 : -90;
+  const isBlocked = (t)=> (t===TILES.TREE || t===TILES.STONE);
+
+  // ===== Map Gen: natural forest with guaranteed trail bottom->top =====
+  function genTrailMap(finalPart=false){
+    // start with grass
+    const m = Array.from({length:H},()=>Array.from({length:W},()=>TILES.GRASS));
+
+    // sprinkle trees & stones
+    for(let y=1;y<H-1;y++){
+      for(let x=1;x<W-1;x++){
+        const r=Math.random();
+        if(r<0.12) m[y][x]=TILES.TREE;
+        else if(r<0.16) m[y][x]=TILES.STONE;
+      }
+    }
+
+    // --- NEW: enforce tree line left/right ---
+    const borderL = 8 + rnd(3);  // 4–6 cols on left
+    const borderR = 8 + rnd(3);  // 4–6 cols on right
+    for(let y=0;y<H;y++){
+      for(let x=0;x<borderL;x++) m[y][x] = TILES.TREE;
+      for(let x=W-borderR;x<W;x++) m[y][x] = TILES.TREE;
+    }
+    // ---------------------------------------
+
+    // carve a meandering trail from bottom to top
+    let x = rnd(W-10)+5;       // avoid extreme edges
+    let y = H-2;
+    const startX = x, startY = y;
+
+    while(y>1){
+      // carve current cell + occasional widening
+      m[y][x] = TILES.DIRT;
+      if(Math.random()<0.25 && x+1<W-1) m[y][x+1]=TILES.DIRT;
+      if(Math.random()<0.25 && x-1>0)   m[y][x-1]=TILES.DIRT;
+
+      // drift left/right a bit while moving upward
+      const dx = choice([-1,0,1,0]); // bias less sideways
+      const nx = Math.max(1, Math.min(W-2, x+dx));
+      const ny = y-1; // always progress up
+      x = nx; y = ny;
+      // ensure trail tiles override obstacles
+      m[y][x] = TILES.DIRT;
+    }
+
+    // place markers: bottom start and top exit (or destination)
+    const bottomY = H-2;
+    let bottomX = startX;
+    m[bottomY][bottomX] = TILES.MARKER;
+
+    const topY = 1;
+    // find a dirt tile near top to be exit/destination
+    let topX = x;
+    for(let sx=0; sx<W; sx++){
+      const tx = Math.max(1, Math.min(W-2, x + (sx%2? -Math.ceil(sx/2): Math.ceil(sx/2))));
+      if(m[topY][tx]===TILES.DIRT){ topX = tx; break; }
+    }
+    if(finalPart){
+      m[topY][topX] = TILES.DEST;
+    } else {
+      m[topY][topX] = TILES.MARKER;
+    }
+
+    // place some items along/near the trail
+    function placeOnWalkable(sym, n){
+      let tries=0;
+      while(n>0 && tries++<8000){
+        const px = rnd(W), py = rnd(H);
+        const t = m[py][px];
+        if(t===TILES.DIRT || t===TILES.GRASS){
+          m[py][px] = sym; n--;
+        }
+      }
+    }
+    placeOnWalkable(TILES.SHURIKEN, 3);
+    placeOnWalkable(TILES.SMOKE, 2);
+
+    // enemies: place on walkable tiles away from markers
+    const enemies=[]; const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
+    let ecount = 8 + (state.part-1)*3 + rnd(3); // scale by part
+    let guard=0;
+    while(ecount>0 && guard++<12000){
+      const ex=rnd(W), ey=rnd(H);
+      if((m[ey][ex]===TILES.DIRT || m[ey][ex]===TILES.GRASS) &&
+         !(ey===bottomY && ex===bottomX) && !(ey===topY && ex===topX)){
+        enemies.push({x:ex,y:ey,dir:choice(dirChoices),patrolTimer:rnd(6)+3}); ecount--;
+      }
+    }
+
+    // player spawn at bottom marker
+    const px = bottomX, py = bottomY;
+
+    // destination info (only on final part)
+    const destination = finalPart ? {x:topX,y:topY} : null;
+
+    return {m, enemies, px, py, destination};
+  }
+
+  // ===== Helpers =====
+  const inBounds=(x,y)=> x>=0 && y>=0 && x<W && y<H;
+
+  function tilesInEnemyFOV(g){
+    const out=[]; let x=g.x, y=g.y;
+    for(let r=1;r<=4;r++){
+      x+=g.dir[0]; y+=g.dir[1]; if(!inBounds(x,y)) break;
+      const t=state.map[y][x];
+      if(isBlocked(t)) break;
+      out.push([x,y]);
+    }
+    return out;
+  }
+
+  // ===== Player FOV =====
+  function revealAll(){ state.seenMask = Array.from({length:H},()=>Array.from({length:W},()=>true)); }
+  function fov(){
+    if(!state.fog){ revealAll(); return; }
+    const R=7; const seen = Array.from({length:H},()=>Array.from({length:W},()=>false));
+    for(let dy=-R; dy<=R; dy++){
+      for(let dx=-R; dx<=R; dx++){
+        const tx=state.px+dx, ty=state.py+dy; if(!inBounds(tx,ty)) continue; if(dx*dx+dy*dy>R*R) continue;
+        const steps = Math.max(Math.abs(dx), Math.abs(dy));
+        const stepx = dx/steps || 0, stepy = dy/steps || 0;
+        let cx=state.px, cy=state.py;
+        for(let s=0; s<=steps; s++){
+          const ix=Math.round(cx), iy=Math.round(cy); if(!inBounds(ix,iy)) break;
+          seen[iy][ix]=true; if(isBlocked(state.map[iy][ix])) break; cx += stepx; cy += stepy;
+        }
+      }
+    }
+    state.seenMask = seen;
+  }
+
+  function enemySeesPlayer(g){
+    if(state.smokeTurns>0) return false;
+    let x=g.x, y=g.y;
+    for(let r=1;r<=4;r++){
+      x+=g.dir[0]; y+=g.dir[1]; if(!inBounds(x,y)) break;
+      const t=state.map[y][x]; if(isBlocked(t)) return false;
+      if(x===state.px && y===state.py) return true;
+    }
+    return false;
+  }
+
+  // ===== Rendering (square cells) =====
+  function render(){
+    fov();
+    const grid = document.getElementById('grid'); if(!grid) return;
+    grid.style.setProperty('--W', W);
+    grid.style.setProperty('--H', H);
+
+    // highlights for visible enemies
+    const highlight = new Set();
+    for(const g of state.enemies){
+      if(state.fog && !(state.seenMask[g.y] && state.seenMask[g.y][g.x])) continue;
+      for(const [hx,hy] of tilesInEnemyFOV(g)) highlight.add(hy*W+hx);
+    }
+
+    // pre-index enemies
+    const eIndex = new Map();
+    for(const g of state.enemies) eIndex.set(g.y*W+g.x, g);
+
+    let html='';
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const visible = !state.fog || (state.seenMask[y] && state.seenMask[y][x]);
+        const key=y*W+x;
+        if(!visible){ html += '<span class="cell"> </span>'; continue; }
+
+        const enemyHere = eIndex.get(key);
+        const isPlayer = (state.px===x && state.py===y);
+        const isDest = (state.destination && state.destination.x===x && state.destination.y===y);
+        const isHL = highlight.has(key);
+
+        if(isPlayer){ const deg = DIRDEG([state.lastDx,state.lastDy]); html += `<span class="cell p${isHL?' gv':''}" style="transform:rotate(${deg}deg)">➤</span>`; continue; }
+        if(enemyHere){ const deg = DIRDEG(enemyHere.dir); html += `<span class="cell e${isHL?' gv':''}" style="transform:rotate(${deg}deg)">➤</span>`; continue; }
+        if(isDest){ html += `<span class="cell dest${isHL?' gv':''}">⯐</span>`; continue; }
+
+        const t = state.map[y][x];
+        const ch = (t+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+        // color by terrain / items / markers
+        let cls='';
+        if(t===TILES.TREE) cls='tree';
+        else if(t===TILES.STONE) cls='stone';
+        else if(t===TILES.DIRT) cls='dirt';
+        else if(t===TILES.GRASS) cls='grass';
+        else if(t===TILES.MARKER) cls='marker';
+        else if(t===TILES.SHURIKEN || t===TILES.SMOKE) cls='dirt'; // items sit on dirt color
+
+        const wrap = (isHL && !isBlocked(t)) ? `cell gv ${cls}` : `cell ${cls}`;
+        html += `<span class="${wrap}">${ch}</span>`;
+      }
+      html += '<br/>';
+    }
+    grid.innerHTML = html;
+
+    const fb=document.getElementById('floorBadge'); if(fb) fb.textContent = `Trail ${state.part} / ${PARTS}`;
+    const hb=document.getElementById('hpBadge'); if(hb) hb.textContent = `HP ${state.hp}`;
+    const bs=document.getElementById('btnShuriken'); if(bs) bs.textContent = `Shuriken (${state.shuriken})`;
+    const bm=document.getElementById('btnSmoke'); if(bm) bm.textContent = `Smoke Bomb (${state.smoke})`;
+  }
+
+  const logEl = document.getElementById('log');
+  function log(msg, cls=''){
+    if(!logEl) return; const div=document.createElement('div'); if(cls) div.className=cls; div.textContent=msg; logEl.appendChild(div); logEl.scrollTop=logEl.scrollHeight;
+  }
+
+  function setUIFrozen(frozen){
+    const ids = ['btnUp','btnDown','btnLeft','btnRight','btnShuriken','btnSmoke'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.disabled = !!frozen;
+        if (frozen) el.setAttribute('aria-disabled','true');
+        else el.removeAttribute('aria-disabled');
+      }
+    });
+  }
+
+  // ===== Gameplay =====
+  function startPart(){
+    const final = (state.part===PARTS);
+    const {m, enemies, px, py, destination} = genTrailMap(final);
+    state.map=m; state.enemies=enemies; state.px=px; state.py=py; state.destination=destination;
+    if(final){ log(`Final stretch. Reach the destination at the top.`, 'good'); }
+    else { log(`Forest trail — part ${state.part}. Head north.`, 'dim'); }
+    render();
+  }
+
+  function newRun(){
+    setUIFrozen(false);
+    state.part=1; state.hp=8; state.shuriken=2; state.smoke=1; state.smokeTurns=0; state.fog = true; state.lastDx=0; state.lastDy=-1;
+    if(logEl) logEl.innerHTML=''; log('The forest is silent. Begin at the trailhead and move north...', 'dim');
+    startPart();
+  }
+
+  function tryMove(dx,dy){
+    const nx=state.px+dx, ny=state.py+dy; if(!inBounds(nx,ny)) return;
+    const t=state.map[ny][nx];
+    if(isBlocked(t)) return;
+    state.px=nx; state.py=ny; state.lastDx=dx; state.lastDy=dy;
+    postMove();
+  }
+
+  function autoPickup(){
+    const t=state.map[state.py][state.px];
+    if(t===TILES.SHURIKEN){ state.shuriken++; state.map[state.py][state.px]=TILES.DIRT; log('You find a shuriken.'); }
+    else if(t===TILES.SMOKE){ state.smoke++; state.map[state.py][state.px]=TILES.DIRT; log('You find a smoke bomb.'); }
+  }
+
+  function postMove(){
+    autoPickup();
+    if(state.smokeTurns>0){ state.smokeTurns--; if(state.smokeTurns===0) log('The smoke clears.', 'dim'); }
+
+    // part progression
+    const here = state.map[state.py][state.px];
+    if(state.part < PARTS && here===TILES.MARKER){
+      state.part++; log('You advance to the next section of the trail...', 'dim'); startPart(); return;
+    }
+    if(state.part===PARTS && state.destination && state.px===state.destination.x && state.py===state.destination.y){
+      return win();
+    }
+
+    // instant detection checks
+    for(const g of state.enemies){ if(enemySeesPlayer(g)) return gameOver('An enemy spots you. The chase ends your mission.'); }
+
+    enemiesAct();
+    render();
+  }
+
+  function gameOver(msg){
+    setUIFrozen(true);
+    log(msg, 'warn');
+    log('Mission failed. Press "New Run" to try again.');
+    state.hp=0; render();
+  }
+  function win(){
+    setUIFrozen(true);
+    log('You reach the rendezvous point. Mission complete.', 'good');
+    state.hp=0; render();
+  }
+
+  function throwShuriken(dx,dy){
+    if(state.shuriken<=0){ log('Out of shuriken.', 'dim'); return; }
+    if(dx===0 && dy===0){ dx=1; dy=0; }
+    state.shuriken--;
+    let x=state.px, y=state.py;
+    for(let i=0;i<8;i++){
+      x+=dx; y+=dy; if(!inBounds(x,y)) break;
+      const t=state.map[y][x]; if(isBlocked(t)) break;
+      const gi= state.enemies.findIndex(g=>g.x===x && g.y===y);
+      if(gi>=0){ state.enemies.splice(gi,1); log('A silent strike drops an enemy.'); render(); return; }
+      if(state.destination && state.destination.x===x && state.destination.y===y){ /* no ranged finish */ }
+    }
+    log('The shuriken vanishes between the trees.', 'dim');
+  }
+
+  function smoke(){ if(state.smoke<=0){ log('No smoke bombs left.', 'dim'); return; } state.smoke--; state.smokeTurns=3; log('You vanish into smoke (3 turns).'); render(); }
+
+  function enemiesAct(){
+    const dirChoices=[DIRS.up,DIRS.down,DIRS.left,DIRS.right];
+    for(const g of state.enemies){
+      // pre-turn/step vision
+      if(enemySeesPlayer(g)) return gameOver('An enemy spots you. The chase ends your mission.');
+
+      // try step; if blocked, turn
+      let nx=g.x+g.dir[0], ny=g.y+g.dir[1];
+      const pass = inBounds(nx,ny) && !isBlocked(state.map[ny][nx]);
+      if(pass){ g.x=nx; g.y=ny; } else { g.dir = choice(dirChoices); }
+
+      // patrol timer may also cause turn
+      g.patrolTimer--; if(g.patrolTimer<=0){ g.dir = choice(dirChoices); g.patrolTimer=rnd(6)+3; }
+
+      // post-turn/step vision (instant catch when they rotate into you)
+      if(enemySeesPlayer(g)) return gameOver('An enemy spots you. The chase ends your mission.');
+
+      // collision
+      if(g.x===state.px && g.y===state.py) return gameOver('An enemy barrels into you!');
+    }
+  }
+
+  // ===== Input =====
+  window.addEventListener('keydown', (e)=>{
+    if(state.hp<=0 && e.key!=='Enter') return;
+    const k=e.key.toLowerCase();
+    if(k==='arrowup' || k==='w') tryMove(0,-1);
+    else if(k==='arrowdown' || k==='s') tryMove(0,1);
+    else if(k==='arrowleft' || k==='a') tryMove(-1,0);
+    else if(k==='arrowright' || k==='d') tryMove(1,0);
+    else if(k==='f') throwShuriken(state.lastDx, state.lastDy);
+    else if(k==='v') smoke();
+  });
+
+  // Click controls
+  const byId=(id)=>document.getElementById(id);
+  byId('btnNew')?.addEventListener('click', newRun);
+  byId('btnUp')?.addEventListener('click', ()=>tryMove(0,-1));
+  byId('btnDown')?.addEventListener('click', ()=>tryMove(0,1));
+  byId('btnLeft')?.addEventListener('click', ()=>tryMove(-1,0));
+  byId('btnRight')?.addEventListener('click', ()=>tryMove(1,0));
+  byId('btnShuriken')?.addEventListener('click', ()=>throwShuriken(state.lastDx, state.lastDy));
+  byId('btnSmoke')?.addEventListener('click', smoke);
+
+  newRun();
+});
+</script>
+</body>
+</html>

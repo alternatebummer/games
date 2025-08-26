@@ -34,8 +34,8 @@
     padding:0;
     background:var(--panel);
     border:0px dashed var(--outline); border-radius:12px;
-    width:100%;                                   /* was 100vw */
-    max-width:none;                                /* let .wrap control width */
+    width:100%;
+    max-width:none;
   }
   .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -143,26 +143,13 @@
   .overlay-desc{ color:var(--muted); font-size:13px; white-space:pre-line; }
   .overlay-metrics{ font-size:12px; color:var(--muted); }
 
-  /* Delivery panel log */
-  .battle-log{
-    width:100%;
-    flex:1;
-    min-height:260px;
-    background:#0f1318;
-    border:1px dashed var(--outline);
-    border-radius:10px;
-    padding:10px;
-    overflow:auto;
-    white-space:pre-wrap;
-  }
+  /* Delivery panel mount for travel.js */
+  .travel-mount{ width:100%; display:block; }
 
   /* ===== Phone fit: shrink slots so 4-wide always fits viewport ===== */
   @media (max-width: 500px){
-    /* Compute slot size so: 4*slot + 3*gap(12) + card padding(14*2) fits 100vw */
-    :root{
-      --slot-size: calc((100vw - 36px - 28px) / 4);  /* 36 = 3 gaps, 28 = card paddings */
-    }
-    .wrap{ width:100vw; }            /* container follows viewport on phones */
+    :root{ --slot-size: calc((100vw - 36px - 28px) / 4); }  /* 36 = gaps, 28 = paddings */
+    .wrap{ width:100vw; }
     .wizardKnight .wk-row{ gap:12px 24px; }
     .btn, .btn-buy{ padding:10px 14px; }
   }
@@ -224,18 +211,18 @@
       <!-- Delivery -->
       <section class="card delivery" aria-label="Delivery">
         <div class="subhead">Delivery</div>
-        <div id="battle-log" class="battle-log" aria-live="polite"></div>
+        <!-- travel.js mounts here -->
+        <div id="travel-mount" class="travel-mount" aria-live="polite"></div>
       </section>
     </div>
   </div>
 
 <script>
-/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Delivery log + Autobattle hook */
+/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Travel (Assassin) mount */
 (function(){
   const board = document.getElementById('board');
   const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
   const portalSlot = document.getElementById('portal-slot');
-  const battleLogEl = document.getElementById('battle-log');
 
   // Currency state
   let mana = 50;
@@ -260,46 +247,6 @@
   function updateBeginEnabled(){ btnBegin.disabled = !hasKnightPackage(); }
   updateBeginEnabled();
   new MutationObserver(updateBeginEnabled).observe(knightSlot, { childList:true, subtree:true });
-
-  // --- Delivery log helpers (no change if you already have these) ---
-  function clearBattleLog(){ battleLogEl.textContent = ''; }
-  function streamLog(lines, delay=30){
-    clearBattleLog();
-    let i = 0;
-    (function step(){
-      if(i >= lines.length) return;
-      battleLogEl.insertAdjacentText('beforeend', lines[i++] + '\n');
-      battleLogEl.scrollTop = battleLogEl.scrollHeight;
-      setTimeout(step, delay);
-    })();
-  }
-
-  // --- Begin Delivery: Knight vs Wandering Blade, import from Netlify ---
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
-
-    clearBattleLog();
-    battleLogEl.textContent = 'Starting delivery battle...';
-
-    try {
-      // Use HTTPS to avoid mixed-content blocks
-      const { runAutobattle } = await import('https://reptileroom.netlify.app/pkgknt/autobattle.js');
-
-      const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-      streamLog(result.log, 30);
-
-      // TODO: on victory, award coins/mana using the package's data, then clear the Knight slot.
-      // if (result.winner === 'Knight') { ... }
-
-    } catch (err) {
-      battleLogEl.textContent =
-        'Could not load autobattle.js from Netlify.\n' +
-        'Tip: ensure this page also runs on https://reptileroom.netlify.app (same origin).\n\n' +
-        String(err);
-    }
-  });
-
 
   updateCurrencyUI();
   updateBeginEnabled();
@@ -402,23 +349,6 @@
 
     const chip = makePackage();
     portalSlot.replaceChildren(chip);
-  });
-
-  // Begin Delivery — runs Knight vs Wandering Blade, logs to Delivery panel
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
-
-    // Optional: clear log first
-    clearBattleLog();
-
-    // Dynamic import so we don't have to convert the whole file to type="module"
-    const { runAutobattle } = await import('./autobattle.js');
-
-    const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-    // Stream the log so it "plays out"
-    playLog(result.log, 40);
-    // (Later: reward coins/mana on victory, consume package, etc.)
   });
 
   // ===== Click-to-move selection/placement =====
@@ -554,6 +484,43 @@
     backdrop.addEventListener('click', onBackdrop);
     document.addEventListener('keydown', onKey);
   }
+
+  // ====== TRAVEL INTEGRATION (replaces battlesystem.js) ======
+  const travelMount = document.getElementById('travel-mount');
+  let travelGame = null;
+
+  btnBegin.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (btnBegin.disabled) return;
+
+    try{
+      // Clear any existing run
+      if (travelGame && typeof travelGame.destroy === 'function') {
+        travelGame.destroy();
+        travelGame = null;
+      }
+      travelMount.innerHTML = '';
+
+      // Dynamically import travel.js (exports createAssassinGame)
+      const { createAssassinGame } = await import('./travel.js');
+
+      // Mount the travel game inside the Delivery card
+      travelGame = createAssassinGame({ mount: travelMount });
+
+      // Optional: if you want to consume the package immediately on begin:
+      // knightSlot.replaceChildren((() => { const ph=document.createElement('div'); ph.className='placeholder'; ph.textContent='no package'; return ph; })());
+      // updateBeginEnabled();
+
+    } catch(err){
+      // Minimal inline error surface
+      const msg = document.createElement('div');
+      msg.style.color = '#ff7a7a';
+      msg.style.whiteSpace = 'pre-wrap';
+      msg.textContent = 'Could not load travel.js\n' + String(err);
+      travelMount.innerHTML = '';
+      travelMount.appendChild(msg);
+    }
+  });
 })();
 </script>
 </body>
