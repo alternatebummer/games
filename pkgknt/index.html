@@ -10,7 +10,7 @@
     --accent:#d9b36a; --outline:#ad5b44; --slot:#0f1318;
     --gap:16px; --slot-size:100px;              /* desktop/base slot size */
     --gold-soft:#d9b36a; --ice-soft:#8a9fb5; --btnclr:#0f1318;
-    --design-max: 500px;                        /* max layout width */
+    --design-max: 1100px;                       /* allow two-column layout */
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -48,11 +48,21 @@
   .stat.coins{ color:var(--gold-soft); }
   .stat.mana{ color:var(--ice-soft); }
 
-  /* Column layout */
+  /* ===== Two-column Board layout ===== */
   .main{
-    display:flex; flex-direction:column; gap:var(--gap);
-    margin-top:16px; align-items:center; flex-wrap:nowrap;
+    display:grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+    gap: var(--gap);
+    margin-top:16px;
+    align-items:start;
     width:100%;
+  }
+  .leftCol{
+    display:grid;
+    gap: var(--gap);
+  }
+  .rightCol{
+    display:block;
   }
 
   /* Cards follow container width; no fixed/min widths that would overflow phones */
@@ -146,7 +156,10 @@
   /* Delivery panel mount for travel.js */
   .travel-mount{ width:100%; display:block; }
 
-  /* ===== Phone fit: shrink slots so 4-wide always fits viewport ===== */
+  /* ===== Phone fit: stack columns and shrink slots so 4-wide always fits viewport ===== */
+  @media (max-width: 900px){
+    .main{ grid-template-columns: 1fr; }
+  }
   @media (max-width: 500px){
     :root{ --slot-size: calc((100vw - 36px - 28px) / 4); }  /* 36 = gaps, 28 = paddings */
     .wrap{ width:100vw; }
@@ -170,50 +183,55 @@
 
     <!-- Board -->
     <div class="main" id="board">
-      <!-- wizardKnight (merged) -->
-      <section class="card wizardKnight" aria-label="wizardKnight">
-        <div class="wk-row">
-          <!-- Column 1: Portal slot + Activate -->
-          <div class="vstack" aria-label="Package Portal section">
-            <div class="subhead">Package Portal</div>
-            <div class="slot" id="portal-slot" aria-label="Portal slot">
-              <div class="placeholder">empty</div>
+      <!-- LEFT column: Wizard/Knight + Inventory -->
+      <div class="leftCol">
+        <!-- wizardKnight (merged) -->
+        <section class="card wizardKnight" aria-label="wizardKnight">
+          <div class="wk-row">
+            <!-- Column 1: Portal slot + Activate -->
+            <div class="vstack" aria-label="Package Portal section">
+              <div class="subhead">Package Portal</div>
+              <div class="slot" id="portal-slot" aria-label="Portal slot">
+                <div class="placeholder">empty</div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+              </div>
             </div>
-            <div class="actions">
-              <button class="btn" id="btn-activate" type="button">Activate (15 Mana)</button>
+
+            <!-- Column 2: Knight header + slot + Begin -->
+            <div class="vstack" aria-label="Knight section">
+              <div class="subhead">Package Knight</div>
+              <div class="knight-slot" aria-label="Knight slot">
+                <div class="placeholder">no package</div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+              </div>
             </div>
           </div>
+        </section>
 
-          <!-- Column 2: Knight header + slot + Begin -->
-          <div class="vstack" aria-label="Knight section">
-            <div class="subhead">Package Knight</div>
-            <div class="knight-slot" aria-label="Knight slot">
-              <div class="placeholder">no package</div>
-            </div>
-            <div class="actions">
-              <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
-            </div>
+        <!-- Inventory -->
+        <section class="card inv" aria-label="Inventory">
+          <div class="subhead">Inventory</div>
+          <div class="grid">
+            <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
+            <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <!-- Inventory -->
-      <section class="card inv" aria-label="Inventory">
-        <div class="subhead">Inventory</div>
-        <div class="grid">
-          <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
-          <div class="inv-slot" aria-label="Inventory slot 4"><div class="placeholder">empty</div></div>
-        </div>
-      </section>
-
-      <!-- Delivery -->
-      <section class="card delivery" aria-label="Delivery">
-        <div class="subhead">Delivery</div>
-        <!-- travel.js mounts here -->
-        <div id="travel-mount" class="travel-mount" aria-live="polite"></div>
-      </section>
+      <!-- RIGHT column: Delivery -->
+      <div class="rightCol">
+        <section class="card delivery" aria-label="Delivery">
+          <div class="subhead">Delivery</div>
+          <!-- travel.js mounts here -->
+          <div id="travel-mount" class="travel-mount" aria-live="polite"></div>
+        </section>
+      </div>
     </div>
   </div>
 
