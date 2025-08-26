@@ -1,8 +1,7 @@
-// assassin.js  — ES module
+// travel.js — ES module (embedded panel version)
 // Usage:
-//   import { createAssassinGame } from './assassin.js';
+//   import { createAssassinGame } from './travel.js';
 //   const game = createAssassinGame({ mount: document.getElementById('someDiv') });
-//   game.newRun(); // optional; auto-starts
 
 export function createAssassinGame({
   mount,
@@ -22,15 +21,11 @@ export function createAssassinGame({
     --guard-fov-bg:#705f1a;
   }
   *{box-sizing:border-box}
-  .assassin-wrap{max-width:${boxPx}px;margin:0 auto;padding:16px;display:grid;gap:12px;color:var(--ink);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .assassin-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .assassin-h1{margin:0;font-size:18px}
-  .assassin-hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .assassin-badge{background:#11151a;border:1px solid #26313a;padding:6px 10px;border-radius:10px}
+  .assassin-wrap{max-width:${boxPx}px;margin:0 auto;padding:0;display:grid;gap:12px;color:var(--ink);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   .assassin-board{display:grid;grid-template-columns:1fr;gap:8px}
   .assassin-panel{display:inline-block}
 
-  .assassin-gridWrap{width:${boxPx}px;height:${boxPx}px}
+  .assassin-gridWrap{position:relative;width:${boxPx}px;height:${boxPx}px}
   .assassin-grid{width:100%;height:100%;white-space:normal;font-size:0;line-height:0;color:#cfe3ef}
   .assassin-cell{
     display:inline-block;
@@ -41,6 +36,33 @@ export function createAssassinGame({
     font-weight:900;font-size:calc(${boxPx}px / var(--H));
     transform-origin:center center;
   }
+
+  /* Overlays INSIDE the grid */
+  .ass-overlay-badge{
+    position:absolute;
+    top:6px;
+    z-index:2;
+  }
+  .ass-overlay-badge.left{ left:6px; }
+  .ass-overlay-badge.right{ right:6px; }
+  .assassin-badge{
+    background:rgba(17,21,26,.85);
+    border:1px solid #26313a;
+    padding:6px 10px;
+    border-radius:10px;
+    backdrop-filter:saturate(120%) blur(2px);
+  }
+
+  /* Log & controls under the grid (unchanged) */
+  .assassin-log{height:120px;overflow:hidden;border:1px solid #26313a;border-radius:10px;padding:8px;background:#11151a;margin-top:12px}
+
+  .assassin-controls{display:flex;gap:30px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .assassin-dpad{display:grid;grid-template-columns:60px 60px 60px;grid-template-rows:60px 60px 60px;gap:14px}
+  .assassin-dpad button{width:70px;height:70px}
+  .assassin-actions button{min-width:120px;height:60px;margin-bottom:60px}
+  .assassin-btn:disabled{opacity:.5;pointer-events:none;cursor:not-allowed}
+  .assassin-btn{background:black;color:white;border:2px dashed #2a3640;border-radius:10px;padding:8px 10px;cursor:pointer}
+  .assassin-btn:hover{border-color:#3a4854}
 
   /* Glow */
   .p,.e,.dest{ text-shadow:0 0 2px currentColor, 0 0 6px currentColor; }
@@ -60,40 +82,25 @@ export function createAssassinGame({
   .grass{color:#99b67a}  /* " */
   .marker{color:#e8d37b} /* H */
 
-  .assassin-log{height:120px;overflow:hidden;border:1px solid #26313a;border-radius:10px;padding:8px;background:#11151a}
-
-  .assassin-controls{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
-  .assassin-dpad{display:grid;grid-template-columns:60px 60px 60px;grid-template-rows:60px 60px 60px;gap:14px}
-  .assassin-dpad button{width:70px;height:70px}
-  .assassin-actions button{min-width:120px;height:60px;margin-bottom:60px}
-  .assassin-btn:disabled{opacity:.5;pointer-events:none;cursor:not-allowed}
-  .assassin-btn{background:black;color:white;border:2px dashed #2a3640;border-radius:10px;padding:8px 10px;cursor:pointer}
-  .assassin-btn:hover{border-color:#3a4854}
-
   .warn{color:#ff7a7a}.good{color:#9fc46b}.dim{color:#8aa2b3}
   `;
   document.head.appendChild(style);
 
-  mount.classList.add('assassin-host');
-
   const wrap = document.createElement('div');
   wrap.className = 'assassin-wrap';
   wrap.innerHTML = `
-    <div class="assassin-header">
-      <h1 class="assassin-h1">ASSASSIN</h1>
-      <div class="assassin-hud">
-        <div class="assassin-badge" id="ass-floor">Trail 1 / ${parts}</div>
-        <div class="assassin-badge" id="ass-hp">HP 8</div>
-        <button class="assassin-btn" id="ass-new">New Run</button>
-      </div>
-    </div>
-
-    <div class="assassin-log" id="ass-log" aria-live="polite"></div>
-
     <div class="assassin-board">
       <div class="assassin-panel">
-        <div class="assassin-gridWrap"><pre id="ass-grid" class="assassin-grid" aria-label="map" role="img"></pre></div>
+        <div class="assassin-gridWrap">
+          <!-- Overlays INSIDE the grid -->
+          <div class="ass-overlay-badge left"><div class="assassin-badge" id="ass-floor">Trail 1 / ${parts}</div></div>
+          <div class="ass-overlay-badge right"><div class="assassin-badge" id="ass-hp">HP 8</div></div>
+
+          <pre id="ass-grid" class="assassin-grid" aria-label="map" role="img"></pre>
+        </div>
       </div>
+
+      <div class="assassin-log" id="ass-log" aria-live="polite"></div>
 
       <div class="assassin-controls">
         <div class="assassin-dpad">
@@ -184,8 +191,7 @@ export function createAssassinGame({
       for(let x=W-borderR;x<W;x++) m[y][x] = TILES.TREE;
     }
 
-    // meandering trail bottom -> top
-    // ensure start X falls between borders
+    // meandering trail bottom -> top (start X inside borders)
     let x = rnd(Math.max(4, W - (borderL + borderR) - 4)) + borderL + 2;
     x = Math.max(borderL+2, Math.min(W-borderR-3, x));
     let y = H-2;
@@ -457,7 +463,7 @@ export function createAssassinGame({
   }
   window.addEventListener('keydown', onKeydown);
 
-  byId('ass-new')?.addEventListener('click', newRun);
+  // No "New Run" button anymore; keep programmatic API
   byId('ass-up')?.addEventListener('click', ()=>tryMove(0,-1));
   byId('ass-down')?.addEventListener('click', ()=>tryMove(0,1));
   byId('ass-left')?.addEventListener('click', ()=>tryMove(-1,0));
