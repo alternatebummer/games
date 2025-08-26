@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Log-Screen Autobattler</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#0f1318; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --gold:#d9b36a; --danger:#ff7a7a;
+    --wrap:500px; --hud:100px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    display:flex; align-items:flex-start; justify-content:center; padding:16px;
+  }
+  .app{display:flex; flex-direction:column; gap:8px; align-items:center}
+
+  .logwrap{
+    width:var(--wrap); height:var(--wrap);
+    background:var(--panel); border:1px solid #26313a; border-radius:12px;
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .hud{ position:absolute; top:8px; left:8px; right:8px; height:0; pointer-events:none; }
+  .hp-left,.hp-right{
+    position:absolute; top:6px; font-weight:600; letter-spacing:0.3px;
+    background:rgba(0,0,0,0.25); padding:4px 8px; border-radius:8px; border:1px solid #2b3944;
+  }
+  .hp-left{ left:6px } .hp-right{ right:6px }
+  .hp-val{ color:var(--gold) } .dead{ color:var(--danger) }
+
+  .scroll{ margin-top:32px; padding:10px; flex:1; overflow:auto; white-space:pre-wrap; }
+  .scroll p{ margin:0 0 6px } .round{ color:var(--accent) } .sumhdr{ color:var(--gold); margin-top:6px; }
+
+  .controls{ position:absolute; left:8px; right:8px; bottom:8px; height:0; pointer-events:none; }
+  .btn{ pointer-events:auto; user-select:none; cursor:pointer;
+    background:#12181f; color:var(--ink); border:1px solid #33414c; border-radius:10px;
+    padding:8px 10px; font-weight:600;
+  }
+  .btn:disabled{ opacity:.45; cursor:default }
+  .btn-next{ position:absolute; right:6px; bottom:6px }
+  .btn-skip{ position:absolute; left:6px; bottom:6px }
+
+  .panel{
+    width:var(--wrap); height:var(--hud);
+    background:var(--panel); border:1px solid #26313a; border-radius:12px;
+    display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center; padding:10px;
+  }
+  select, .btn-wide{
+    width:100%; background:#0e1318; color:var(--ink);
+    border:1px solid #33414c; border-radius:8px; padding:8px; font:inherit;
+  }
+  .btn-wide{ font-weight:700 }
+  .tiny{ font-size:12px; color:var(--muted) }
+  .tag{ display:inline-block; padding:0 6px; border:1px solid #33414c; border-radius:999px; margin-left:6px; font-size:12px; color:var(--muted) }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logwrap" id="logwrap">
+    <div class="hud">
+      <div class="hp-left" id="hpL">—</div>
+      <div class="hp-right" id="hpR">—</div>
+    </div>
+    <div class="scroll" id="log"></div>
+    <div class="controls">
+      <button class="btn btn-skip" id="skipBtn" disabled>Skip ⏩</button>
+      <button class="btn btn-next" id="nextBtn">Start Battle ▶</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div>
+      <label class="tiny">Combatant 1</label>
+      <select id="c1"></select>
+    </div>
+    <div>
+      <label class="tiny">Combatant 2</label>
+      <select id="c2"></select>
+    </div>
+    <button class="btn-wide" id="resetBtn" title="Reset and clear the log">Reset</button>
+  </div>
+
+  <div class="tiny">
+    Rules in play
+    <span class="tag">Parry: negates + stuns (cannot be countered)</span>
+    <span class="tag">Counter: immediate riposte (can be countered)</span>
+    <span class="tag">Block: halves damage (can be countered)</span>
+    <span class="tag">Hidden: cannot be targeted</span>
+    <span class="tag">Poison: 1 dmg at start of next 3 rounds</span>
+  </div>
+</div>
+
+<script>
+/* ===== Utilities ===== */
+const r = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+const chance = p => Math.random()<p;
+const el = id => document.getElementById(id);
+function logLine(html){ const sc=el('log'); const p=document.createElement('p'); p.innerHTML=html; sc.appendChild(p); sc.scrollTop=sc.scrollHeight; }
+function logRoundHeader(n,starter){ logLine(`<span class="round">— Round ${n} —</span> <i>${starter.name} goes first.</i>`); }
+
+/* ===== Base State ===== */
+function baseState(){
+  return {
+    stunTicks:0,    // >0 means stunned (can’t act OR defend)
+    hidden:false,
+    poisonTicks:0,  // counts remaining START-of-round ticks
+    bloodLust:0,
+    regenTicks:0,
+    poised:false,
+    queuedCounter:0
+  };
+}
+
+/* ===== Combatant factories ===== */
+const BLUEPRINTS = {
+  "Knight": () => ({
+    name:"Knight", maxHP:12, hp:12, potions:1, crit:0.15, counterDmg:2,
+    def:{ parry:0.10, counter:0.10, block:0.10 },
+    state: baseState(),
+    decide(me, foe){
+      if(me.potions>0 && me.hp<5){ me.potions--; me.hp = Math.min(me.maxHP, me.hp+5); return {type:"potion"}; }
+      if(me.hp<10 && chance(0.20)) return {type:"flourish"};
+      if(chance(0.10)) return {type:"double"};
+      return {type:"heavy"};
+    },
+    act(me, foe){
+      const crit = chance(me.crit);
+      if(this.intent.type==="heavy"){
+        let dmg=r(3,5); if(crit) dmg*=2;
+        return attackDef({ label:"Heavy Strike", dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="double"){
+        let a=r(1,3), b=r(3,5); let dmg=a+b; if(crit) dmg*=2;
+        return attackDef({ label:"Sidearm Assisted Strike", dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="flourish"){
+        let dmg=r(1,5)+2; const stunned = chance(0.30); if(crit) dmg*=2;
+        return attackDef({ label:"Improvised Flourish", dmg, blockable:true, crit, stun:stunned });
+      }
+      if(this.intent.type==="potion"){ return { kind:"potion", text:"Knight drinks <b>Health Potion</b> <i>(recovers +5HP)</i>." }; }
+    }
+  }),
+
+  "Goblin Sapper": () => ({
+    name:"Goblin Sapper", maxHP:8, hp:8, potions:1, crit:0.10, counterDmg:2,
+    def:{ parry:0.10, counter:0.10, block:0.10 },
+    state: baseState(),
+    decide(me,foe){
+      if(me.potions>0 && me.state.bloodLust<=0 && me.hp<=5){ me.potions--; me.state.bloodLust=3; return {type:"blood"}; }
+      if(me.hp===1 && chance(0.50)) return {type:"bomb"};
+      return {type:"claws"};
+    },
+    act(me,foe){
+      const crit = chance(me.crit);
+      if(this.intent.type==="claws"){
+        let base = 1 + r(1,2) + r(1,2);
+        let dmg = base + (me.state.bloodLust>0?2:0);
+        if(crit) dmg*=2;
+        const bl = me.state.bloodLust>0 ? " <i>(Blood Lust: +2DMG)</i>" : "";
+        return attackDef({ label:"Razor Claws"+bl, dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="bomb"){
+        let dmg=r(5,6) + (me.state.bloodLust>0?2:0); if(crit) dmg*=2;
+        const stunned = chance(0.10);
+        const bl = me.state.bloodLust>0 ? " <i>(Blood Lust: +2DMG)</i>" : "";
+        return attackDef({ label:"Goblin Bomb"+bl, dmg, blockable:false, crit, stun:stunned });
+      }
+      if(this.intent.type==="blood"){ return { kind:"buff", text:"Goblin drinks <b>Blood Potion</b> <i>(Blood Lust: +2DMG for 3 turns)</i>." }; }
+    }
+  }),
+
+  "Wandering Blade": () => ({
+    name:"Wandering Blade", maxHP:8, hp:8, potions:1, crit:0.20, counterDmg:4,
+    def:{ parry:0.15, counter:0.15, block:0.15 },
+    state: baseState(),
+    decide(me,foe){
+      if(me.potions>0 && me.state.regenTicks===0 && me.hp<=4){ me.potions--; me.state.regenTicks=2; return {type:"regen"}; }
+      if(!me.state.poised && chance(0.40)) return {type:"charge"};
+      if(me.state.poised) return {type:"strike"};
+      return {type:"slash"};
+    },
+    act(me,foe){
+      const crit = chance(me.crit);
+      if(this.intent.type==="slash"){
+        let dmg=r(1,5); if(crit) dmg*=2;
+        return attackDef({ label:"Lucky Slash", dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="charge"){
+        me.state.poised=true;
+        return { kind:"stance", text:"Blade adjusts stance and prepares a <b>Poised Slash</b>..." };
+      }
+      if(this.intent.type==="strike"){
+        me.state.poised=false;
+        let dmg=r(4,8); if(crit) dmg*=2;
+        return attackDef({ label:"Poised Slash", dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="regen"){ return { kind:"buff", text:"Blade drinks <b>Regen Potion</b> <i>(+2HP @ End of Turn for 2 Rounds)</i>." }; }
+    }
+  }),
+
+  "Knave": () => ({
+    name:"Knave", maxHP:7, hp:7, potions:0, crit:0.15, counterDmg:2,
+    def:{ parry:0.15, counter:0.20, block:0.05 },
+    state: baseState(),
+    decide(me,foe){
+      if(me.state.hidden){
+        if(chance(0.25)) return {type:"snipe"};
+      }
+      if(!foe.state.poison && chance(0.20)) return {type:"needle"};
+      return {type:"shank"};
+    },
+    act(me,foe){
+      const crit = chance(me.crit);
+      if(this.intent.type==="shank"){
+        let dmg=r(2,4); if(crit) dmg*=2;
+        me.state.hidden=false;
+        return attackDef({ label:"Shank", dmg, blockable:true, crit, stun:false });
+      }
+      if(this.intent.type==="needle"){
+        let dmg=r(1,2); if(crit) dmg*=2;
+        me.state.hidden=false;
+        return attackDef({ label:"Poison Needle", dmg, blockable:true, crit, stun:false, inflictPoison:true });
+      }
+      if(this.intent.type==="snipe"){
+        let dmg=r(5,7); if(crit) dmg*=2;
+        me.state.hidden=false;
+        return attackDef({ label:"Snipe", dmg, blockable:true, crit, stun:false });
+      }
+    }
+  })
+};
+
+/* ===== Attack & Defense Core ===== */
+function attackDef({label,dmg,blockable,crit,stun,inflictPoison}){
+  return { kind:"attack", label, dmg, blockable, crit:!!crit, stun:!!stun, inflictPoison:!!inflictPoison };
+}
+
+// Atomic strike resolution with immediate counter; block & counter can be countered; parry cannot.
+function resolveStrike(attacker, defender, atk, sourceTag="attack"){
+  // Hidden target: miss outright
+  if(defender.state.hidden){
+    logLine(`${attacker.name} uses <b>${atk.label}</b>, but the target is <b>hidden</b>!`);
+    return false;
+  }
+
+  // Defender stunned → cannot parry/block/counter
+  if(!(atk.blockable) || defender.state.stunTicks>0){
+    const taken = Math.max(0, atk.dmg);
+    defender.hp = Math.max(0, defender.hp - taken);
+    let tail = "";
+    if(!atk.blockable) tail += "(unblockable) ";
+    if(atk.crit) tail += `<i>(crit!)</i> `;
+    if(atk.stun){ defender.state.stunTicks = Math.max(defender.state.stunTicks, 2); tail += `<i>(stunned)</i>`; }
+    if(atk.inflictPoison && defender.hp>0){ defender.state.poisonTicks = 3; tail += `<i>(poisoned)</i>`; }
+    logLine(`${attacker.name} uses <b>${atk.label}</b> → ${defender.name} takes <b>${taken}</b> ${tail}`);
+    return (defender.hp<=0 || attacker.hp<=0);
+  }
+
+  // ----- Blockable & defender not stunned: roll defenses -----
+  // Parry first (cannot be countered)
+  if(chance(defender.def.parry)){
+    attacker.state.stunTicks = Math.max(attacker.state.stunTicks, 2); // immediate + next round
+    logLine(`${attacker.name} uses <b>${atk.label}</b> — <b>${defender.name} parries!</b> ${attacker.name} is <b>stunned</b>.`);
+    return false;
+  }
+
+  // Counter & Block can both happen (order doesn't matter for logging)
+  const didCounter = chance(defender.def.counter);
+  const didBlock   = chance(defender.def.block);
+
+  // Compute damage + blocked amount for prefix note
+  const reduced    = didBlock ? Math.ceil(atk.dmg/2) : atk.dmg;
+  const blockedAmt = didBlock ? (atk.dmg - reduced) : 0;
+
+  // Apply hit
+  const taken = Math.max(0, reduced);
+  defender.hp = Math.max(0, defender.hp - taken);
+
+  let tail = "";
+  if(atk.crit) tail += ` <i>(crit!)</i>`;
+  if(atk.stun){ defender.state.stunTicks = Math.max(defender.state.stunTicks, 2); tail += ` <i>(stunned)</i>`; }
+  if(atk.inflictPoison && defender.hp>0){ defender.state.poisonTicks = 3; tail += ` <i>(poisoned)</i>`; }
+
+  const prefixNote = didBlock ? ` <i>(Blocked, -${blockedAmt}DMG)</i>` : "";
+  logLine(`${attacker.name} uses <b>${atk.label}</b>${prefixNote} → ${defender.name} takes <b>${taken}</b> ${tail}`);
+
+  // Immediate counter if rolled and defender survived
+  if(didCounter && defender.hp>0){
+    const critC = chance(defender.crit);
+    const cdmg  = defender.counterDmg * (critC?2:1);
+    const counterAtk = attackDef({ label:"Counter", dmg:cdmg, blockable:true, crit:critC, stun:false });
+    resolveStrike(defender, attacker, counterAtk, "counter");
+  }
+
+  return (defender.hp<=0 || attacker.hp<=0);
+}
+
+/* ===== Battle engine ===== */
+function createCombatant(name){ return BLUEPRINTS[name](); }
+function setupBattle(aName,bName){
+  const A=createCombatant(aName), B=createCombatant(bName);
+  return { A,B, round:0, over:false, starter:'A' };
+}
+function hpText(c){ return `${c.name}: <span class="hp-val">${c.hp}</span> / ${c.maxHP}`; }
+function updateHUD(state){
+  el('hpL').innerHTML = hpText(state.A);
+  el('hpR').innerHTML = hpText(state.B);
+  el('hpL').classList.toggle('dead', state.A.hp<=0);
+  el('hpR').classList.toggle('dead', state.B.hp<=0);
+}
+
+function startOfRoundStatuses(state){
+  for(const c of [state.A, state.B]){
+    if(c.hp<=0) continue;
+    if(c.state.poisonTicks>0){
+      c.hp = Math.max(0, c.hp-1);
+      logLine(`${c.name} suffers <b>1</b> poison damage.`);
+      c.state.poisonTicks--;
+    }
+  }
+}
+
+function endOfRoundStatuses(state){
+  for(const c of [state.A,state.B]){
+    if(c.state.regenTicks>0 && c.hp>0){
+      c.hp = Math.min(c.maxHP, c.hp+2);
+      c.state.regenTicks--;
+      logLine(`${c.name} regenerates <b>+2HP</b>.`);
+    }
+  }
+  for(const c of [state.A,state.B]){
+    if(c.state.bloodLust>0){
+      c.state.bloodLust--;
+      if(c.state.bloodLust===0){ logLine(`${c.name}'s <b>Blood Lust</b> fades.`); }
+    }
+  }
+}
+
+function doRound(state){
+  if(state.over) return true;
+  state.round++;
+
+  // Decide initiative for this round using persistent toggle
+  const starter = state.starter === 'A' ? state.A : state.B;
+  const follower = state.starter === 'A' ? state.B : state.A;
+  const order = [starter, follower];
+
+  // 1) Announce the round (who goes first)
+  logRoundHeader(state.round, order[0]);
+
+  // 2) Start-of-round effects (poison)
+  startOfRoundStatuses(state);
+  updateHUD(state);
+
+  // Early death check
+  if(state.A.hp<=0 || state.B.hp<=0){
+    state.over=true;
+    const winner = state.A.hp>0?state.A:state.B;
+    const loser  = state.A.hp>0?state.B:state.A;
+    logLine(`<span class="sumhdr">Battle Over — Winner: <b>${winner.name}</b>; Loser: <b>${loser.name}</b>.</span>`);
+    return true;
+  }
+
+  // 3) Actions (always let both actors attempt; stunned actors just skip)
+  const foeOf = c => (c===state.A?state.B:state.A);
+  for(const actor of order){
+    const foe = foeOf(actor);
+    if(state.over) break;
+    if(actor.hp<=0) continue;
+
+    if(actor.state.stunTicks>0){
+      logLine(`${actor.name} is <b>stunned</b> and skips a turn!`);
+      continue;  // IMPORTANT: only this actor skips; follower still acts
+    }
+
+    actor.intent = actor.decide(actor,foe);
+    const res = actor.act(actor,foe);
+    if(!res) continue;
+
+    if(res.kind==="potion"){ logLine(res.text || `${actor.name} drinks a <b>Potion</b>.`); continue; }
+    if(res.kind==="buff"||res.kind==="stance"){ logLine(res.text); continue; }
+
+    if(res.kind==="attack"){
+      const ended = resolveStrike(actor, foe, res, "attack");
+      if(ended){ state.over=true; break; }
+    }
+  }
+
+  // 4) End-of-round statuses & stun tick-down
+  endOfRoundStatuses(state);
+  for(const c of [state.A, state.B]){
+    if(c.state.stunTicks>0) c.state.stunTicks--;
+  }
+
+  updateHUD(state);
+
+  if(state.A.hp<=0 || state.B.hp<=0){
+    state.over=true;
+    const winner = state.A.hp>0?state.A:state.B;
+    const loser  = state.A.hp>0?state.B:state.A;
+    logLine(`<span class="sumhdr">Battle Over — Winner: <b>${winner.name}</b>; Loser: <b>${loser.name}</b>.</span>`);
+    return true;
+  }
+
+  // Flip starter for next round (alternation persists regardless of stuns)
+  state.starter = state.starter === 'A' ? 'B' : 'A';
+  return false;
+}
+
+/* ===== UI wiring ===== */
+const c1Sel = el('c1');
+const c2Sel = el('c2');
+const nextBtn = el('nextBtn');
+const skipBtn = el('skipBtn');
+const resetBtn = el('resetBtn');
+const scrollArea = el('log');
+
+const NAMES = Object.keys(BLUEPRINTS);
+for(const name of NAMES){
+  const o1=document.createElement('option'); o1.value=name; o1.textContent=name; c1Sel.appendChild(o1);
+  const o2=document.createElement('option'); o2.value=name; o2.textContent=name; c2Sel.appendChild(o2);
+}
+c1Sel.value="Knight";
+c2Sel.value="Goblin Sapper";
+
+let battle = setupBattle(c1Sel.value, c2Sel.value);
+updateHUD(battle);
+logLine("Select combatants below and press <b>Start Battle</b>.");
+
+function resetBattle(clearLog=true){
+  battle = setupBattle(c1Sel.value, c2Sel.value);
+  updateHUD(battle);
+  if(clearLog){ scrollArea.innerHTML=""; }
+  logLine(`New battle: <b>${battle.A.name}</b> vs <b>${battle.B.name}</b>.`);
+  nextBtn.disabled=false; skipBtn.disabled=true; nextBtn.textContent="Start Battle ▶";
+}
+c1Sel.addEventListener('change', ()=>resetBattle(true));
+c2Sel.addEventListener('change', ()=>resetBattle(true));
+resetBtn.addEventListener('click', ()=>resetBattle(true));
+
+nextBtn.addEventListener('click', ()=>{
+  if(battle.over) return;
+  skipBtn.disabled=false;
+  nextBtn.textContent="Next Round ▶";
+  const finished = doRound(battle);
+  if(finished){ nextBtn.disabled=true; skipBtn.disabled=true; }
+});
+skipBtn.addEventListener('click', ()=>{
+  if(battle.over) return;
+  logLine(`<i>Skipping to battle summary…</i>`);
+  while(!battle.over){ doRound(battle); }
+  nextBtn.disabled=true; skipBtn.disabled=true;
+});
+</script>
+</body>
+</html>

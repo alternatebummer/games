@@ -13,7 +13,7 @@
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .wrap{max-width:500px;margin:0 auto;padding:16px;display:grid;gap:12px}
+  .wrap{max-width:500px;margin:0 auto;padding:16px;display:grid;gap:12px;font-size:14px}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   h1{margin:0;font-size:18px;color:var(--ink)}
   .hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -30,14 +30,17 @@
     white-space:normal; font-size:0; line-height:0; color:#cfe3ef;
   }
   .cell{
-    display:inline-block;
-    width:calc(500px / var(--W));
-    height:calc(500px / var(--H));
-    line-height:calc(500px / var(--H));
-    text-align:center; vertical-align:top;
-    font-weight:900; font-size:calc(500px / var(--H));
-    transform-origin:center center; /* for rotating ➤ */
-  }
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800;                 /* heavy bold for all map chars */
+  aspect-ratio: 1 / 1;             /* square cells (robust & fast) */
+  font-size: calc((var(--wrap) * 1px) / var(--w) * 0.9);
+  line-height: 1;
+  transition: opacity 80ms linear;
+  text-shadow:
+    0 0 1px currentColor,
+    0 0 3px currentColor;          /* faint glow using each tile’s own color */
+}
+
   /* Faint, color-matched glow on key glyphs */
 .p, .e, .dest {
   /* a touch stronger for actors/goal */
