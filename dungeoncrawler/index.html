@@ -50,7 +50,7 @@
   .g{color:#ff9a3a}      /* guard ➤ */
   .t{color:#5ad16a}      /* target T  */
 
-  .log{height:120px;overflow:auto}
+  .log{height:120px;overflow:hidden}
 
   /* Controls */
   .controls{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
@@ -67,6 +67,12 @@
     height:60px;
     margin-bottom:60px;
   }
+  button:disabled, .toggle input:disabled {
+  opacity: .5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 
 
   button, .toggle{background:black;color:white;border:2px dashed #2a3640;border-radius:10px;padding:8px 10px;cursor:pointer}
@@ -291,8 +297,20 @@ window.addEventListener('DOMContentLoaded', () => {
     else { log(`Infiltrating floor ${state.floor}.`, 'dim'); }
     render();
   }
+  function setUIFrozen(frozen){
+    const ids = ['btnUp','btnDown','btnLeft','btnRight','btnShuriken','btnSmoke','chkFog'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.disabled = !!frozen;
+        if (frozen) el.setAttribute('aria-disabled','true');
+        else el.removeAttribute('aria-disabled');
+      }
+    });
+  }
 
   function newRun(){
+    setUIFrozen(false);
     state.floor=1; state.hp=8; state.shuriken=2; state.smoke=1; state.smokeTurns=0; state.fog = true; state.lastDx=1; state.lastDy=0;
     const fog=document.getElementById('chkFog'); if(fog) fog.checked = true;
     if(logEl) logEl.innerHTML=''; log('A moonless night. You slip over the wall...', 'dim');
@@ -326,8 +344,21 @@ window.addEventListener('DOMContentLoaded', () => {
     render();
   }
 
-  function gameOver(msg){ log(msg, 'warn'); log('Mission failed. Press "New Run" to try again.'); state.hp=0; render(); }
-  function win(){ log('The blade finds its mark. The tyrant falls. Mission complete.', 'good'); state.hp=0; render(); }
+  function gameOver(msg){
+  setUIFrozen(true);
+  log(msg, 'warn');
+  log('Mission failed. Press "New Run" to try again.');
+  state.hp=0;
+  render();
+}
+
+function win(){
+  setUIFrozen(true);
+  log('The blade finds its mark. The tyrant falls. Mission complete.', 'good');
+  state.hp=0;
+  render();
+}
+
 
   function throwShuriken(dx,dy){
     if(state.shuriken<=0){ log('Out of shuriken.', 'dim'); return; }
