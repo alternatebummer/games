@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Star Field — Split HTML/CSS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <button id="zoomBtn">Zoom: sector</button>
+    <div class="hint">Z = toggle zoom · WASD = move sector (zoomed in) · Click star/halo for info</div>
+    <div id="sectorReadout" class="hint"></div>
+  </div>
+
+  <div class="wrap">
+    <svg id="sky" viewBox="0 0 500 500" aria-label="Star field">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+
+        <!-- Fog of War: white = fog visible, black = holes (revealed) -->
+        <mask id="fogMask">
+          <rect x="0" y="0" width="500" height="500" fill="white"></rect>
+          <g id="fogHoles"></g>
+        </mask>
+      </defs>
+
+      <!-- draw order: grid under edges under halos under stars under labels under fog -->
+      <g id="grid"></g>
+      <g id="edges"></g>
+      <g id="halos"></g>
+      <g id="stars"></g>
+      <g id="labels"></g>
+
+      <!-- fog on top (fully opaque except where mask cuts holes) -->
+      <rect id="fogRect" x="0" y="0" width="500" height="500"
+            fill="#000" opacity="1" mask="url(#fogMask)" style="pointer-events:none"></rect>
+    </svg>
+
+    <!-- Star overlay -->
+    <div id="overlayStar" class="overlay">
+      <div class="panel">
+        <h2>Star System</h2>
+        <div id="starInfo"></div>
+        <div id="planetButtons" class="planet-list"></div>
+        <button class="close" id="closeStar">Close</button>
+      </div>
+    </div>
+
+    <!-- Planet overlay -->
+    <div id="overlayPlanet" class="overlay">
+      <div class="panel">
+        <h2>Planet</h2>
+        <div id="planetInfo"></div>
+        <button class="close" id="closePlanet">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===== Constants =====
+  const SIZE = 500, N = 50;
+  const MIN_DIST = 30, HALO_RADIUS = 12, CONNECTIONS = 2;
+  const GRID_DIVS = 3, SECTOR = SIZE / GRID_DIVS;
+  const PLANET_COLORS = ['red','#5a9bd8','green','yellow','white','brown'];
+  const FOV_RADIUS = 25; // 50px diameter visibility at home
+
+  // ===== DOM =====
+  const svg            = document.getElementById('sky');
+  const gridLayer      = document.getElementById('grid');
+  const edgesLayer     = document.getElementById('edges');
+  const halosLayer     = document.getElementById('halos');
+  const starsLayer     = document.getElementById('stars');
+  const labelsLayer    = document.getElementById('labels');
+  const fogHolesGroup  = document.getElementById('fogHoles');
+
+  const overlayStar    = document.getElementById('overlayStar');
+  const starInfoEl     = document.getElementById('starInfo');
+  const planetButtons  = document.getElementById('planetButtons');
+  const overlayPlanet  = document.getElementById('overlayPlanet');
+  const planetInfoEl   = document.getElementById('planetInfo');
+  const closeStarBtn   = document.getElementById('closeStar');
+  const closePlanetBtn = document.getElementById('closePlanet');
+  const zoomBtn        = document.getElementById('zoomBtn');
+  const sectorReadout  = document.getElementById('sectorReadout');
+
+  const CLASSES = [
+    {name:'Red (largest)',   color:'#d74a4a', radius:2.6},
+    {name:'Amber',           color:'#d9b36a', radius:2.2},
+    {name:'Grey',            color:'#b5bcc5', radius:1.8},
+    {name:'Blue',            color:'#5a9bd8', radius:1.5},
+    {name:'White (smallest)',color:'#e6e6e6', radius:1.2},
+  ];
+
+  // ===== State =====
+  let stars = [];   // {id,x,y,clsIndex,home?,planets:[]}
+  let distMat, outTo;
+  let sector = { c: 0, r: 0 };
+  let homeStarId = -1;
+
+  // ===== Utils =====
+  const rng = (()=>{ let s=(Date.now()^0x9e3779b9)>>>0; return ()=> (s=(s*1664525+1013904223)>>>0)/4294967296; })();
+  const rnd = (min,max)=> min + rng()*(max-min);
+  const clamp = (n,min,max)=> Math.max(min, Math.min(max,n));
+  const chance = p => rng() < p;
+  function weightedPick(items){
+    let sum=0; for(const [,w] of items) sum+=w;
+    let t=rng()*sum;
+    for(const [v,w] of items){ if((t-=w)<=0) return v; }
+    return items.at(-1)[0];
+  }
+
+  // ===== Generation =====
+  function generateStars(){
+    stars = [];
+    for(let i=0;i<N;i++){
+      let x,y,ok=false,tries=0;
+      while(!ok && tries<3000){
+        x = rnd(20, SIZE-20);
+        y = rnd(20, SIZE-20);
+        ok = stars.every(s => Math.hypot(s.x-x, s.y-y) >= MIN_DIST);
+        tries++;
+      }
+      const clsIndex = (rng()*CLASSES.length)|0;
+      stars.push({ id:i, x, y, clsIndex, planets:[] });
+    }
+  }
+  function computeDistances(){
+    distMat = new Float32Array(N*N);
+    for(let i=0;i<N;i++){
+      for(let j=i;j<N;j++){
+        const d = i===j?0:Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
+        distMat[i*N+j]=distMat[j*N+i]=d;
+      }
+    }
+  }
+  function buildConnections(){
+    outTo = Array.from({length:N}, ()=>[]);
+    const hasEdge = (from,to)=> outTo[from].includes(to);
+    for(let i=0;i<N;i++){
+      const cand = [];
+      for(let j=0;j<N;j++){ if(j!==i) cand.push([j, distMat[i*N+j]]); }
+      cand.sort((a,b)=>a[1]-b[1]);
+      for(const [j] of cand){
+        if(outTo[i].length >= CONNECTIONS) break;
+        if(!hasEdge(j,i)) outTo[i].push(j);
+      }
+    }
+  }
+
+  function starsInSector(c,r){
+    const x0=c*SECTOR, y0=r*SECTOR, x1=x0+SECTOR, y1=y0+SECTOR;
+    return stars.filter(s => s.x>=x0 && s.x<x1 && s.y>=y0 && s.y<y1);
+  }
+  function pickStartingSectorAndHome(){
+    let tries=20, found=false;
+    while(tries--){
+      const c=(rng()*GRID_DIVS)|0, r=(rng()*GRID_DIVS)|0;
+      const list = starsInSector(c,r);
+      if(list.length){
+        sector.c=c; sector.r=r;
+        homeStarId = list[(rng()*list.length)|0].id;
+        stars[homeStarId].home = true;
+        found=true; break;
+      }
+    }
+    if(!found){
+      const s = stars[(rng()*stars.length)|0];
+      homeStarId = s.id; s.home=true;
+      sector.c=Math.floor(s.x/SECTOR); sector.r=Math.floor(s.y/SECTOR);
+    }
+  }
+
+  function generatePlanets(){
+    for(const s of stars){
+      const count = weightedPick([[0,1],[1,4],[2,4],[3,4],[4,3],[5,2],[6,1],[7,1],[8,1],[9,1]]);
+      s.planets = [];
+      for(let i=0;i<count;i++){
+        const color = PLANET_COLORS[(rng()*PLANET_COLORS.length)|0];
+        const size  = weightedPick([['small',3],['medium',5],['large',2]]);
+        const habitability = weightedPick([['haunted',1],['inhospitable',5],['hospitable',3],['ideal',1]]);
+        const ring = chance(0.20);
+        const moons = weightedPick([[0,1],[1,4],[2,3],[3,2],[4,1],[5,1],[6,1],[7,1]]);
+        s.planets.push({ color, size, habitability, ring, moons, homeworld:false });
+      }
+    }
+    const hs = stars[homeStarId];
+    if(hs.planets.length===0){
+      hs.planets.push({ color:'green', size:'medium', habitability:'ideal', ring:false, moons:1, homeworld:true });
+    }else{
+      let ideal = hs.planets.find(p=>p.habitability==='ideal');
+      if(!ideal){ ideal = hs.planets[(rng()*hs.planets.length)|0]; ideal.habitability='ideal'; }
+      ideal.homeworld = true;
+    }
+  }
+
+  // ===== Rendering =====
+  function drawGrid(){
+    let html='';
+    for(let k=1;k<GRID_DIVS;k++){
+      const p=k*SECTOR;
+      html += `<line x1="${p}" y1="0" x2="${p}" y2="${SIZE}" stroke="#2b3641" stroke-width="1" filter="url(#glow)"></line>`;
+      html += `<line x1="0" y1="${p}" x2="${SIZE}" y2="${p}" stroke="#2b3641" stroke-width="1" filter="url(#glow)"></line>`;
+    }
+    gridLayer.innerHTML = html;
+  }
+  function drawEdges(){
+    let html='';
+    for(let i=0;i<N;i++){
+      for(const j of outTo[i]){
+        html += `<line x1="${stars[i].x}" y1="${stars[i].y}" x2="${stars[j].x}" y2="${stars[j].y}"
+                  stroke="#2d2411" stroke-dasharray="4 3" filter="url(#glow)"></line>`;
+      }
+    }
+    edgesLayer.innerHTML = html;
+  }
+  function drawHalosAndStars(){
+    halosLayer.innerHTML=''; starsLayer.innerHTML=''; labelsLayer.innerHTML='';
+    for(const s of stars){
+      const cls = CLASSES[s.clsIndex];
+      halosLayer.innerHTML +=
+        `<circle cx="${s.x}" cy="${s.y}" r="${HALO_RADIUS}" fill="transparent"
+                 stroke="#4f4622" stroke-dasharray="3 3" stroke-width="0.6"
+                 filter="url(#glow)" data-id="${s.id}"></circle>`;
+      const star = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      star.setAttribute('cx',s.x); star.setAttribute('cy',s.y);
+      star.setAttribute('r',cls.radius); star.setAttribute('fill',cls.color);
+      star.setAttribute('filter','url(#glow)'); star.dataset.id=s.id;
+      if(s.home){
+        star.setAttribute('stroke','#9fc46b'); star.setAttribute('stroke-width','1');
+        labelsLayer.innerHTML += `<text x="${s.x+6}" y="${s.y-6}" fill="#ffd84d" font-size="10" filter="url(#glow)">H</text>`;
+      }
+      starsLayer.appendChild(star);
+    }
+  }
+
+  // ===== Fog of War =====
+  function addFogHole(cx,cy,r){ fogHolesGroup.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="black"></circle>`; }
+  function initFog(){
+    fogHolesGroup.innerHTML='';
+    const home = stars[homeStarId];
+    addFogHole(home.x, home.y, FOV_RADIUS);
+  }
+
+  // ===== Camera / Zoom =====
+  function setViewToSector(c,r){
+    sector.c=clamp(c,0,GRID_DIVS-1); sector.r=clamp(r,0,GRID_DIVS-1);
+    svg.setAttribute('viewBox', `${sector.c*SECTOR} ${sector.r*SECTOR} ${SECTOR} ${SECTOR}`);
+    zoomBtn.textContent='Zoom: sector'; updateReadout(true);
+  }
+  function setViewWhole(){ svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`); zoomBtn.textContent='Zoom: whole'; updateReadout(false); }
+  function isZoomedIn(){ const [,,w,h]=svg.getAttribute('viewBox').split(' ').map(Number); return w!==SIZE||h!==SIZE; }
+  function toggleZoom(){ isZoomedIn()? setViewWhole() : setViewToSector(sector.c, sector.r); }
+  function updateReadout(zin=isZoomedIn()){ sectorReadout.textContent = zin ? `Viewing sector (${sector.c+1},${sector.r+1})` : `Viewing: whole map`; }
+
+  // ===== Overlays =====
+  function showStarOverlay(id){
+    const s=stars[id], cls=CLASSES[s.clsIndex];
+    const secC=Math.floor(s.x/SECTOR), secR=Math.floor(s.y/SECTOR);
+    starInfoEl.innerHTML = `
+      <div><strong>Star ID:</strong> ${s.id} ${s.home?'<span class="pill">HOME STAR</span>':''}</div>
+      <div><strong>Class:</strong> ${cls.name}</div>
+      <div><strong>Coords:</strong> (${s.x.toFixed(1)}, ${s.y.toFixed(1)})</div>
+      <div><strong>Sector:</strong> (${secC+1},${secR+1})</div>
+      <div><strong>Planets:</strong> ${s.planets.length}</div>
+    `;
+    planetButtons.innerHTML = s.planets.length
+      ? s.planets.map((p,idx)=>{
+          const tag = p.homeworld ? ' · <span class="pill">HOMEWORLD</span>' : '';
+          return `<button class="pbtn" data-star="${s.id}" data-planet="${idx}">
+                    <span class="swatch" style="background:${p.color}"></span>
+                    P${idx+1} — ${p.size}, ${p.habitability}${p.ring?' (ringed)':''}${tag}
+                  </button>`;
+        }).join('')
+      : `<div class="hint">No planets in this system.</div>`;
+    overlayStar.classList.add('active');
+  }
+  function showPlanetOverlay(starId, planetIdx){
+    const s=stars[starId], p=s.planets[planetIdx];
+    planetInfoEl.innerHTML = `
+      <div><strong>System:</strong> Star ${starId} ${s.home?'<span class="pill">HOME STAR</span>':''}</div>
+      <div><strong>Planet:</strong> P${planetIdx+1} ${p.homeworld?'<span class="pill">HOMEWORLD</span>':''}</div>
+      <div><strong>Color:</strong> <span class="swatch" style="background:${p.color}"></span> ${p.color}</div>
+      <div><strong>Size:</strong> ${p.size}</div>
+      <div><strong>Habitability:</strong> ${p.habitability}</div>
+      <div><strong>Rings:</strong> ${p.ring?'yes':'no'}</div>
+      <div><strong>Moons:</strong> ${p.moons} (grey)</div>
+    `;
+    overlayPlanet.classList.add('active');
+  }
+
+  // ===== Events =====
+  halosLayer.addEventListener('click', e=>{ const t=e.target; if(t && t.dataset.id) showStarOverlay(+t.dataset.id); });
+  starsLayer.addEventListener('click', e=>{ if(e.target.dataset.id) showStarOverlay(+e.target.dataset.id); });
+  planetButtons.addEventListener('click', e=>{
+    const t=e.target.closest('button.pbtn'); if(!t) return;
+    showPlanetOverlay(+t.dataset.star, +t.dataset.planet);
+  });
+  closeStarBtn.onclick=()=> overlayStar.classList.remove('active');
+  closePlanetBtn.onclick=()=> overlayPlanet.classList.remove('active');
+  zoomBtn.onclick = toggleZoom;
+  window.addEventListener('keydown', e=>{
+    const k=e.key.toLowerCase();
+    if(k==='z') toggleZoom();
+    if(!isZoomedIn()) return;
+    if(k==='a') setViewToSector(sector.c-1, sector.r);
+    if(k==='d') setViewToSector(sector.c+1, sector.r);
+    if(k==='w') setViewToSector(sector.c, sector.r-1);
+    if(k==='s') setViewToSector(sector.c, sector.r+1);
+  });
+
+  // ===== Boot =====
+  function init(){
+    generateStars(); computeDistances(); buildConnections();
+    pickStartingSectorAndHome(); generatePlanets();
+    drawGrid(); drawEdges(); drawHalosAndStars();
+    initFog();
+    setViewToSector(sector.c, sector.r);
+  }
+  init();
+})();
+</script>
+</body>
+</html>
