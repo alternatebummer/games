@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Star Field — Split HTML/CSS</title>
+  <title>Star Field — Turn & Resources</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -10,6 +10,7 @@
     <button id="zoomBtn">Zoom: sector</button>
     <div class="hint">Z = toggle zoom · WASD = move sector (zoomed in) · Click star/halo for info</div>
     <div id="sectorReadout" class="hint"></div>
+    <div id="resourceReadout" class="hint" style="margin-left:auto"></div>
   </div>
 
   <div class="wrap">
@@ -27,35 +28,60 @@
         </mask>
       </defs>
 
-      <!-- draw order: grid under edges under halos under stars under labels under fog -->
+      <!-- draw order -->
       <g id="grid"></g>
       <g id="edges"></g>
       <g id="halos"></g>
       <g id="stars"></g>
       <g id="labels"></g>
 
-      <!-- fog on top (fully opaque except where mask cuts holes) -->
+      <!-- fog (fully opaque except where mask cuts holes) -->
       <rect id="fogRect" x="0" y="0" width="500" height="500"
             fill="#000" opacity="1" mask="url(#fogMask)" style="pointer-events:none"></rect>
     </svg>
+  </div>
 
-    <!-- Star overlay -->
-    <div id="overlayStar" class="overlay">
-      <div class="panel">
-        <h2>Star System</h2>
-        <div id="starInfo"></div>
-        <div id="planetButtons" class="planet-list"></div>
-        <button class="close" id="closeStar">Close</button>
-      </div>
+  <!-- Turn controls -->
+  <div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-top:8px;">
+    <button id="endTurnBtn">End Turn</button>
+    <div id="turnReadout" class="hint"></div>
+  </div>
+
+  <!-- Star overlay -->
+  <div id="overlayStar" class="overlay">
+    <div class="panel">
+      <h2>Star System</h2>
+      <div id="starInfo"></div>
+      <div id="planetButtons" class="planet-list"></div>
+      <button class="close" id="closeStar">Close</button>
     </div>
+  </div>
 
-    <!-- Planet overlay -->
-    <div id="overlayPlanet" class="overlay">
-      <div class="panel">
-        <h2>Planet</h2>
-        <div id="planetInfo"></div>
-        <button class="close" id="closePlanet">Close</button>
-      </div>
+  <!-- Planet overlay -->
+  <div id="overlayPlanet" class="overlay">
+    <div class="panel">
+      <h2>Planet</h2>
+      <div id="planetInfo"></div>
+      <div id="planetActions"></div>
+      <button class="close" id="closePlanet">Close</button>
+    </div>
+  </div>
+
+  <!-- Shipyard overlay -->
+  <div id="overlayShipyard" class="overlay">
+    <div class="panel">
+      <h2 id="shipyardTitle">Shipyard</h2>
+      <div id="shipyardBody"></div>
+      <button class="close" id="closeShipyard">Close</button>
+    </div>
+  </div>
+
+  <!-- Message overlay (reports) -->
+  <div id="overlayMsg" class="overlay">
+    <div class="panel">
+      <h2>Report</h2>
+      <div id="msgBody"></div>
+      <button class="close" id="closeMsg">Close</button>
     </div>
   </div>
 
@@ -66,7 +92,18 @@
   const MIN_DIST = 30, HALO_RADIUS = 12, CONNECTIONS = 2;
   const GRID_DIVS = 3, SECTOR = SIZE / GRID_DIVS;
   const PLANET_COLORS = ['red','#5a9bd8','green','yellow','white','brown'];
-  const FOV_RADIUS = 25; // 50px diameter visibility at home
+
+  // Resources & turns
+  const START_RESOURCES = 1000;
+  const BASE_INCOME_PER_TURN = 500;
+
+  // Shipyard settings
+  const BUILD_MAX_QUEUE = 5;
+  const HANGER_MAX = 20;
+  const VESSELS = {
+    probe:   { label: 'Probe',           buildTurns: 1, deployTurns: 1, cost: 200 },
+    cruiser: { label: 'Research Cruiser', buildTurns: 3, deployTurns: 1, cost: 0 } // scaffold for later
+  };
 
   // ===== DOM =====
   const svg            = document.getElementById('sky');
@@ -80,12 +117,28 @@
   const overlayStar    = document.getElementById('overlayStar');
   const starInfoEl     = document.getElementById('starInfo');
   const planetButtons  = document.getElementById('planetButtons');
+
   const overlayPlanet  = document.getElementById('overlayPlanet');
   const planetInfoEl   = document.getElementById('planetInfo');
+  const planetActions  = document.getElementById('planetActions');
+
+  const overlayShipyard= document.getElementById('overlayShipyard');
+  const shipyardTitle  = document.getElementById('shipyardTitle');
+  const shipyardBody   = document.getElementById('shipyardBody');
+
+  const overlayMsg     = document.getElementById('overlayMsg');
+  const msgBody        = document.getElementById('msgBody');
+
   const closeStarBtn   = document.getElementById('closeStar');
   const closePlanetBtn = document.getElementById('closePlanet');
+  const closeShipyardBtn= document.getElementById('closeShipyard');
+  const closeMsgBtn    = document.getElementById('closeMsg');
+
   const zoomBtn        = document.getElementById('zoomBtn');
   const sectorReadout  = document.getElementById('sectorReadout');
+  const resourceReadout= document.getElementById('resourceReadout');
+  const turnReadout    = document.getElementById('turnReadout');
+  const endTurnBtn     = document.getElementById('endTurnBtn');
 
   const CLASSES = [
     {name:'Red (largest)',   color:'#d74a4a', radius:2.6},
@@ -96,10 +149,24 @@
   ];
 
   // ===== State =====
-  let stars = [];   // {id,x,y,clsIndex,home?,planets:[]}
+  let stars = [];   // {id,x,y,clsIndex,home?,planets:[{..., homeworld?}]}
   let distMat, outTo;
   let sector = { c: 0, r: 0 };
   let homeStarId = -1;
+
+  // Resources & turn state
+  let resources = START_RESOURCES;
+  let turn = 1;
+
+  // Fog of war (home reveal radius)
+  let homeFovRadius = 25; // starts as 25px (diameter 50px)
+
+  // Shipyard per-type state (turn-based)
+  // queue: array of integers (turns remaining per item)
+  const shipyard = {
+    probe:   { queue: [], hanger: 0, deploying: false, deployLeft: 0 },
+    cruiser: { queue: [], hanger: 0, deploying: false, deployLeft: 0 }
+  };
 
   // ===== Utils =====
   const rng = (()=>{ let s=(Date.now()^0x9e3779b9)>>>0; return ()=> (s=(s*1664525+1013904223)>>>0)/4294967296; })();
@@ -112,6 +179,7 @@
     for(const [v,w] of items){ if((t-=w)<=0) return v; }
     return items.at(-1)[0];
   }
+  const fmtTurns = t => `${t}t`;
 
   // ===== Generation =====
   function generateStars(){
@@ -123,6 +191,11 @@
         y = rnd(20, SIZE-20);
         ok = stars.every(s => Math.hypot(s.x-x, s.y-y) >= MIN_DIST);
         tries++;
+      }
+      if(!ok){
+        const last = stars.at(-1) ?? {x:SIZE/2,y:SIZE/2};
+        x = clamp(last.x + MIN_DIST, 20, SIZE-20);
+        y = clamp(last.y + MIN_DIST, 20, SIZE-20);
       }
       const clsIndex = (rng()*CLASSES.length)|0;
       stars.push({ id:i, x, y, clsIndex, planets:[] });
@@ -238,11 +311,11 @@
   }
 
   // ===== Fog of War =====
-  function addFogHole(cx,cy,r){ fogHolesGroup.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="black"></circle>`; }
-  function initFog(){
+  function setHomeFogRadius(r){
+    homeFovRadius = r;
     fogHolesGroup.innerHTML='';
     const home = stars[homeStarId];
-    addFogHole(home.x, home.y, FOV_RADIUS);
+    fogHolesGroup.innerHTML += `<circle cx="${home.x}" cy="${home.y}" r="${homeFovRadius}" fill="black"></circle>`;
   }
 
   // ===== Camera / Zoom =====
@@ -254,7 +327,11 @@
   function setViewWhole(){ svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`); zoomBtn.textContent='Zoom: whole'; updateReadout(false); }
   function isZoomedIn(){ const [,,w,h]=svg.getAttribute('viewBox').split(' ').map(Number); return w!==SIZE||h!==SIZE; }
   function toggleZoom(){ isZoomedIn()? setViewWhole() : setViewToSector(sector.c, sector.r); }
-  function updateReadout(zin=isZoomedIn()){ sectorReadout.textContent = zin ? `Viewing sector (${sector.c+1},${sector.r+1})` : `Viewing: whole map`; }
+  function updateReadout(zin=isZoomedIn()){
+    sectorReadout.textContent = zin ? `Viewing sector (${sector.c+1},${sector.r+1})` : `Viewing: whole map`;
+    resourceReadout.textContent = `Resources: ${resources}r`;
+    turnReadout.textContent = `Turn ${turn}`;
+  }
 
   // ===== Overlays =====
   function showStarOverlay(id){
@@ -278,8 +355,10 @@
       : `<div class="hint">No planets in this system.</div>`;
     overlayStar.classList.add('active');
   }
+
   function showPlanetOverlay(starId, planetIdx){
     const s=stars[starId], p=s.planets[planetIdx];
+    const isHomeworld = !!p.homeworld;
     planetInfoEl.innerHTML = `
       <div><strong>System:</strong> Star ${starId} ${s.home?'<span class="pill">HOME STAR</span>':''}</div>
       <div><strong>Planet:</strong> P${planetIdx+1} ${p.homeworld?'<span class="pill">HOMEWORLD</span>':''}</div>
@@ -289,7 +368,181 @@
       <div><strong>Rings:</strong> ${p.ring?'yes':'no'}</div>
       <div><strong>Moons:</strong> ${p.moons} (grey)</div>
     `;
+
+    if(isHomeworld){
+      planetActions.innerHTML = `
+        <div class="planet-list" style="margin-top:10px">
+          <button class="pbtn" data-vessel="probe">
+            <span class="swatch" style="background:#9fb6ff"></span> Shipyard — ${VESSELS.probe.label}
+          </button>
+          <button class="pbtn" data-vessel="cruiser" disabled title="Coming soon">
+            <span class="swatch" style="background:#ffd29f"></span> Shipyard — ${VESSELS.cruiser.label}
+          </button>
+        </div>
+      `;
+    } else {
+      planetActions.innerHTML = `<div class="hint">No shipyard facilities here.</div>`;
+    }
+
     overlayPlanet.classList.add('active');
+
+    planetActions.querySelectorAll('button.pbtn').forEach(btn=>{
+      btn.onclick = ()=>{
+        const type = btn.dataset.vessel;
+        openShipyardOverlay(type);
+      };
+    });
+  }
+
+  // ===== Shipyard UI & Logic =====
+  function openShipyardOverlay(type){
+    const v = VESSELS[type];
+    shipyardTitle.textContent = `Shipyard — ${v.label}`;
+    renderShipyard(type);
+    overlayShipyard.classList.add('active');
+  }
+
+  function renderShipyard(type){
+    const st = shipyard[type];
+    const v  = VESSELS[type];
+
+    const canBuild = st.queue.length < BUILD_MAX_QUEUE && resources >= v.cost && st.hanger < HANGER_MAX;
+    const canDeploy = type==='probe' && st.hanger > 0 && !shipyard.probe.deploying;
+
+    shipyardBody.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div><strong>Build time:</strong> ${fmtTurns(v.buildTurns)} · <strong>Deploy time:</strong> ${fmtTurns(v.deployTurns)} · <strong>Cost:</strong> ${v.cost}r</div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+          <button class="pbtn" id="buildBtn" ${canBuild?'':'disabled'}>
+            Build (${st.queue.length}/${BUILD_MAX_QUEUE})
+          </button>
+          <div class="pill">Queue items complete at the start of the next turn.</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+          <button class="pbtn" id="hangerBtn" disabled>
+            hanger (${st.hanger}/${HANGER_MAX})
+          </button>
+          <button class="pbtn" id="deployBtn" ${canDeploy?'':'disabled'}>
+            Deploy ${v.label} (${fmtTurns(v.deployTurns)})
+          </button>
+          <div class="pill" id="deployPill">${st.deploying ? 'Deploying: ' + fmtTurns(st.deployLeft) : 'Ready'}</div>
+        </div>
+        <div class="hint">Only one probe may be deploying at a time.</div>
+      </div>
+    `;
+
+    document.getElementById('buildBtn').onclick = ()=> queueBuild(type);
+    document.getElementById('deployBtn').onclick = ()=> startDeployProbe();
+  }
+
+  function queueBuild(type){
+    const st = shipyard[type];
+    const v  = VESSELS[type];
+    if (st.queue.length >= BUILD_MAX_QUEUE) return;
+    if (st.hanger >= HANGER_MAX) return;
+    if (resources < v.cost) return;
+
+    resources -= v.cost;
+    st.queue.push(v.buildTurns); // each item takes v.buildTurns; resolves on End Turn
+    updateReadout();
+
+    // if the overlay shows this type, refresh it
+    if (overlayShipyard.classList.contains('active') &&
+        shipyardTitle.textContent.includes(VESSELS[type].label)) {
+      renderShipyard(type);
+    }
+  }
+
+  function startDeployProbe(){
+    const st = shipyard.probe;
+    const v  = VESSELS.probe;
+    if (st.deploying || st.hanger <= 0) return;
+    st.hanger -= 1;
+    st.deploying = true;
+    st.deployLeft = v.deployTurns;
+
+    if (overlayShipyard.classList.contains('active') &&
+        shipyardTitle.textContent.includes(VESSELS.probe.label)) {
+      renderShipyard('probe');
+    }
+    updateReadout();
+  }
+
+  function completeDeployProbe(){
+    const beforeR = homeFovRadius;
+    const afterR  = homeFovRadius * 2; // +100%
+    // count newly revealed planets (stars that cross the ring)
+    const home = stars[homeStarId];
+    let newlyDiscoveredPlanets = 0;
+    for (const s of stars){
+      const d = Math.hypot(s.x - home.x, s.y - home.y);
+      if (d <= afterR && d > beforeR){
+        newlyDiscoveredPlanets += s.planets.length;
+      }
+    }
+    // apply new radius
+    setHomeFogRadius(afterR);
+
+    // report
+    if (newlyDiscoveredPlanets > 0){
+      showMsg(`Homeworld Probe Report: Planets discovered. Recommendation: Prepare Research Cruiser for survey.`);
+    } else {
+      showMsg(`Homeworld Probe Report: No significant data recorded.`);
+    }
+  }
+
+  // ===== Turn engine =====
+  function processTurn(){
+    // Income first (resolved at the beginning of a new turn)
+    resources += BASE_INCOME_PER_TURN;
+
+    // Shipyard production resolves: each queued item ticks 1 turn
+    for (const key of Object.keys(shipyard)){
+      const st = shipyard[key];
+      if (st.queue.length){
+        // decrement all items by 1
+        const newQueue = [];
+        let completed = 0;
+        for (let t of st.queue){
+          t -= 1;
+          if (t <= 0) completed++;
+          else newQueue.push(t);
+        }
+        st.queue = newQueue;
+
+        // move completed to hanger (respect cap)
+        const room = Math.max(0, HANGER_MAX - st.hanger);
+        const toAdd = Math.min(room, completed);
+        st.hanger += toAdd;
+        // extra completions beyond hanger cap are discarded for now
+      }
+    }
+
+    // Deployment progress
+    if (shipyard.probe.deploying){
+      shipyard.probe.deployLeft -= 1;
+      if (shipyard.probe.deployLeft <= 0){
+        shipyard.probe.deploying = false;
+        shipyard.probe.deployLeft = 0;
+        completeDeployProbe();
+      }
+    }
+
+    // Advance turn counter
+    turn += 1;
+
+    // Refresh UI overlays if open
+    if (overlayShipyard.classList.contains('active')){
+      const type = shipyardTitle.textContent.includes('Probe') ? 'probe' : 'cruiser';
+      renderShipyard(type);
+    }
+    updateReadout();
+  }
+
+  // ===== Message overlay =====
+  function showMsg(html){
+    msgBody.innerHTML = html;
+    overlayMsg.classList.add('active');
   }
 
   // ===== Events =====
@@ -299,9 +552,15 @@
     const t=e.target.closest('button.pbtn'); if(!t) return;
     showPlanetOverlay(+t.dataset.star, +t.dataset.planet);
   });
-  closeStarBtn.onclick=()=> overlayStar.classList.remove('active');
-  closePlanetBtn.onclick=()=> overlayPlanet.classList.remove('active');
+
+  closeStarBtn.onclick     = ()=> overlayStar.classList.remove('active');
+  closePlanetBtn.onclick   = ()=> overlayPlanet.classList.remove('active');
+  closeShipyardBtn.onclick = ()=> overlayShipyard.classList.remove('active');
+  closeMsgBtn.onclick      = ()=> overlayMsg.classList.remove('active');
+
   zoomBtn.onclick = toggleZoom;
+  endTurnBtn.onclick = processTurn;
+
   window.addEventListener('keydown', e=>{
     const k=e.key.toLowerCase();
     if(k==='z') toggleZoom();
@@ -317,8 +576,9 @@
     generateStars(); computeDistances(); buildConnections();
     pickStartingSectorAndHome(); generatePlanets();
     drawGrid(); drawEdges(); drawHalosAndStars();
-    initFog();
+    setHomeFogRadius(homeFovRadius);
     setViewToSector(sector.c, sector.r);
+    updateReadout();
   }
   init();
 })();

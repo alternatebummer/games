@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ASCII Planet + Moons</title>
+<style>
+  :root{
+    --bg:#0b0e12; --ink:#cfe3ef;
+    --red:#ff6b6b; --blue:#6bb1ff; --yellow:#ffd166;
+    --forest:#2c6a3f; --amber:#d9b36a; --ice:#a997e8;
+    --bluegrey:#4c80a8; --eggshell:#f5e5b5; --dullpink:#d0929e;
+    --orange:#ff9a57; --bluetan:#a7b8c2; --seafoam:#7fd8c6; --teal:#2aa198;
+    --col-core: var(--blue); --col-mantle: var(--forest); --col-speck: var(--bluegrey);
+    --accent:#d9b36a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:16px;
+  }
+
+  .container{
+    width:400px; height:400px;
+    display:flex; align-items:center; justify-content:center;
+    background:#12161b; border:2px dashed var(--accent); border-radius:12px;
+    overflow:hidden; position:relative;
+  }
+  .screen{width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
+  pre{margin:0; white-space:pre; line-height:1; letter-spacing:-.6px;}
+  pre span{text-shadow:0 0 6px currentColor,0 0 12px currentColor;}
+
+  .menu{width:400px; display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .container.btn{
+    width:100%; height:56px; cursor:pointer; border:2px dashed var(--accent);
+    display:flex; align-items:center; justify-content:center; background:#12161b; border-radius:12px;
+    color:var(--accent);
+    text-shadow:0 0 6px currentColor, 0 0 12px currentColor;
+  }
+  .container.btn:hover{background:#1c232d}
+
+  .overlay{
+    position:absolute; top:8px; left:8px; width:215px; height:44px;
+    background:#000; color:var(--accent);
+    border:none; border-radius:6px;
+    display:flex; align-items:flex-start; justify-content:flex-start;
+    padding:0px; line-height:1.2; letter-spacing:0;
+    text-shadow:none;
+    font-size:12px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="screen">
+      <pre id="screen"></pre>
+    </div>
+    <div class="overlay">
+      Planet: Fauna I (Homeworld)<br>
+      Species: Glecht<br>
+      Production: +200r, +50w per turn
+    </div>
+  </div>
+
+  <div class="menu">
+    <button class="container btn">Governance</button>
+    <button class="container btn">Astrometrics</button>
+    <button class="container btn">Research</button>
+    <button class="container btn">Shipyard</button>
+  </div>
+
+<script>
+(() => {
+  const COLS=80, ROWS=32, aspectY=2.0;
+  const starDensity=0.06, starChars="·:+*";
+  const planetSizes=[{r:6},{r:7.5},{r:9.5}];
+  const planet=planetSizes[Math.floor(Math.random()*planetSizes.length)];
+  const ring={enabled:Math.random()<0.2,r:planet.r+4,thickness:0.8,tilt:0.5,char:"-",rot:Math.random()*Math.PI*2};
+  const baseOrbit=Math.round(planet.r)+10;
+  const moons=[{rOrbit:baseOrbit,glyphs:["o",".","·"],speed:1.0}];
+  if(Math.random()<0.5)moons.push({rOrbit:baseOrbit+8,glyphs:["O","0","."],speed:0.45});
+  if(Math.random()<0.33)moons.push({rOrbit:baseOrbit+4,glyphs:["0","o","."],speed:-0.7});
+
+  const root=document.documentElement,pick=a=>a[Math.floor(Math.random()*a.length)];
+  root.style.setProperty('--col-core',`var(${pick(["--red","--blue","--yellow"])})`);
+  root.style.setProperty('--col-mantle',`var(${pick(["--forest","--amber","--ice"])})`);
+  root.style.setProperty('--col-speck',`var(${pick(["--bluegrey","--eggshell","--dullpink"])})`);
+
+  const ringPaletteA=["var(--orange)","var(--ice)","var(--bluetan)"];
+  const ringPaletteB=["var(--bluegrey)","var(--seafoam)","var(--teal)"];
+
+  const size=COLS*ROWS;
+  const buf=new Array(size).fill(" "),bg=new Array(size).fill(" ");
+  const ringMask=new Array(size).fill(false),ringColorMap=new Array(size).fill("");
+  const cx=Math.floor(COLS/2),cy=Math.floor(ROWS/2);
+
+  let seed=1337;
+  function rand(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return Math.abs(seed%1e6)/1e6}
+
+  function buildStars(){
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+      const i=y*COLS+x;
+      bg[i]=rand()<starDensity?starChars[Math.floor(rand()*starChars.length)]:" ";
+    }
+  }
+
+  function put(x,y,ch){if(x<0||y<0||x>=COLS||y>=ROWS)return;buf[y*COLS+x]=ch;}
+
+  function drawPlanet(){
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+      const dx=x-cx,dy=(y-cy)*aspectY,d=Math.hypot(dx,dy);
+      if(d<=planet.r){
+        const nx=dx/(planet.r+1e-4),ny=dy/(planet.r+1e-4);
+        const light=(-0.8*nx-0.6*ny);
+        let ch;
+        if(d>planet.r-1)ch="#";
+        else if(light>0.4)ch="@";
+        else if(light>0.2)ch="O";
+        else if(light>0.0)ch="0";
+        else if(light>-0.2)ch="o";
+        else if(light>-0.4)ch=".";
+        else ch=",";
+        put(x,y,ch);
+      }
+    }
+  }
+
+  function buildRingMaskAndColors(){
+    if(!ring.enabled)return;
+    const R=ring.r,T=ring.thickness,tilt=ring.tilt;
+    const cosR=Math.cos(ring.rot),sinR=Math.sin(ring.rot);
+    const indices=[];
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+      const rx=x-cx,ry=(y-cy)*aspectY;
+      const ux=rx*cosR-ry*sinR,uy=rx*sinR+ry*cosR;
+      const dist=Math.hypot(ux,uy*(1-tilt));
+      if(dist>R-T&&dist<R+T&&Math.hypot(rx,ry)>planet.r+0.2){
+        const i=y*COLS+x;ringMask[i]=true;indices.push(i);
+      }
+    }
+    for(let a=indices.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[indices[a],indices[b]]=[indices[b],indices[a]];}
+    const half=Math.floor(indices.length/2);
+    for(const i of indices.slice(0,half))ringColorMap[i]=pick(ringPaletteA);
+    for(const i of indices.slice(half))ringColorMap[i]=pick(ringPaletteB);
+  }
+
+  function drawRing(){if(!ring.enabled)return;for(let i=0;i<size;i++)if(ringMask[i])buf[i]=ring.char;}
+
+  function drawMoonAt(theta,m){
+    const x=cx+Math.cos(theta)*m.rOrbit,y=cy+Math.sin(theta)*(m.rOrbit/aspectY);
+    const mx=Math.round(x),my=Math.round(y),g=m.glyphs;
+    const blob=[{dx:0,dy:0,ch:g[0]},{dx:1,dy:0,ch:g[1]},{dx:0,dy:1,ch:g[2]},{dx:-1,dy:0,ch:g[1]},{dx:0,dy:-1,ch:g[2]}];
+    for(const p of blob)put(mx+p.dx,my+p.dy,p.ch);
+  }
+  function drawMoons(theta){for(const m of moons)drawMoonAt(theta*m.speed,m);}
+
+  function clear(){for(let i=0;i<size;i++)buf[i]=bg[i];}
+
+  function colorForChar(ch,i){
+    if(ch==='@'||ch==='O')return getVar('--col-core');
+    if(ch==='#'||ch==='0'||ch==='o')return getVar('--col-mantle');
+    if(ch==='.'||ch===',')return getVar('--col-speck');
+    if(ch==='-'&&ringColorMap[i])return ringColorMap[i];
+    return '';
+  }
+  function getVar(n){return getComputedStyle(root).getPropertyValue(n).trim();}
+
+  const pre=document.getElementById("screen");
+  let t0=performance.now(),theta=0;
+
+  function frame(now){
+    const dt=(now-t0)/1000;t0=now;theta+=dt;
+    clear();drawPlanet();drawRing();drawMoons(theta);
+    let out="";
+    for(let y=0;y<ROWS;y++){
+      for(let x=0;x<COLS;x++){
+        const i=y*COLS+x,ch=buf[i],col=colorForChar(ch,i);
+        out+=col?`<span style="color:${col}">${ch}</span>`:ch;
+      }
+      if(y<ROWS-1)out+="\n";
+    }
+    pre.innerHTML=out;
+    requestAnimationFrame(frame);
+  }
+
+  buildStars();buildRingMaskAndColors();
+  pre.textContent=Array.from({length:ROWS},_=>" ".repeat(COLS)).join("\n");
+  requestAnimationFrame(t=>{t0=t;frame(t)});
+})();
+</script>
+</body>
+</html>
