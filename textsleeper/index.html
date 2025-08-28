@@ -22,53 +22,98 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:16px;
   }
 
+  .stage{position:relative; width:400px; height:400px}
+
   .container{
     width:400px; height:400px;
     display:flex; align-items:center; justify-content:center;
     background:#12161b; border:2px dashed var(--accent); border-radius:12px;
-    overflow:hidden; position:relative;
+    overflow:hidden;
   }
-  .screen{width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
-  pre{margin:0; white-space:pre; line-height:1; letter-spacing:-.6px;}
-  pre span{text-shadow:0 0 6px currentColor,0 0 12px currentColor;}
 
-  .menu{width:400px; display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .container.btn{
-    width:100%; height:56px; cursor:pointer; border:2px dashed var(--accent);
-    display:flex; align-items:center; justify-content:center; background:#12161b; border-radius:12px;
-    color:var(--accent);
-    text-shadow:0 0 6px currentColor, 0 0 12px currentColor;
-  }
-  .container.btn:hover{background:#1c232d}
+  .screen{width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
+  pre{margin:0; white-space:pre; line-height:1.1; letter-spacing:-.6px;}
+  pre span{text-shadow:0 0 6px currentColor,0 0 12px currentColor;}
 
   .overlay{
     position:absolute; top:8px; left:8px; width:215px; height:44px;
     background:#000; color:var(--accent);
     border:none; border-radius:6px;
     display:flex; align-items:flex-start; justify-content:flex-start;
-    padding:0px; line-height:1.2; letter-spacing:0;
-    text-shadow:none;
-    font-size:12px;
+    padding:0; line-height:1.2; letter-spacing:0;
+    text-shadow:none; font-size:12px; pointer-events:none;
   }
+
+  .menu{width:400px; display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .container.btn{
+    width:100%; height:56px; cursor:pointer; border:2px dashed var(--accent);
+    display:flex; align-items:center; justify-content:center; background:#12161b; border-radius:12px;
+    color:var(--accent); font-size:14px; text-shadow:none;
+  }
+  .container.btn:hover{background:#1c232d}
+
+  .action{
+    position:absolute; inset:0; z-index:10; display:none;
+    flex-direction:column; align-items:flex-start; justify-content:flex-start;
+    padding:16px; gap:8px;
+  }
+  .action .title{color:var(--accent); font-size:16px}
+  .action .body{color:var(--ink); opacity:0.9}
+
+  .close{
+    position:absolute; right:10px; bottom:10px;
+    width:100px; height:40px;
+    display:flex; align-items:center; justify-content:center;
+    background:#12161b; border:2px dashed var(--accent); border-radius:12px;
+    color:var(--accent); font-size:14px; text-shadow:none; cursor:pointer;
+  }
+  .close:hover{background:#1c232d}
 </style>
 </head>
 <body>
-  <div class="container">
-    <div class="screen">
-      <pre id="screen"></pre>
+
+  <div class="stage">
+    <div class="container" id="animContainer">
+      <div class="screen">
+        <pre id="screen"></pre>
+      </div>
+      <div class="overlay">
+        Planet: Fauna I (Homeworld)<br>
+        Species: Glecht<br>
+        Production: +200r, +50w per turn
+      </div>
     </div>
-    <div class="overlay">
-      Planet: Fauna I (Homeworld)<br>
-      Species: Glecht<br>
-      Production: +200r, +50w per turn
+
+    <div class="container action" id="action-governance">
+      <div class="title">Governance</div>
+      <div class="body">Civics, edicts, taxation, morale, and policy queues.</div>
+      <button class="close" data-close="#action-governance">Close</button>
+    </div>
+
+    <div class="container action" id="action-astrometrics">
+      <div class="title">Astrometrics</div>
+      <div class="body">Sensors, charts, routes, anomalies, and beacons.</div>
+      <button class="close" data-close="#action-astrometrics">Close</button>
+    </div>
+
+    <div class="container action" id="action-research">
+      <div class="title">Research</div>
+      <div class="body">Projects, breakthroughs, labs, and tech trees.</div>
+      <button class="close" data-close="#action-research">Close</button>
+    </div>
+
+    <div class="container action" id="action-shipyard">
+      <div class="title">Shipyard</div>
+      <div class="body">Hull frames, refits, build queues, and logistics.</div>
+      <button class="close" data-close="#action-shipyard">Close</button>
     </div>
   </div>
 
   <div class="menu">
-    <button class="container btn">Governance</button>
-    <button class="container btn">Astrometrics</button>
-    <button class="container btn">Research</button>
-    <button class="container btn">Shipyard</button>
+    <button class="container btn" data-action="#action-governance">Governance</button>
+    <button class="container btn" data-action="#action-astrometrics">Astrometrics</button>
+    <button class="container btn" data-action="#action-research">Research</button>
+    <button class="container btn" data-action="#action-shipyard">Shipyard</button>
   </div>
 
 <script>
@@ -151,9 +196,16 @@
   function drawMoonAt(theta,m){
     const x=cx+Math.cos(theta)*m.rOrbit,y=cy+Math.sin(theta)*(m.rOrbit/aspectY);
     const mx=Math.round(x),my=Math.round(y),g=m.glyphs;
-    const blob=[{dx:0,dy:0,ch:g[0]},{dx:1,dy:0,ch:g[1]},{dx:0,dy:1,ch:g[2]},{dx:-1,dy:0,ch:g[1]},{dx:0,dy:-1,ch:g[2]}];
+    const blob=[
+      {dx:0,dy:0,ch:g[0]},
+      {dx:1,dy:0,ch:g[1]},
+      {dx:0,dy:1,ch:g[2]},
+      {dx:-1,dy:0,ch:g[1]},
+      {dx:0,dy:-1,ch:g[2]}
+    ];
     for(const p of blob)put(mx+p.dx,my+p.dy,p.ch);
   }
+
   function drawMoons(theta){for(const m of moons)drawMoonAt(theta*m.speed,m);}
 
   function clear(){for(let i=0;i<size;i++)buf[i]=bg[i];}
@@ -188,6 +240,23 @@
   buildStars();buildRingMaskAndColors();
   pre.textContent=Array.from({length:ROWS},_=>" ".repeat(COLS)).join("\n");
   requestAnimationFrame(t=>{t0=t;frame(t)});
+
+  function showAction(sel){
+    document.querySelectorAll('.action').forEach(el=>el.style.display='none');
+    const box=document.querySelector(sel);
+    if(box) box.style.display='flex';
+  }
+  function hideAction(sel){
+    const box=document.querySelector(sel);
+    if(box) box.style.display='none';
+  }
+
+  document.querySelectorAll('.menu [data-action]').forEach(btn=>{
+    btn.addEventListener('click',()=>showAction(btn.getAttribute('data-action')));
+  });
+  document.querySelectorAll('.close[data-close]').forEach(btn=>{
+    btn.addEventListener('click',()=>hideAction(btn.getAttribute('data-close')));
+  });
 })();
 </script>
 </body>
