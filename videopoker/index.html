@@ -1,463 +1,202 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Score Attack Poker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-    }
-    .game-container {
-      max-width: 700px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      margin: 10px 0;
-    }
-    .cards {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 20px 0;
-    }
-    .card {
-      width: 60px;
-      height: 90px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin: 5px;
-      line-height: 90px;
-      font-size: 24px;
-      cursor: pointer;
-      user-select: none;
-      background-color: #fff;
-      transition: transform 0.2s, background-color 0.2s, border 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.1);
-    }
-    .card.selected {
-      border: 2px solid red;
-      background-color: #ffe6e6;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    .attempts {
-      margin-top: 20px;
-      text-align: left;
-    }
-    .attempt {
-      margin-bottom: 10px;
-      border-bottom: 1px dashed #ccc;
-      padding-bottom: 5px;
-    }
-    .result {
-      font-weight: bold;
-      margin: 10px 0;
-    }
-    #controls {
-      margin: 20px 0;
-    }
-    #notification {
-      margin: 10px;
-      padding: 10px;
-      color: #fff;
-      display: none;
-      border-radius: 5px;
-    }
-    #notification.error {
-      background-color: #e74c3c;
-    }
-    #notification.success {
-      background-color: #2ecc71;
-    }
-    /* Responsive Design */
-    @media (max-width: 600px) {
-      .card {
-        width: 50px;
-        height: 75px;
-        line-height: 75px;
-        font-size: 20px;
-      }
-      .game-container {
-        padding: 10px;
-      }
-      button {
-        padding: 8px 16px;
-        font-size: 14px;
-      }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stealth Grid + Custom Deck — 8×8, Sprites & FOV</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#11161b; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a; --gold:#d9b36a;
+    --fov:#a39e5f;
+    --wrap: 920px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; align-items:center; justify-content:center; padding:16px;
+    flex-direction:column; gap:20px;
+  }
+  .app{display:flex; flex-direction:column; align-items:center; gap:20px}
+
+  .controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+  button{
+    background:var(--panel); color:var(--ink); border:1px solid #2a3540; border-radius:12px; padding:10px 12px;
+    cursor:pointer; transition:transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  button:hover{border-color:#3b4b59}
+  button:active{transform:translateY(1px)}
+
+  .grid{
+    width:600px; height:600px;
+    display:grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+    gap:2px; background:var(--panel); border:1px solid #26313a; border-radius:8px; padding:4px;
+  }
+  .cell{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid #2f3b47; color:var(--muted);
+    font-size:12px; border-radius:4px; overflow:hidden;
+  }
+  .floor{background:#b0b0b0}
+  .start{background:#6b8f71}
+  .extraction{background:#8f6b6b}
+  .wall{background:#444}
+
+  .fov{position:absolute; inset:0; background:var(--fov); opacity:.35; pointer-events:none}
+  .entity{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:56px; line-height:1; color:black; font-weight:bold}
+  .player{ z-index:3 }
+  .guard{ z-index:3 }
+
+  .table{background:transparent; border:none; padding:0}
+  .hand{display:flex; gap:14px; align-items:flex-end; justify-content:center; flex-wrap:wrap; min-height:220px}
+
+  .card{
+    width:120px; height:170px; border-radius:14px; background:#fff; color:#111;
+    border:2px solid #d6d6d6; box-shadow:0 4px 10px rgba(0,0,0,.25);
+    position:relative; user-select:none;
+    display:grid; grid-template-rows: 1fr auto 1fr; place-items:center;
+  }
+  .card.red{color:#b00020}
+  .card .rank{font-weight:700; font-size:22px}
+  .card .suit{font-size:26px}
+  .card .pips{font-size:40px; opacity:.08; letter-spacing:2px}
+  .card .corner{position:absolute; left:8px; top:6px; display:flex; flex-direction:column; align-items:center}
+  .card .corner.bottom{left:auto; right:8px; top:auto; bottom:6px; transform:rotate(180deg)}
+  .empty{width:120px; height:170px; border-radius:14px; border:2px dashed #3a4652; display:grid; place-items:center; color:var(--muted)}
+</style>
 </head>
 <body>
-  <div class="game-container">
-    <h1>Score Attack Poker</h1>
-    <div id="blind-info"></div>
-    <div id="attempt-info"></div>
-    <div class="cards" id="card-container"></div>
-    <div id="controls">
-      <button id="discard-btn">Discard Selected Cards</button>
-      <button id="finish-btn">Finish Blind</button>
+  <div class="app" id="app">
+    <div class="controls">
+      <button id="btnShuffleRedraw">Shuffle Deck & Redraw Hand</button>
     </div>
-    <div id="notification"></div>
-    <div id="message"></div>
-    <div id="attempts-summary"></div>
-    <button id="next-btn" style="display:none;">Next Blind</button>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="table">
+      <div class="hand" id="hand"></div>
+    </div>
   </div>
 
-  <script>
-    // --- Game Configuration ---
-    const blinds = [
-      { name: "Small Blind", threshold: 300 },
-      { name: "Big Blind", threshold: 450 },
-      { name: "Boss Blind", threshold: 600 }
-    ];
+<script>
+(function(){
+  const SUITS = ["𓀟","𓀅","𓀝","𓀎"]; // MOVE, BLOCK, MELEE, RANGED
+  const RANKS = ["A","2","3"];
+  const N = 8;
 
-    const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-    const suits = ["hearts", "diamonds", "clubs", "spades"];
-    const suitSymbols = {
-      "hearts": "♥",
-      "diamonds": "♦",
-      "clubs": "♣",
-      "spades": "♠"
-    };
-    const rankValues = {
-      "2": 2,
-      "3": 3,
-      "4": 4,
-      "5": 5,
-      "6": 6,
-      "7": 7,
-      "8": 8,
-      "9": 9,
-      "10": 10,
-      "J": 11,
-      "Q": 12,
-      "K": 13,
-      "A": 14
-    };
+  const state = { deck: [], discard: [], hand: [], tiles: [], start:[7,0], exit:[0,0], player:[7,0], guards:[], fov:new Set() };
 
-    // --- Game State ---
-    let currentBlindIndex = 0;
-    let currentAttempt = 1; // 3 attempts total: initial hand + 2 discards
-    let discardsRemaining = 2; // allowed discard rounds per blind
-    let attemptsResults = [];
-    let currentHand = []; // always 8 cards
-    let deck = []; // remaining deck for drawing replacements
-    let selectedIndices = new Set(); // indices of cards selected for discard
-
-    // --- DOM Elements ---
-    const blindInfoEl = document.getElementById("blind-info");
-    const attemptInfoEl = document.getElementById("attempt-info");
-    const cardContainerEl = document.getElementById("card-container");
-    const discardBtn = document.getElementById("discard-btn");
-    const finishBtn = document.getElementById("finish-btn");
-    const notificationEl = document.getElementById("notification");
-    const messageEl = document.getElementById("message");
-    const attemptsSummaryEl = document.getElementById("attempts-summary");
-    const nextBtn = document.getElementById("next-btn");
-
-    // --- Notification Helper ---
-    function showNotification(message, type = "error", duration = 3000) {
-      notificationEl.innerText = message;
-      notificationEl.className = "";
-      notificationEl.classList.add(type);
-      notificationEl.style.display = "block";
-      setTimeout(() => {
-        notificationEl.style.display = "none";
-      }, duration);
-    }
-
-    // --- Initialization ---
-    function initGame() {
-      currentBlindIndex = 0;
-      startBlind();
-    }
-
-    function startBlind() {
-      currentAttempt = 1;
-      discardsRemaining = 2;
-      attemptsResults = [];
-      selectedIndices.clear();
-      attemptsSummaryEl.innerHTML = "";
-      messageEl.innerHTML = "";
-      nextBtn.style.display = "none";
-      discardBtn.disabled = false;
-      finishBtn.disabled = false;
-
-      // Create and shuffle a new deck; deal 8 cards for the hand
-      deck = createDeck();
-      shuffle(deck);
-      currentHand = deck.splice(0, 8);
-
-      updateBlindInfo();
-      updateAttemptInfo();
-      renderCards();
-
-      // Record the initial hand as attempt 1
-      recordCurrentAttempt();
-    }
-
-    function updateBlindInfo() {
-      const blind = blinds[currentBlindIndex];
-      blindInfoEl.innerHTML = `<h2>${blind.name} (Threshold: ${blind.threshold})</h2>`;
-    }
-
-    function updateAttemptInfo() {
-      attemptInfoEl.innerHTML = `<p>Attempt ${currentAttempt} of 3 | Discards remaining: ${discardsRemaining}</p>
-      <p>(Select up to 5 cards to discard, then click "Discard Selected Cards")</p>`;
-    }
-
-    // --- Deck & Hand Generation ---
-    function createDeck() {
-      let deck = [];
-      for (let suit of suits) {
-        for (let rank of ranks) {
-          deck.push({ rank: rank, suit: suit, value: rankValues[rank] });
-        }
-      }
-      return deck;
-    }
-
-    // Fisher-Yates shuffle
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+  const el = (sel)=> document.querySelector(sel);
+  const key = (r,c)=> `${r},${c}`;
+  const inBounds = (r,c)=> r>=0 && c>=0 && r<N && c<N;
+  const cheb = (a,b)=> Math.max(Math.abs(a[0]-b[0]), Math.abs(a[1]-b[1]));
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+  function freshDeck(){
+    const deck=[];
+    for(const s of SUITS){
+      for(const r of RANKS){
+        deck.push({id:`${r}${s}`,rank:r,suit:s});
       }
     }
+    return shuffle(deck);
+  }
+  function ensureDrawCapacity(n){ if(state.deck.length>=n) return; if(!state.discard.length) return; state.deck.push(...state.discard); state.discard.length=0; shuffle(state.deck); }
 
-    // --- Render Cards ---
-    function renderCards() {
-      cardContainerEl.innerHTML = "";
-      currentHand.forEach((card, index) => {
-        const cardDiv = document.createElement("div");
-        cardDiv.className = "card";
-        cardDiv.dataset.index = index;
-        cardDiv.innerText = card.rank + suitSymbols[card.suit];
-        if (selectedIndices.has(index)) {
-          cardDiv.classList.add("selected");
-        }
-        cardDiv.addEventListener("click", () => toggleSelect(index));
-        cardContainerEl.appendChild(cardDiv);
-      });
-    }
-
-    function toggleSelect(index) {
-      // Toggle card selection for discard.
-      if (selectedIndices.has(index)) {
-        selectedIndices.delete(index);
-      } else {
-        // Limit selection to 5 cards maximum.
-        if (selectedIndices.size >= 5) {
-          showNotification("You can select up to 5 cards only.", "error");
-          return;
-        }
-        selectedIndices.add(index);
-      }
-      renderCards();
-    }
-
-    // --- Attempt Recording & Evaluation ---
-    // Evaluates the current 8-card hand by finding the best 5-card combination.
-    function recordCurrentAttempt() {
-      const evalResult = getBestHandFromHand(currentHand);
-      attemptsResults.push({
-        attempt: currentAttempt,
-        evaluation: evalResult,
-        handSnapshot: currentHand.slice() // copy of current hand
-      });
-      displayAttemptResult(currentAttempt, evalResult);
-    }
-
-    function displayAttemptResult(attemptNumber, evalResult) {
-      const attemptDiv = document.createElement("div");
-      attemptDiv.className = "attempt";
-      attemptDiv.innerHTML = `<strong>Attempt ${attemptNumber}:</strong> Best 5-card hand: ${handToString(evalResult.bestHand)}<br>
-        Hand Type: ${evalResult.handType} (Base Score: ${evalResult.baseScore})<br>
-        Average Rank: ${evalResult.averageRank.toFixed(2)}<br>
-        Total Score: ${evalResult.totalScore.toFixed(2)}`;
-      attemptsSummaryEl.appendChild(attemptDiv);
-    }
-
-    // --- Discard & Draw Mechanism ---
-    discardBtn.addEventListener("click", () => {
-      if (selectedIndices.size === 0) {
-        showNotification("Please select some cards to discard.", "error");
-        return;
-      }
-      // Replace each selected card with a new one from the deck.
-      selectedIndices.forEach(index => {
-        if (deck.length > 0) {
-          currentHand[index] = deck.shift();
-        }
-      });
-      // Clear selection for the next attempt.
-      selectedIndices.clear();
-      discardsRemaining--;
-      currentAttempt++;
-      updateAttemptInfo();
-      renderCards();
-      recordCurrentAttempt();
-      if (discardsRemaining <= 0) {
-        discardBtn.disabled = true;
-      }
+  const handEl = el('#hand');
+  function renderHand(){
+    handEl.innerHTML='';
+    state.hand.forEach(card=>{
+      const d=document.createElement('div'); d.className='card';
+      const tl=document.createElement('div'); tl.className='corner'; tl.innerHTML=`<div class=\"rank\">${card.rank}</div><div class=\"suit\">${card.suit}</div>`;
+      const ct=document.createElement('div'); ct.className='pips'; ct.textContent=card.suit.repeat(3);
+      const br=document.createElement('div'); br.className='corner bottom'; br.innerHTML=`<div class=\"rank\">${card.rank}</div><div class=\"suit\">${card.suit}</div>`;
+      d.appendChild(tl); d.appendChild(ct); d.appendChild(br);
+      handEl.appendChild(d);
     });
-
-    // --- Finish Blind (Lock in current hand) ---
-    finishBtn.addEventListener("click", () => {
-      finalizeBlind();
-    });
-
-    function finalizeBlind() {
-      // Determine best attempt among all recorded attempts.
-      const bestAttempt = attemptsResults.reduce((prev, curr) => {
-        return (prev.evaluation.totalScore > curr.evaluation.totalScore) ? prev : curr;
-      });
-      const blind = blinds[currentBlindIndex];
-      let resultMsg = `<p class="result">Best Score this Blind: ${bestAttempt.evaluation.totalScore.toFixed(2)}</p>`;
-      if (bestAttempt.evaluation.totalScore >= blind.threshold) {
-        resultMsg += `<p class="result">You beat the ${blind.name}!</p>`;
-      } else {
-        resultMsg += `<p class="result">You did not beat the ${blind.name}. Better luck next time!</p>`;
-      }
-      messageEl.innerHTML = resultMsg;
-      nextBtn.style.display = "inline-block";
-      discardBtn.disabled = true;
-      finishBtn.disabled = true;
-      // Disable further card selection.
-      document.querySelectorAll(".card").forEach(card => {
-        card.style.pointerEvents = "none";
-      });
+    for(let i=state.hand.length;i<4;i++){
+      const e=document.createElement('div'); e.className='empty'; e.textContent='— empty —'; handEl.appendChild(e);
     }
+  }
+  function dealNewHand(){ state.hand.length=0; ensureDrawCapacity(4); while(state.hand.length<4 && state.deck.length){ state.hand.push(state.deck.pop()); } renderHand(); }
+  function shuffleDeckAndRedraw(){ state.deck.push(...state.hand, ...state.discard); state.hand.length=0; state.discard.length=0; shuffle(state.deck); dealNewHand(); }
 
-    // --- Evaluate Hands ---
-    // Get best evaluation from any 5-card combination within the given hand.
-    function getBestHandFromHand(cards) {
-      const combinations = getCombinations(cards, 5);
-      let bestEval = null;
-      combinations.forEach(combo => {
-        const evalResult = evaluateHand(combo);
-        if (!bestEval || evalResult.totalScore > bestEval.totalScore) {
-          bestEval = evalResult;
-          bestEval.bestHand = combo;
-        }
-      });
-      return bestEval;
+  function generateTiles(){
+    state.tiles = Array.from({length:N},()=>Array.from({length:N},()=> 'floor'));
+    for(let i=0;i<N;i++){ state.tiles[0][i]='wall'; state.tiles[N-1][i]='wall'; state.tiles[i][0]='wall'; state.tiles[i][N-1]='wall'; }
+    const basePattern = [[2,1],[2,2],[2,4],[2,5],[3,2],[3,5],[4,5],[5,2],[5,3],[5,5]];
+    const rot = Math.floor(Math.random()*4);
+    const rotate=([r,c])=> rot===1?[c,N-1-r]: rot===2?[N-1-r,N-1-c]: rot===3?[N-1-c,r]: [r,c];
+    for(const [r,c] of basePattern.map(rotate)){ state.tiles[r][c]='wall'; }
+    const randCol = ()=> Math.floor(Math.random()*(N-2))+1;
+    const startCol = randCol(); const exitCol = randCol();
+    state.start = [7,startCol]; state.exit=[0,exitCol];
+    state.tiles[state.start[0]][state.start[1]]='floor';
+    state.tiles[state.exit[0]][state.exit[1]]='floor';
+    state.player = [...state.start];
+    state.guards = [];
+    const isGoodGuardSpot = (r,c)=> state.tiles[r][c]==='floor' && cheb([r,c],state.player)>2 && cheb([r,c],state.exit)>2 && state.guards.every(g=> cheb([r,c],g)>2);
+    let safety=0;
+    while(state.guards.length<3 && safety<200){
+      const r = Math.floor(Math.random()*N); const c = Math.floor(Math.random()*N);
+      if(isGoodGuardSpot(r,c)) state.guards.push([r,c]);
+      safety++;
     }
+    computeFOV();
+  }
 
-    // Helper: generate all combinations of k elements from an array.
-    function getCombinations(array, k) {
-      let results = [];
-      function helper(start, combo) {
-        if (combo.length === k) {
-          results.push(combo);
-          return;
-        }
-        for (let i = start; i < array.length; i++) {
-          helper(i + 1, combo.concat([array[i]]));
+  function computeFOV(){
+    state.fov = new Set();
+    for(const [gr,gc] of state.guards){
+      for(let dr=-1; dr<=1; dr++){
+        for(let dc=-1; dc<=1; dc++){
+          if(dr===0 && dc===0) continue;
+          const r=gr+dr, c=gc+dc; if(inBounds(r,c)) state.fov.add(key(r,c));
         }
       }
-      helper(0, []);
-      return results;
     }
+  }
 
-    // Evaluate a 5-card hand according to poker rules.
-    // Total Score = Base Score × Average Rank.
-    function evaluateHand(hand) {
-      // Sort card values (for checking straights)
-      const values = hand.map(card => card.value).sort((a, b) => a - b);
-      const suitsInHand = hand.map(card => card.suit);
-      const isFlush = suitsInHand.every(s => s === suitsInHand[0]);
-
-      // Check for straight
-      let isStraight = false;
-      const distinctValues = [...new Set(values)];
-      if (distinctValues.length === 5 && (values[4] - values[0] === 4)) {
-        isStraight = true;
-      }
-      // Ace-low straight check (A,2,3,4,5)
-      let aceLow = false;
-      if (JSON.stringify(values) === JSON.stringify([2,3,4,5,14])) {
-        isStraight = true;
-        aceLow = true;
-      }
-      let averageRank;
-      if (aceLow) {
-        // Treat Ace as 1 for average calculation.
-        averageRank = (2 + 3 + 4 + 5 + 1) / 5;
-      } else {
-        averageRank = values.reduce((a, b) => a + b, 0) / 5;
-      }
-
-      // Count frequencies of each card value
-      const freq = {};
-      values.forEach(v => {
-        freq[v] = (freq[v] || 0) + 1;
-      });
-      const counts = Object.values(freq).sort((a, b) => b - a);
-      const maxCount = counts[0];
-
-      // Determine hand type
-      if (isStraight && isFlush) {
-        if (!aceLow && Math.min(...values) === 10) {
-          return { handType: "Royal Flush", baseScore: 1000, averageRank, totalScore: 1000 * averageRank };
+  function renderGrid(){
+    const gridEl = el('#grid'); gridEl.innerHTML='';
+    for(let r=0;r<N;r++){
+      for(let c=0;c<N;c++){
+        const cell=document.createElement('div'); cell.className='cell';
+        const tile = state.tiles[r][c];
+        cell.classList.add(tile);
+        if(r===state.start[0] && c===state.start[1]) cell.classList.add('start');
+        if(r===state.exit[0] && c===state.exit[1]) cell.classList.add('extraction');
+        if(state.fov.has(key(r,c))) cell.appendChild(Object.assign(document.createElement('div'),{className:'fov'}));
+        if(r===state.player[0] && c===state.player[1]){
+          const e=document.createElement('div'); e.className='entity player'; e.textContent='𓀂'; cell.appendChild(e);
         }
-        return { handType: "Straight Flush", baseScore: 800, averageRank, totalScore: 800 * averageRank };
+        for(const [gr,gc] of state.guards){
+          if(r===gr && c===gc){ const g=document.createElement('div'); g.className='entity guard'; g.textContent='𓀛'; cell.appendChild(g); }
+        }
+        gridEl.appendChild(cell);
       }
-      if (maxCount === 4) {
-        return { handType: "Four of a Kind", baseScore: 600, averageRank, totalScore: 600 * averageRank };
-      }
-      if (maxCount === 3 && counts.includes(2)) {
-        return { handType: "Full House", baseScore: 500, averageRank, totalScore: 500 * averageRank };
-      }
-      if (isFlush) {
-        return { handType: "Flush", baseScore: 400, averageRank, totalScore: 400 * averageRank };
-      }
-      if (isStraight) {
-        return { handType: "Straight", baseScore: 300, averageRank, totalScore: 300 * averageRank };
-      }
-      if (maxCount === 3) {
-        return { handType: "Three of a Kind", baseScore: 200, averageRank, totalScore: 200 * averageRank };
-      }
-      if (counts.filter(c => c === 2).length === 2) {
-        return { handType: "Two Pair", baseScore: 100, averageRank, totalScore: 100 * averageRank };
-      }
-      if (maxCount === 2) {
-        return { handType: "Pair", baseScore: 50, averageRank, totalScore: 50 * averageRank };
-      }
-      return { handType: "High Card", baseScore: 0, averageRank, totalScore: 0 };
     }
+  }
 
-    function handToString(hand) {
-      return hand.map(card => card.rank + suitSymbols[card.suit]).join(" ");
-    }
+  const moves = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1], w:[-1,0], s:[1,0], a:[0,-1], d:[0,1] };
+  window.addEventListener('keydown', (e)=>{
+    if(!(e.key in moves)) return;
+    e.preventDefault();
+    const [dr,dc]=moves[e.key];
+    const nr=state.player[0]+dr, nc=state.player[1]+dc;
+    if(!inBounds(nr,nc)) return;
+    if(state.tiles[nr][nc]==='wall') return;
+    state.player=[nr,nc];
+    computeFOV();
+    renderGrid();
+  });
 
-    // --- Next Blind ---
-    nextBtn.addEventListener("click", () => {
-      if (currentBlindIndex < blinds.length - 1) {
-        currentBlindIndex++;
-        startBlind();
-      } else {
-        showNotification("Game over! Thanks for playing.", "success", 5000);
-        initGame();
-      }
-    });
+  el('#btnShuffleRedraw').addEventListener('click', ()=>{ shuffleDeckAndRedraw(); });
 
-    // --- Start the Game ---
-    initGame();
-  </script>
+  state.deck = freshDeck(); dealNewHand();
+  generateTiles(); renderGrid();
+})();
+</script>
 </body>
 </html>

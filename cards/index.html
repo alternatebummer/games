@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Casual Stealth Card‑Lite</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#12161b; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --gold:#d9b36a; --danger:#ff7a7a;
+    --grid:11;            /* map is --grid × --grid */
+    --tile:36px;          /* tile size */
+    --radius:14px; --border:#2a2f36;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    display:flex; align-items:flex-start; justify-content:center; padding:16px;
+  }
+  .app{display:grid; gap:12px; grid-template-columns:auto 320px; align-items:start}
+
+  /* Board */
+  .board{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:12px; box-shadow:0 0 0 1px #0f141a inset }
+  .grid{ display:grid; grid-template-columns:repeat(var(--grid), var(--tile)); grid-template-rows:repeat(var(--grid), var(--tile)); gap:2px; background:#0a0f14; border:1px solid var(--border); padding:2px; border-radius:8px }
+  .cell{ width:var(--tile); height:var(--tile); display:flex; align-items:center; justify-content:center; border-radius:6px; user-select:none; position:relative; font-weight:600 }
+  .cell.floor{ background:#0f141a; color:#6b7f8a }
+  .cell.wall{ background:#101820; color:#3a4955; outline:1px dashed #1b2530 }
+  .cell.exit{ background:#13301c; color:#9fc46b; box-shadow:0 0 0 2px #174226 inset }
+  .cell.reachable{ outline:2px solid #2b6f3a }
+  .cell.alert{ box-shadow:0 0 0 2px #5e1f1f inset }
+  .entity{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none }
+  .player{ color:#cfe3ef }
+  .enemy{ color:#ff7a7a }
+  .smoke{ position:absolute; inset:4px; border-radius:6px; background:rgba(90,110,130,.25); pointer-events:none }
+
+  /* Sidebar */
+  .side{ display:flex; flex-direction:column; gap:12px }
+  .cardbar, .infobar, .log{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:12px }
+  .infobar{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center }
+  .h{font-size:13px; text-transform:uppercase; color:var(--muted); letter-spacing:.8px}
+  .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+  button{ cursor:pointer; border:1px solid var(--border); background:#0f1318; color:var(--ink); padding:8px 10px; border-radius:10px; font:inherit; transition:transform .04s ease }
+  button:hover{ transform:translateY(-1px) }
+  button:disabled{ opacity:.6; cursor:not-allowed }
+  .pill{ padding:4px 8px; border-radius:999px; background:#0f141a; border:1px solid var(--border); color:#babfc5 }
+  .cards{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px }
+  .card{ background:#0f141a; border:1px solid var(--border); border-radius:12px; padding:10px; text-align:left }
+  .card .title{ font-weight:700 }
+  .card .desc{ color:var(--muted); font-size:12px }
+  .card.move .title{ color:#9fc46b }
+  .card.attack .title{ color:#ff7a7a }
+  .card.utility .title{ color:#8aa2b3 }
+  .log pre{ margin:0; max-height:220px; overflow:auto; white-space:pre-wrap }
+
+  /* Modal */
+  .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5) }
+  .modal.show{ display:flex }
+  .dialog{ background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; width:min(560px, 92vw) }
+  .choices{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px }
+  .decklist{ display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 }
+  .tag{ background:#0f141a; border:1px solid var(--border); border-radius:999px; padding:6px 10px; color:var(--ink) }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="board">
+      <div class="h" style="margin:0 0 6px">Operation: Reach Extraction</div>
+      <div id="grid" class="grid"></div>
+    </div>
+
+    <aside class="side">
+      <div class="infobar">
+        <div class="row">
+          <span class="pill" id="turnPill">Player Turn</span>
+          <span class="pill" id="playsLeft">Plays: 2</span>
+          <span class="pill" id="handCount">Hand: 0</span>
+          <span class="pill" id="deckCount">Deck: 0</span>
+          <span class="pill" id="discardCount">Discard: 0</span>
+        </div>
+        <div class="row"><button id="endTurn">End Turn</button><button id="restart">New Map</button></div>
+      </div>
+
+      <div class="cardbar">
+        <div class="h" style="margin-bottom:8px">Hand</div>
+        <div id="hand" class="cards"></div>
+      </div>
+
+      <div class="log">
+        <div class="h" style="margin-bottom:6px">Log</div>
+        <pre id="log"></pre>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Post-mission modal: discard 1, then choose 1 of 2 to add -->
+  <div id="postModal" class="modal" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <div class="h">Mission Complete</div>
+      <h3 style="margin:6px 0 8px">Step 1 — Discard one card from your deck</h3>
+      <div id="deckTags" class="decklist"></div>
+      <h3 style="margin:10px 0 8px">Step 2 — Add one new card (pick one)</h3>
+      <div id="offerChoices" class="choices"></div>
+      <div class="row" style="justify-content:flex-end; margin-top:10px"><button id="continueBtn" disabled>Continue</button></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ======= Small Utilities =======
+  const rInt = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+  const shuffle = (arr)=> { const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; };
+  const clamp = (n,min,max)=> Math.max(min, Math.min(max, n));
+  const manhattan = (a,b)=> Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+  const $ = (sel)=> document.querySelector(sel);
+  const logEl = $('#log');
+  const say = (msg)=>{ logEl.textContent = (msg+"\n"+logEl.textContent).slice(0,4000); };
+
+  // ======= Map / Entities =======
+  const W = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid'));
+  const H = W;
+  let grid = []; // 0=floor, 1=wall, 2=exit
+  let player = {x:1,y:1, hidden:0};
+  let enemies = [];
+
+  function genMap(){
+    grid = Array.from({length:H}, (_,y)=> Array.from({length:W}, (_,x)=> (x===0||y===0||x===W-1||y===H-1)?1:0));
+    // Sprinkle internal walls
+    for(let i=0;i<Math.floor(W*H*0.12);i++){
+      const x = rInt(1, W-2), y = rInt(1,H-2);
+      grid[y][x] = (Math.random()<0.75)?1:0;
+    }
+    // Carve simple paths for playability
+    let cx = 1, cy = 1;
+    for(let i=0;i< W*H; i++){
+      grid[cy][cx] = 0;
+      const dir = [[1,0],[-1,0],[0,1],[0,-1]][rInt(0,3)];
+      cx = clamp(cx+dir[0], 1, W-2); cy = clamp(cy+dir[1], 1, H-2);
+    }
+    // Place exit far-ish from start
+    let ex= W-2, ey= H-2;
+    while(manhattan({x:1,y:1},{x:ex,y:ey}) < Math.floor((W+H)/2) || grid[ey][ex]===1){
+      ex = rInt(2,W-2); ey = rInt(2,H-2);
+    }
+    grid[ey][ex] = 2;
+
+    // Place player near (1,1) on a floor
+    player = {x:1,y:1, hidden:0};
+    while(grid[player.y][player.x]!==0) { player.x=rInt(1,3); player.y=rInt(1,3); }
+
+    // Spawn enemies
+    enemies = [];
+    const E = 4;
+    for(let i=0;i<E;i++){
+      let ex2= rInt(2,W-3), ey2=rInt(2,H-3);
+      while(grid[ey2][ex2]!==0 || (manhattan(player,{x:ex2,y:ey2})<5)){
+        ex2= rInt(2,W-3); ey2=rInt(2,H-3);
+      }
+      enemies.push({x:ex2,y:ey2, alert:0});
+    }
+  }
+
+  // ======= Deck / Cards =======
+  const ALL_CARDS = {
+    Move2:{id:'Move2', type:'move', power:2, title:'Move 2', desc:'Move up to 2 tiles.'},
+    Move3:{id:'Move3', type:'move', power:3, title:'Move 3', desc:'Move up to 3 tiles.'},
+    Attack:{id:'Attack', type:'attack', power:1, title:'Attack', desc:'Remove an adjacent enemy.'},
+    Hide:{id:'Hide', type:'utility', power:1, title:'Hide', desc:'Become hidden until end of enemy turn.'},
+    Smoke:{id:'Smoke', type:'utility', power:1, title:'Smoke Bomb', desc:'Enemies cannot spot you this turn.'}
+  };
+
+  function starterDeck(){
+    return shuffle([
+      ALL_CARDS.Move3, ALL_CARDS.Move3,
+      ALL_CARDS.Move2, ALL_CARDS.Move2,
+      ALL_CARDS.Attack, ALL_CARDS.Attack,
+      ALL_CARDS.Hide, ALL_CARDS.Hide,
+      ALL_CARDS.Smoke
+    ]);
+  }
+  let deck = [];
+  let discard = [];
+  let hand = [];
+
+  // Turn state
+  let playerTurn = true;
+  let playsLeft = 2;
+  let currentSmoke = 0;
+  let awaitingMove = null; // {steps}
+
+  // ======= Rendering =======
+  const gridEl = document.getElementById('grid');
+  function drawGrid(){
+    gridEl.innerHTML='';
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const v = grid[y][x];
+        const cell = document.createElement('div');
+        cell.className = 'cell ' + (v===1?'wall': v===2?'exit':'floor');
+        cell.dataset.x=String(x); cell.dataset.y=String(y);
+        const eWrap = document.createElement('div'); eWrap.className='entity';
+        if(player.x===x && player.y===y){
+          const s=document.createElement('span'); s.className='player'; s.textContent='@'; eWrap.appendChild(s);
+        } else {
+          const foe = enemies.find(en=> en.x===x && en.y===y);
+          if(foe){ const s=document.createElement('span'); s.className='enemy'; s.textContent='E'; eWrap.appendChild(s); }
+        }
+        if(currentSmoke>0){ const sm=document.createElement('div'); sm.className='smoke'; cell.appendChild(sm); }
+        cell.appendChild(eWrap);
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+
+  function updateHUD(){
+    $('#turnPill').textContent = playerTurn? 'Player Turn' : 'Enemy Turn';
+    $('#playsLeft').textContent = 'Plays: '+playsLeft;
+    $('#handCount').textContent = 'Hand: '+hand.length;
+    $('#deckCount').textContent = 'Deck: '+deck.length;
+    $('#discardCount').textContent = 'Discard: '+discard.length;
+  }
+
+  const handEl = document.getElementById('hand');
+  function drawHandUI(){
+    handEl.innerHTML='';
+    hand.forEach((c,idx)=>{
+      const card = document.createElement('button');
+      card.className = 'card ' + c.type;
+      const t=document.createElement('div'); t.className='title'; t.textContent=c.title;
+      const d=document.createElement('div'); d.className='desc'; d.textContent=c.desc;
+      card.appendChild(t); card.appendChild(d);
+      card.addEventListener('click', ()=> playCard(idx));
+      handEl.appendChild(card);
+    });
+  }
+
+  // ======= Deck ops =======
+  function draw(n){
+    for(let i=0;i<n;i++){
+      if(deck.length===0){ deck = shuffle(discard); discard=[]; }
+      if(deck.length===0) return;
+      hand.push(deck.pop());
+    }
+  }
+
+  // ======= Movement helpers =======
+  function reachableFrom(px,py,steps){
+    const key = (x,y)=> x+','+y;
+    const q=[[px,py,0]]; const seen=new Set([key(px,py)]);
+    const out = new Set();
+    while(q.length){
+      const [x,y,d]=q.shift();
+      if(d>0) out.add(key(x,y));
+      if(d===steps) continue;
+      const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+      for(const [dx,dy] of dirs){
+        const nx=x+dx, ny=y+dy;
+        if(nx<0||ny<0||nx>=W||ny>=H) continue;
+        if(grid[ny][nx]===1) continue;
+        if(enemies.some(e=> e.x===nx&&e.y===ny)) continue;
+        const k=key(nx,ny); if(!seen.has(k)){ seen.add(k); q.push([nx,ny,d+1]); }
+      }
+    }
+    return out; // set of "x,y"
+  }
+
+  function highlight(coords){
+    document.querySelectorAll('.cell').forEach(cell=>{
+      const xy = cell.dataset.x+','+cell.dataset.y;
+      if(coords.has(xy)) cell.classList.add('reachable'); else cell.classList.remove('reachable');
+    });
+  }
+  function clearHighlights(){ document.querySelectorAll('.cell').forEach(c=> c.classList.remove('reachable')); }
+
+  // ======= Card Play =======
+  function playCard(index){
+    if(!playerTurn || playsLeft<=0) return;
+    const c = hand.splice(index,1)[0];
+    discard.push(c);
+    if(c.id==='Move2' || c.id==='Move3'){
+      awaitingMove = {steps:c.power};
+      const tiles = reachableFrom(player.x, player.y, c.power);
+      highlight(tiles);
+      say('Card: '+c.title+' — choose a destination');
+      drawHandUI(); updateHUD();
+      return;
+    }
+    if(c.id==='Attack'){
+      const foe = enemies.find(e=> Math.abs(e.x-player.x)+Math.abs(e.y-player.y)===1);
+      if(foe){ enemies.splice(enemies.indexOf(foe),1); say('You neutralized an enemy.'); drawGrid(); }
+      else { say('No enemy adjacent.'); }
+      playsLeft--; endTurnAuto();
+    } else if(c.id==='Hide'){
+      player.hidden = 1; say('You hide in the shadows.');
+      playsLeft--; endTurnAuto();
+    } else if(c.id==='Smoke'){
+      currentSmoke = 1; say('Smoke deployed. Enemies cannot spot you this turn.');
+      playsLeft--; endTurnAuto();
+    }
+    drawHandUI(); updateHUD();
+  }
+
+  gridEl.addEventListener('click', (e)=>{
+    const cell = e.target.closest('.cell'); if(!cell) return;
+    if(awaitingMove){
+      const tiles = reachableFrom(player.x, player.y, awaitingMove.steps);
+      const k = cell.dataset.x+','+cell.dataset.y;
+      if(tiles.has(k)){
+        player.x = parseInt(cell.dataset.x,10); player.y = parseInt(cell.dataset.y,10);
+        awaitingMove = null; clearHighlights(); drawGrid();
+        say('You reposition.');
+        playsLeft--; endTurnAuto(); updateHUD();
+        checkWin();
+      }
+    }
+  });
+
+  function endTurnAuto(){ if(playsLeft<=0) endPlayerTurn(); }
+  document.getElementById('endTurn').addEventListener('click', endPlayerTurn);
+
+  function endPlayerTurn(){
+    if(awaitingMove){ awaitingMove=null; clearHighlights(); }
+    playerTurn=false; updateHUD();
+    enemyPhase();
+  }
+
+  // ======= Enemy AI =======
+  function lineBlockedV(x, y1, y2){ const s=y1<y2?1:-1; for(let y=y1+s;y!==y2;y+=s){ if(grid[y][x]===1) return true; } return false; }
+  function lineBlockedH(y, x1, x2){ const s=x1<x2?1:-1; for(let x=x1+s;x!==x2;x+=s){ if(grid[y][x]===1) return true; } return false; }
+  function canSee(e, tgt){
+    if(currentSmoke>0) return false;
+    if(player.hidden>0) return false;
+    if(e.x===tgt.x){
+      const dist=Math.abs(tgt.y-e.y); if(dist>4) return false; if(lineBlockedV(e.x, e.y, tgt.y)) return false; return true;
+    }
+    if(e.y===tgt.y){
+      const dist=Math.abs(tgt.x-e.x); if(dist>4) return false; if(lineBlockedH(e.y, e.x, tgt.x)) return false; return true;
+    }
+    return false;
+  }
+
+  function enemyPhase(){
+    say('— Enemy Phase —');
+    enemies.forEach(e=>{ e.alert = canSee(e, player)? 2 : Math.max(0, e.alert-1); });
+    document.querySelectorAll('.cell').forEach(c=> c.classList.remove('alert'));
+    enemies.forEach(e=>{
+      if(e.alert>0){ const sel = '.cell[data-x="'+e.x+'"][data-y="'+e.y+'"]'; const cell = document.querySelector(sel); if(cell) cell.classList.add('alert'); }
+    });
+
+    enemies.forEach(e=>{
+      let nx=e.x, ny=e.y;
+      if(e.alert>0){
+        const dx = Math.sign(player.x - e.x); const dy = Math.sign(player.y - e.y);
+        if(Math.abs(player.x-e.x) > Math.abs(player.y-e.y)) nx += dx; else ny += dy;
+      } else {
+        const d=[[1,0],[-1,0],[0,1],[0,-1]][rInt(0,3)]; nx+=d[0]; ny+=d[1];
+      }
+      if(nx>0&&ny>0&&nx<W-1&&ny<H-1 && grid[ny][nx]!==1 && !enemies.some(o=>o!==e && o.x===nx&&o.y===ny) && !(player.x===nx&&player.y===ny)){
+        e.x=nx; e.y=ny;
+      }
+    });
+
+    const killer = enemies.find(e=> Math.abs(e.x-player.x)+Math.abs(e.y-player.y)===1);
+    if(killer){ say('An enemy strikes you. Mission failed.'); startGame(); return; }
+
+    currentSmoke = 0; // wears off after enemy phase
+    player.hidden = 0; // hide ends after enemy phase
+
+    playerTurn=true; playsLeft=2; if(hand.length<3) draw(3-hand.length);
+    drawGrid(); drawHandUI(); updateHUD();
+    say('— Your Turn —');
+  }
+
+  function checkWin(){ if(grid[player.y][player.x]===2){ say('Extraction reached!'); openPostMission(); } }
+
+  // ======= Post-mission flow =======
+  const postModal = document.getElementById('postModal');
+  const deckTags = document.getElementById('deckTags');
+  const offerChoices = document.getElementById('offerChoices');
+  const continueBtn = document.getElementById('continueBtn');
+
+  function openPostMission(){
+    playerTurn=false; updateHUD();
+    // Build deck counts from all piles
+    const allCards = deck.concat(discard, hand);
+    const counts = {};
+    for(const c of allCards){ counts[c.id] = (counts[c.id]||0)+1; }
+
+    deckTags.innerHTML='';
+    Object.keys(counts).forEach(id=>{
+      const el = document.createElement('button'); el.className='tag';
+      el.textContent = ALL_CARDS[id].title + ' ×' + counts[id];
+      el.addEventListener('click', ()=> discardOne(id));
+      deckTags.appendChild(el);
+    });
+
+    offerChoices.innerHTML='';
+    continueBtn.disabled = true; continueBtn.onclick = null;
+    postModal.classList.add('show'); postModal.setAttribute('aria-hidden','false');
+  }
+
+  let pendingOffer = [];
+  function discardOne(id){
+    // Remove one instance from deck, then discard, then hand
+    const pools=[deck, discard, hand];
+    for(const p of pools){ const i=p.findIndex(c=> c.id===id); if(i!==-1){ p.splice(i,1); break; } }
+
+    // Present 2 offers
+    const pool = [ALL_CARDS.Move2, ALL_CARDS.Move3, ALL_CARDS.Attack, ALL_CARDS.Hide, ALL_CARDS.Smoke];
+    pendingOffer = shuffle(pool).slice(0,2);
+    offerChoices.innerHTML='';
+    pendingOffer.forEach((c,idx)=>{
+      const b=document.createElement('button'); b.className='card '+c.type;
+      const t=document.createElement('div'); t.className='title'; t.textContent=c.title;
+      const d=document.createElement('div'); d.className='desc'; d.textContent=c.desc;
+      b.appendChild(t); b.appendChild(d);
+      b.addEventListener('click', ()=> chooseOffer(idx));
+      offerChoices.appendChild(b);
+    });
+  }
+
+  function chooseOffer(i){
+    const c = pendingOffer[i]; deck.push(c); say('Added '+c.title+' to your deck.');
+    continueBtn.disabled=false;
+    continueBtn.onclick = ()=>{ postModal.classList.remove('show'); postModal.setAttribute('aria-hidden','true'); startGame(true); };
+  }
+
+  document.getElementById('restart').addEventListener('click', ()=> startGame());
+
+  // ======= Boot / Start =======
+  function startGame(preserveDeck){
+    genMap(); drawGrid();
+    if(!preserveDeck){ deck = starterDeck(); discard=[]; hand=[]; say('New operation. Deck auto-selected.'); }
+    deck = shuffle(deck);
+    playerTurn=true; playsLeft=2; currentSmoke=0; player.hidden=0; awaitingMove=null; clearHighlights();
+    draw(3);
+    drawHandUI(); updateHUD();
+  }
+
+  startGame(false);
+})();
+</script>
+</body>
+</html>

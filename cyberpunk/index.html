@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CYBERPUNK SURVIVAL — Click-Only RPG</title>
+<style>
+  :root{
+    --bg:#0b0e12; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --warn:#ffb86b; --danger:#ff7a7a;
+    --panel:#11151a; --border:#2a2f36; --gold:#d9b36a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  /* One container that stretches to fit the window */
+  .app{
+    height:100vh; width:100vw; display:flex; flex-direction:column;
+  }
+
+  /* HUD (sticky top) */
+  .hud{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+    padding:12px 14px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#0e1216,#0b0e12);
+  }
+  .hud .stats{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .chip{
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#0f1318;
+    display:inline-flex; gap:6px; align-items:center; white-space:nowrap;
+  }
+  .chip b{color:var(--gold); font-weight:600}
+  .btn-row{display:flex; gap:8px}
+  button{
+    background:#121821; color:var(--ink); border:1px solid var(--border);
+    padding:8px 12px; border-radius:10px; cursor:pointer; line-height:1.2;
+  }
+  button:hover{border-color:#3a4654}
+  button:active{transform:translateY(1px)}
+  button[disabled]{opacity:.5; cursor:not-allowed}
+
+  /* Main single container layout: story scroll + choices footer */
+  .main{
+    flex:1; display:flex; flex-direction:column; min-height:0; /* allow child scroll */
+    background:var(--panel);
+  }
+  .story{
+    padding:16px 16px 8px; overflow:auto; flex:1; min-height:0;
+  }
+  .story h1{font-size:18px; margin:0 0 8px}
+  .story p{margin:0 0 10px; color:var(--ink)}
+  .story .note{color:var(--muted)}
+  .log{margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); color:var(--muted)}
+  .tag{display:inline-block; padding:0 6px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted)}
+
+  /* Choices (sticky bottom inside the same container) */
+  .choices{
+    padding:12px 16px; border-top:1px solid var(--border); background:#0f1318; display:grid; gap:8px;
+  }
+  .choice{ text-align:left; justify-content:flex-start }
+
+  /* Bars */
+  .bars{display:flex; gap:10px; flex-wrap:wrap}
+  .bar{background:#0b0e12; border:1px solid var(--border); width:180px; height:10px; border-radius:999px; overflow:hidden}
+  .fill{height:100%}
+  .fill.energy{background:#9fc46b}
+  .fill.hunger{background:#ff7a7a}
+
+  /* Small helpers */
+  .muted{color:var(--muted)}
+  .accent{color:var(--accent)}
+  .warn{color:var(--warn)}
+  .danger{color:var(--danger)}
+  .divider{height:1px; background:var(--border); margin:8px 0}
+  .small{font-size:12px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="stats" id="hud-stats"></div>
+    <div class="btn-row">
+      <button id="btnSave" title="Save to browser storage">Save</button>
+      <button id="btnLoad" title="Load from browser storage">Load</button>
+      <button id="btnReset" title="Reset run">Reset</button>
+    </div>
+  </div>
+
+  <!-- Main single container -->
+  <div class="main">
+    <div class="story" id="story" aria-live="polite"></div>
+    <div class="choices" id="choices"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ===== Utilities
+  const $ = sel => document.querySelector(sel);
+  const el = (tag, attrs={}, html="") => {
+    const n = document.createElement(tag);
+    Object.entries(attrs).forEach(([k,v]) => n.setAttribute(k,v));
+    if(html) n.innerHTML = html;
+    return n;
+  };
+  const r = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+  const chance = p => Math.random() < p;
+
+  // ===== Game State
+  const initialState = () => ({
+    // Core
+    credits: 600,
+    rep: 0,
+    daysLeft: 5,              // rent countdown
+    segment: 0,               // 0 morning, 1 afternoon, 2 night
+    location: "Apartment",
+
+    // Condition
+    energy: 85,               // 0..100
+    hunger: 65,               // 0..100 (higher = hungrier)
+
+    // Flags & inventory
+    flags: {
+      redSigilFragment: true,
+      metScavenger: false,
+      fragmentDecoded: false,
+      unlockedUndercityLead: false,
+    },
+    inventory: [
+      {id:"soy", name:"Soy-Pack (meal)", qty:1, type:"food", energy:+10, hunger:-35},
+      {id:"water", name:"Recycled Water (can)", qty:2, type:"drink", energy:+5, hunger:-5},
+      {id:"backpack", name:"Backpack", qty:1, type:"container"}
+    ],
+
+    // Log
+    log: [
+      "You wake in Sector 88. Rent due in 5 days. Credits: 600."
+    ]
+  });
+
+  let S = initialState();
+
+  // ===== Persistence
+  const SAVE_KEY = "cpunk_click_rpg_v1";
+  function save() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    toast("Saved.");
+  }
+  function load() {
+    const txt = localStorage.getItem(SAVE_KEY);
+    if(!txt){ toast("No save found."); return; }
+    S = JSON.parse(txt);
+    renderHUD();
+    currentScene.fn(); // re-render current scene
+    toast("Loaded.");
+  }
+  function reset() {
+    S = initialState();
+    renderHUD();
+    go("Apartment");
+    toast("Run reset.");
+  }
+  $("#btnSave").onclick = save;
+  $("#btnLoad").onclick = load;
+  $("#btnReset").onclick = reset;
+
+  // ===== Time helpers
+  function timeName(seg){
+    return ["Morning","Afternoon","Night"][seg] || "Night";
+  }
+  function advanceSegments(n=1){
+    for(let i=0;i<n;i++){
+      S.segment++;
+      if(S.segment>2){
+        S.segment=0;
+        S.daysLeft = Math.max(0, S.daysLeft-1);
+        S.log.push("A day passes.");
+        // natural hunger/energy drift
+        S.hunger = clamp(S.hunger+10,0,100);
+        S.energy = clamp(S.energy-10,0,100);
+      }
+    }
+  }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+
+  // ===== Condition & costs
+  function costSegments(n, note){
+    advanceSegments(n);
+    if(note) S.log.push(note + ` (time passes: ${n} segment${n>1?"s":""}).`);
+  }
+  function spendCredits(n){
+    S.credits = Math.max(0, S.credits - n);
+  }
+  function gainCredits(n){
+    S.credits += n;
+  }
+  function eatItem(id){
+    const it = S.inventory.find(i=>i.id===id && i.qty>0);
+    if(!it) return false;
+    it.qty--;
+    S.hunger = clamp(S.hunger + (it.hunger||0), 0, 100); // hunger uses negative to reduce; item has -X
+    S.energy = clamp(S.energy + (it.energy||0), 0, 100);
+    S.log.push(`Consumed ${it.name}.`);
+    return true;
+  }
+  function addItem(obj){
+    const ex = S.inventory.find(i=>i.id===obj.id);
+    if(ex){ ex.qty += (obj.qty||1); }
+    else S.inventory.push({...obj, qty: obj.qty||1});
+  }
+  function removeZeroQty(){
+    S.inventory = S.inventory.filter(i=> i.qty>0);
+  }
+  function statusWords(){
+    const t = [];
+    if(S.hunger>=70) t.push("Hungry");
+    if(S.energy<=35) t.push("Tired");
+    if(!t.length) t.push("OK");
+    return t.join(", ");
+  }
+
+  // ===== UI Rendering
+  const story = $("#story");
+  const choices = $("#choices");
+  const hudStats = $("#hud-stats");
+
+  function renderHUD(){
+    const segName = timeName(S.segment);
+    hudStats.innerHTML = "";
+    const rowA = el("div",{class:"stats-inner"});
+    rowA.append(
+      chip(`💳 <b>${S.credits}c</b> Credits`),
+      chip(`📈 Rep: <b>${S.rep}</b>`),
+      chip(`📅 Days to Rent: <b>${S.daysLeft}</b>`),
+      chip(`🕒 ${segName}`),
+      chip(`📍 ${S.location}`),
+      chip(`🧠 Status: <b>${statusWords()}</b>`)
+    );
+    const bars = el("div",{class:"bars"});
+    const barEnergy = el("div",{class:"bar"});
+    const barHunger = el("div",{class:"bar"});
+    barEnergy.append(el("div",{class:"fill energy", style:`width:${S.energy}%`}));
+    barHunger.append(el("div",{class:"fill hunger", style:`width:${S.hunger}%`}));
+    hudStats.append(rowA, bars);
+    bars.append(barEnergy, barHunger);
+  }
+  function chip(html){ return el("span",{class:"chip"}, html); }
+
+  function clearChoices(){ choices.innerHTML = ""; }
+  function addChoice(label, fn, opts={}){
+    const b = el("button",{class:"choice"});
+    b.textContent = label;
+    if(opts.disabled) b.setAttribute("disabled","disabled");
+    b.onclick = () => {
+      fn();
+      removeZeroQty();
+      renderHUD();
+      autoSave();
+    };
+    choices.append(b);
+  }
+  function show(title, paragraphs=[], footerNote=""){
+    const logHtml = S.log.slice(-6).map(l => `<div>• ${escapeHTML(l)}</div>`).join("");
+    story.innerHTML = `
+      <h1>${escapeHTML(title)}</h1>
+      ${paragraphs.map(p=>`<p>${p}</p>`).join("")}
+      <div class="divider"></div>
+      <div class="small log"><span class="tag">Recent log</span>${logHtml? "<div style='margin-top:6px'></div>"+logHtml : "<div>—</div>"}</div>
+      ${footerNote ? `<p class="note small" style="margin-top:8px">${footerNote}</p>` : ""}
+    `;
+    story.scrollTop = story.scrollHeight;
+  }
+  function escapeHTML(s){ return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+  function toast(msg){
+    S.log.push(msg);
+    renderHUD();
+  }
+  function autoSave(){
+    // tiny, silent autosave
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+  }
+
+  // ===== Scene System
+  const scenes = {};
+  let currentScene = {id:"", fn: ()=>{}};
+  function go(id){
+    const sc = scenes[id];
+    currentScene = {id, fn: sc};
+    sc();
+  }
+
+  // ===== Scenes =====
+  scenes.Apartment = () => {
+    S.location = "Apartment";
+    const p = [];
+    p.push(
+      "Your one-room unit hums with old circuitry. A console on the desk, a fridge with scraps, a narrow bed.",
+      "<span class='muted'>Sector 88 breathes outside in neon and diesel.</span>"
+    );
+    const footer = "Tip: everything is click-only. Buttons = actions; actions cost time segments (Morning / Afternoon / Night). Sleep moves to the next day.";
+    show("Apartment — Morning in Sector 88", p, footer);
+    clearChoices();
+
+    // Quick eats (if available)
+    const hasSoy = S.inventory.find(i=>i.id==="soy" && i.qty>0);
+    const hasWater = S.inventory.find(i=>i.id==="water" && i.qty>0);
+
+    addChoice("Check Console", () => go("Console"));
+    addChoice("Head Out to Streets", () => go("Streets"));
+    addChoice("Scavenge the Block (1 segment)", () => {
+      costSegments(1,"You scour stairwells and dumpsters");
+      // base chance
+      const finds = [];
+      let score = r(1,100);
+      // small modifiers for condition
+      if(S.energy<40) score -= 10;
+      if(S.hunger>70) score -= 10;
+
+      if(score>=85){
+        const roll = r(1,4);
+        if(roll===1) { finds.push({id:"parts",name:"Salvageable Parts",qty:1,type:"trade", value:80}); }
+        if(roll===2) { finds.push({id:"chip",name:"Unmarked Datachip",qty:1,type:"quest", value:0}); }
+        if(roll===3) { finds.push({id:"scrap",name:"Conductive Scrap",qty:1,type:"trade", value:40}); }
+        if(roll===4) { finds.push({id:"medpatch",name:"Med-Patch",qty:1,type:"med", heal:20}); }
+      } else if(score>=60){
+        finds.push({id:"scrap",name:"Conductive Scrap",qty:1,type:"trade", value:30});
+      } else {
+        if(chance(0.25)){
+          S.energy = clamp(S.energy-10,0,100);
+          S.log.push("A rusted panel slips. You scrape your hand. (-10 energy)");
+        } else {
+          S.log.push("Nothing useful, just grease and old holo-wrappers.");
+        }
+      }
+      finds.forEach(addItem);
+      if(finds.length){
+        S.log.push("Scavenge haul: " + finds.map(f=>`${f.name} ×${f.qty}`).join(", "));
+      }
+      // hunger & energy drift
+      S.hunger = clamp(S.hunger+5,0,100);
+      S.energy = clamp(S.energy-5,0,100);
+      go("Apartment");
+    });
+
+    if(hasSoy) addChoice(`Eat Soy-Pack (restore, 0 segments) — x${hasSoy.qty}`, () => {
+      eatItem("soy");
+      go("Apartment");
+    });
+    if(hasWater) addChoice(`Drink Water (tiny restore, 0 segments) — x${hasWater.qty}`, () => {
+      eatItem("water");
+      go("Apartment");
+    });
+
+    addChoice("Sleep (advance to next day)", () => {
+      // sleeping from the apartment always pushes to next day
+      if(S.segment!==0){ // if not morning, wrap to next day
+        if(S.segment===1) advanceSegments(2);
+        if(S.segment===2) advanceSegments(1);
+      } else {
+        advanceSegments(3); // sleep full day if done at morning
+      }
+      S.energy = clamp(S.energy+25, 0, 100);
+      S.hunger = clamp(S.hunger+10, 0, 100);
+      S.log.push("You sleep. (+25 energy)");
+      if(S.daysLeft===0){
+        S.log.push("Rent is due. You have 0 days left...");
+      }
+      go("Apartment");
+    });
+
+    // Inventory quick-look
+    addChoice("View Inventory", () => go("Inventory"));
+  };
+
+  scenes.Inventory = () => {
+    const list = S.inventory.map(i => `<div>• ${escapeHTML(i.name)} ${i.qty>1?`<span class="muted">×${i.qty}</span>`:""}</div>`).join("") || "<div class='muted'>Empty.</div>";
+    show("Inventory", [
+      list,
+      "<span class='muted'>Consumables can be used from scene buttons when relevant.</span>"
+    ]);
+    clearChoices();
+    addChoice("Back", () => go("Apartment"));
+  };
+
+  scenes.Console = () => {
+    S.location = "Apartment — Console";
+    const lines = [
+      "The console flickers to life in corp blue.",
+      "Folders: <span class='tag'>GIG BOARD</span> • <span class='tag'>MESSAGES</span> • <span class='tag'>TOOLS</span>"
+    ];
+    if(S.flags.redSigilFragment && !S.flags.fragmentDecoded){
+      lines.push("<span class='warn'>A hidden file pings faintly — the red-sigil fragment you copied.</span>");
+    }
+    show("Console", lines, "Most actions here cost 1–3 segments.");
+    clearChoices();
+
+    // Inspect fragment
+    if(S.flags.redSigilFragment && !S.flags.fragmentDecoded){
+      addChoice("Probe Hidden Fragment (1 segment, risk)", () => {
+        costSegments(1, "You mask your IP and dig into the fragment");
+        // outcomes
+        if(chance(0.5)){
+          S.flags.fragmentDecoded = true;
+          S.flags.unlockedUndercityLead = true;
+          S.log.push("You extract a phrase: “EELWATER | S88 | VANISHING”. A lead to the water plant undercity.");
+        } else {
+          S.log.push("The cipher mutates, stalling your tools.");
+        }
+        if(chance(0.35)){
+          S.energy = clamp(S.energy-10,0,100);
+          S.log.push("Countermeasure spikes your console. You ride it out. (-10 energy)");
+        }
+        go("Console");
+      });
+    }
+
+    // Gig board (remote)
+    addChoice("Open Gig Board", () => go("GigBoard"));
+
+    addChoice("Back to Apartment", () => go("Apartment"));
+  };
+
+  scenes.GigBoard = () => {
+    show("Gig Board — Remote/On-site Contracts", [
+      "<b>Available Contracts:</b>",
+      "• <b>Data Cleanup</b> — 2 segments, <b>+400c</b>. Risk: ICE trace.",
+      "• <b>Factory Shift</b> — 3 segments, <b>+550c</b>. Exhausting but safe.",
+      "• <b>Security Trial</b> — 3 segments, <b>+600c</b>. Risk: violence.",
+    ], "<span class='muted'>You can only take one at a time.</span>");
+    clearChoices();
+
+    addChoice("Take Data Cleanup (+400c, 2 segments)", () => {
+      costSegments(2,"You scrub corp file trees");
+      const spiked = chance(0.25);
+      if(spiked){ S.energy = clamp(S.energy-10,0,100); S.log.push("Black ICE grazes you. (-10 energy)"); }
+      gainCredits(400);
+      S.log.push("Contract paid: +400c.");
+      go("Console");
+    });
+    addChoice("Take Factory Shift (+550c, 3 segments)", () => {
+      costSegments(3,"You grind a plastics line until arms shake");
+      S.energy = clamp(S.energy-20,0,100);
+      S.hunger = clamp(S.hunger+10,0,100);
+      gainCredits(550);
+      S.log.push("Shift complete. +550c.");
+      go("Console");
+    });
+    addChoice("Take Security Trial (+600c, 3 segments)", () => {
+      costSegments(3,"You guard a storage yard in cold neon rain");
+      if(chance(0.4)){
+        S.energy = clamp(S.energy-15,0,100);
+        if(chance(0.5)) S.rep += 1;
+        S.log.push("You deter prowlers in the dark. Nerves frayed. (+1 Rep maybe)");
+      }
+      gainCredits(600);
+      S.log.push("Trial paid: +600c.");
+      go("Console");
+    });
+
+    addChoice("Back", () => go("Console"));
+  };
+
+  scenes.Streets = () => {
+    S.location = "Sector 88 Streets";
+    const lead = S.flags.unlockedUndercityLead ? " • <span class='tag'>Lead: Water Plant Undercity</span>" : "";
+    show("Streets — Neon & Smog", [
+      "Crowds push. Drones scan. Holo-ads lie.",
+      "You spot a corp kiosk, food stalls, and the western shadow markets." + lead
+    ], "Moving between street spots doesn't cost time; actions at them do.");
+    clearChoices();
+    addChoice("Corporate Kiosk (Jobs)", () => go("Kiosk"));
+    addChoice("Street Food Stalls", () => go("Food"));
+    addChoice("Shadow Markets", () => go("Market"));
+    if(S.flags.unlockedUndercityLead){
+      addChoice("Undercity Access (Water Plant Lead)", () => go("Undercity"));
+    }
+    addChoice("Return Home", () => go("Apartment"));
+  };
+
+  scenes.Kiosk = () => {
+    show("Corporate Kiosk", [
+      "A sterile blue monolith flickers as it reads your face.",
+      "<span class='muted'>Temporary contracts pop up.</span>"
+    ]);
+    clearChoices();
+    addChoice("Courier Run (2 segments, +500c, risk: gangs)", () => {
+      costSegments(2,"You run a sealed package past tagged corners");
+      if(chance(0.35)){ S.energy=clamp(S.energy-10,0,100); S.log.push("Chased two blocks. (-10 energy)"); }
+      gainCredits(500);
+      S.log.push("Drop confirmed: +500c.");
+      go("Streets");
+    });
+    addChoice("Data Cleanup (2 segments, +400c, risk: ICE)", () => {
+      costSegments(2,"You rent a booth and scrub corp logs");
+      if(chance(0.25)){ S.energy=clamp(S.energy-10,0,100); S.log.push("ICE static in your teeth. (-10 energy)"); }
+      gainCredits(400);
+      S.log.push("Paid: +400c.");
+      go("Streets");
+    });
+    addChoice("Back to Streets", () => go("Streets"));
+  };
+
+  scenes.Food = () => {
+    show("Street Food Stalls", [
+      "Steam and grease curl in the neon. Vendors shout specials."
+    ], "Buying & eating here costs 1 segment.");
+    clearChoices();
+    const buyEat = (label, cost, energy, hunger) => {
+      addChoice(`${label} (1 segment, -${cost}c)`, () => {
+        if(S.credits < cost){ toast("Not enough credits."); return; }
+        spendCredits(cost);
+        costSegments(1, `You eat ${label.toLowerCase()}`);
+        S.energy = clamp(S.energy+energy,0,100);
+        S.hunger = clamp(S.hunger+hunger,0,100);
+        S.log.push(`You feel steadier. (+${energy} energy, ${hunger<0?`${hunger}`:`+${hunger}`} hunger)`);
+        go("Streets");
+      });
+    };
+    buyEat("Cheap Noodles", 25, +10, -25);
+    buyEat("Protein Wafers", 40, +15, -30);
+    buyEat("Recycled Water", 10, +5, -5);
+    addChoice("Back to Streets", () => go("Streets"));
+  };
+
+  scenes.Market = () => {
+    S.location = "Shadow Markets";
+    const onceScav = !S.flags.metScavenger ? "<br><span class='warn'>A scavenger girl clutches a humming black box, eyeing passersby.</span>" : "";
+    show("Shadow Markets", [
+      "Painted lenses and tarps, whispered code-words, cheap miracles and expensive mistakes."+onceScav
+    ]);
+    clearChoices();
+    addChoice("Parts Vendor (buy/sell)", () => go("Vendor"));
+    addChoice("Data-Runner (rumors/decoding)", () => go("DataRunner"));
+    addChoice("Dice Game (gamble 20c)", () => {
+      if(S.credits < 20){ toast("Not enough credits."); return; }
+      spendCredits(20);
+      costSegments(1, "You play a rigged street dice");
+      if(chance(0.45)){ gainCredits(40); S.log.push("You beat the house this time. (+20c net)"); }
+      else S.log.push("House wins. (-20c)");
+      go("Market");
+    });
+    if(!S.flags.metScavenger){
+      addChoice("Approach Scavenger Girl (1 segment)", () => {
+        costSegments(1,"You strike a quiet bargain over the hum");
+        S.flags.metScavenger = true;
+        if(S.credits>=120 && chance(0.7)){
+          // Offer to sell the box
+          const price = 120;
+          S.log.push(`She offers a matte black box for ${price}c. No markings, faint hum.`);
+          clearChoices();
+          addChoice(`Buy the Humming Box (-${price}c)`, () => {
+            if(S.credits < price){ toast("Not enough credits."); go("Market"); return; }
+            spendCredits(price);
+            addItem({id:"hbox", name:"Humming Black Box", qty:1, type:"quest"});
+            S.log.push("You acquire the humming box.");
+            go("Market");
+          });
+          addChoice("Pass", () => { S.log.push("You pass on the deal."); go("Market"); });
+        } else {
+          S.log.push("She shrugs you off, already mid-deal with someone else.");
+          go("Market");
+        }
+      });
+    }
+    addChoice("Back to Streets", () => go("Streets"));
+  };
+
+  scenes.Vendor = () => {
+    const sellables = S.inventory.filter(i => (i.value||0)>0 && i.qty>0);
+    const sellList = sellables.map(i => `• ${escapeHTML(i.name)} — <b>${i.value}c</b> (x${i.qty})`).join("<br>") || "<span class='muted'>Nothing they want right now.</span>";
+    show("Parts Vendor", [
+      "Bins of stripped drones, cracked chips, bent heat-sinks.",
+      "<b>Buy:</b> • Used Multitool — <b>60c</b> (helps Scavenge) • Broken Scrap Drone — <b>100c</b>",
+      "<b>Sell:</b><br>"+sellList
+    ], "Purchases cost 1 segment. Selling is instant.");
+    clearChoices();
+    addChoice("Buy Used Multitool (1 segment, -60c)", () => {
+      if(S.credits<60){ toast("Not enough credits."); return; }
+      costSegments(1,"You haggle for a battered multitool");
+      spendCredits(60);
+      addItem({id:"multitool", name:"Used Multitool", qty:1, type:"tool"});
+      S.log.push("Multitool acquired. Scavenging improved.");
+      go("Vendor");
+    });
+    addChoice("Buy Broken Scrap Drone (1 segment, -100c)", () => {
+      if(S.credits<100){ toast("Not enough credits."); return; }
+      costSegments(1,"You drag a sorry-looking drone onto a dolly");
+      spendCredits(100);
+      addItem({id:"bdron", name:"Broken Scrap Drone", qty:1, type:"junk"});
+      S.log.push("Maybe fixable. Maybe trash.");
+      go("Vendor");
+    });
+    sellables.forEach(item=>{
+      addChoice(`Sell ${item.name} (+${item.value}c)`, () => {
+        item.qty--;
+        gainCredits(item.value);
+        S.log.push(`Sold ${item.name}. +${item.value}c.`);
+        go("Vendor");
+      });
+    });
+    addChoice("Back", () => go("Market"));
+  };
+
+  scenes.DataRunner = () => {
+    const canDecode = S.flags.redSigilFragment && !S.flags.fragmentDecoded;
+    show("Data-Runner", [
+      "A hooded runner leans on a terminal cart. Green code rains in their lenses.",
+      canDecode ? "<span class='warn'>“I can decode that red-sigil thing you’re sitting on. 150c.”</span>" : "<span class='muted'>They drum fingers, waiting for business.</span>"
+    ]);
+    clearChoices();
+    if(canDecode){
+      addChoice("Decode the Red-Sigil Fragment (-150c, 1 segment)", () => {
+        if(S.credits<150){ toast("Not enough credits."); return; }
+        spendCredits(150);
+        costSegments(1,"They feed it to a hungry little program");
+        S.flags.fragmentDecoded = true;
+        S.flags.unlockedUndercityLead = true;
+        S.log.push("Decoded phrase: “EELWATER | S88 | VANISHING”. Undercity lead unlocked.");
+        go("DataRunner");
+      });
+    }
+    addChoice("Buy Rumors (-20c)", () => {
+      if(S.credits<20){ toast("Not enough credits."); return; }
+      spendCredits(20);
+      S.log.push("Rumor: ‘Night watch on Dock 6 is understaffed—corp paying hazard soon.’");
+      go("DataRunner");
+    });
+    addChoice("Back", () => go("Market"));
+  };
+
+  scenes.Undercity = () => {
+    show("Undercity Access — Water Plant", [
+      "Wet concrete. Condensation drips from pipes. The air tastes metal.",
+      "<span class='muted'>A locked maintenance gate thunks in the dark.</span>"
+    ], "Exploring here costs 2 segments.");
+    clearChoices();
+    addChoice("Search the tunnels (2 segments)", () => {
+      costSegments(2,"You creep through wet corridors and echoing pumps");
+      const roll = r(1,100);
+      if(roll>80){
+        S.rep += 1;
+        addItem({id:"eel_tag", name:"Eelwater Key-Tag", qty:1, type:"quest"});
+        S.log.push("You find a key-tag stamped EELWATER. (+1 Rep?)");
+      } else if(roll>55){
+        addItem({id:"parts", name:"Salvageable Parts", qty:1, type:"trade", value:80});
+        S.log.push("You pry loose valuable parts.");
+      } else {
+        S.energy = clamp(S.energy-10,0,100);
+        S.log.push("You get turned around and soaked. (-10 energy)");
+      }
+      go("Undercity");
+    });
+    addChoice("Back to Streets", () => go("Streets"));
+  };
+
+  // ===== Boot
+  renderHUD();
+  go("Apartment");
+
+})();
+</script>
+</body>
+</html>
