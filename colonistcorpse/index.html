@@ -2,10 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>COLONIST CORPSE</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css" />
   <script src="./script.js" defer></script>
 </head>
 <body>
@@ -14,15 +14,18 @@
     <div id="message-log"></div>
     <div id="action-log"></div>
   </div>
-  <div id="build-menu">
+
+  <!-- Build menu opens when the user clicks "Colonist" in the inventory -->
+  <div id="build-menu" style="display:none">
     <div><b>LABOUR COUNCIL</b></div><br>
     <div id="build-bonfire"><b>Bonfire</b><br>(25 Wood, 5 Work)</div>
     <div id="build-lumber-camp"><b>Lumber Camp</b><br>(10 Wood, 50 Work)</div>
     <div id="build-kelp-farm"><b>Kelp Farm</b><br>(50 Work, 20 Wood, 10 Food)</div>
-    <div id="build-fish-market"><b>Fish Market</b><br>(150 Wood, 50 Work)</div>
-    <div id="build-monastery"><b>Monastery</b><br>(200 Wood, 200 Work, 10 Graves)</div><br>
+    <div id="build-fish-market"><b>Fish Market</b><br>(100 Wood, 50 Work)</div>
+    <div id="build-monastery"><b>Monastery</b><br>(200 Wood, 200 Work, 10 Grave)</div><br>
     <div id="close-build-menu">[x]</div>
   </div>
+
   <div id="date-modal">
     <span id="current-date-display"></span>
   </div>

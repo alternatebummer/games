@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hiking / Delivery — Radial Map Generator</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#12161b; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --gold:#d9b36a; --danger:#ff7a7a;
+    --outline:#2a2f36; --orbit:#23303a;
+    --wrap: 1060px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; align-items:flex-start; justify-content:center; padding:16px;
+  }
+  .app{display:grid; grid-template-columns: 720px 320px; gap:16px; max-width: var(--wrap); width:100%}
+  .card{background:var(--panel); border:1px solid var(--outline); border-radius:16px; padding:12px; box-shadow:0 0 0 1px rgba(0,0,0,0.2) inset}
+  header{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px}
+  h1{font-size:16px; margin:0; letter-spacing:.3px}
+  .controls{display:flex; gap:8px; align-items:center}
+  button, .chip{
+    appearance:none; border:1px solid var(--outline); background:#0f1318; color:var(--ink);
+    padding:8px 10px; border-radius:12px; cursor:pointer; font:inherit;
+  }
+  button:hover{border-color:#3a424c}
+  .legend{display:flex; gap:8px; flex-wrap:wrap}
+  .legend .chip{background:#0f1318}
+  .mapwrap{height: 640px; display:flex; align-items:center; justify-content:center;}
+  svg{width:100%; height:100%; background:#0a0e13; border-radius:12px; border:1px solid var(--outline)}
+  .node{stroke:var(--outline); stroke-width:1}
+  .node.town1{fill:var(--gold)}
+  .node.other{fill:#8fb3c2}
+  .node.selected{stroke:var(--gold); stroke-width:2}
+  .label{fill:var(--ink); font-size:11px; pointer-events:none; text-shadow:0 1px 0 #000}
+  .edge{stroke:#314250; stroke-width:1.5; opacity:.9}
+  .edge.primary{stroke:var(--accent); stroke-width:2}
+  .edge.closest{stroke:#9aa7ff}
+  .edge-label{fill:var(--muted); font-size:10px; pointer-events:none;}
+  .side h2{font-size:14px; margin:0 0 8px}
+  .kv{display:grid; grid-template-columns: 1fr auto; gap:6px;}
+  .sep{height:1px; background:var(--outline); margin:10px 0}
+  .small{font-size:12px; color:var(--muted)}
+  .list{display:grid; gap:6px; max-height:520px; overflow:auto; padding-right:4px}
+  .pill{display:flex; justify-content:space-between; align-items:center; gap:10px; background:#0f1318; border:1px solid var(--outline); padding:8px 10px; border-radius:10px}
+  .pill strong{font-weight:600}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <header>
+        <h1>Hiking / Delivery — Radial Map</h1>
+        <div class="controls">
+          <button id="regen">Regenerate</button>
+          <span class="chip small" id="seedOut"></span>
+        </div>
+      </header>
+      <div class="legend">
+        <span class="chip">● Town 1 (center)</span>
+        <span class="chip">● Other locations</span>
+        <span class="chip">— Primary route: Town 1 ↔ half the map</span>
+        <span class="chip">— Closest-neighbour routes</span>
+      </div>
+      <div class="mapwrap">
+        <svg id="map" viewBox="0 0 700 620" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+    <aside class="card side">
+      <h2 id="panelTitle">Select a location</h2>
+      <div class="kv small"><span>Total locations</span><span id="count">—</span></div>
+      <div class="kv small"><span>Primary links to Town 1</span><span id="primaryCount">—</span></div>
+      <div class="kv small"><span>Closest-neighbour links</span><span id="closestCount">—</span></div>
+      <div class="sep"></div>
+      <div class="list" id="distanceList"></div>
+    </aside>
+  </div>
+
+<script>
+(() => {
+  // ===== Utilities =====
+  const randi = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const choice = (arr) => arr[randi(0, arr.length - 1)];
+  const shuffle = (arr) => arr.map(v=>[Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  const dist = (a,b)=> Math.hypot(a.x-b.x, a.y-b.y);
+
+  // Basic seed (display only)
+  const seed = Math.random().toString(36).slice(2,8).toUpperCase();
+  document.getElementById('seedOut').textContent = `seed ${seed}`;
+
+  // ===== Data =====
+  const NAMES = [
+    'Town 1',
+    'Town 2',
+    'City 1',
+    'Village 1',
+    'Village 2',
+    'Wind Farm 1',
+    'Hatchery 1',
+    'Commune 1',
+  ];
+
+  const state = {
+    nodes: [], // {id, name, x, y}
+    matrix: [], // symmetric distance matrix (ints 1..10)
+    edges: new Map(), // key "a|b" -> {a,b, kind:'primary'|'closest', w}
+    primaryTargets: new Set(),
+    svg: document.getElementById('map'),
+    panelTitle: document.getElementById('panelTitle'),
+    distanceList: document.getElementById('distanceList'),
+  };
+
+  // ===== Generation =====
+  function generateNodes(){
+    const w = 700, h = 620; // viewBox
+    const cx = w/2, cy = h/2;
+    const radiusBase = Math.min(w,h)*0.35;
+
+    const nodes = [];
+    // Town 1 at center
+    nodes.push({id:0, name:NAMES[0], x:cx, y:cy});
+
+    // Others on a radial ring with jitter
+    const others = NAMES.slice(1);
+    const angles = shuffle([...others.keys()]).map(i => (i / others.length) * Math.PI*2);
+    angles.forEach((ang, idx) => {
+      const r = radiusBase * (0.85 + Math.random()*0.25); // 85%..110%
+      const jitter = (v)=> v + randi(-18,18);
+      const x = cx + Math.cos(ang)*r;
+      const y = cy + Math.sin(ang)*r;
+      nodes.push({id: idx+1, name: others[idx], x: jitter(x), y: jitter(y)});
+    });
+    return nodes;
+  }
+
+  function generateMatrix(n){
+    const M = Array.from({length:n}, ()=> Array(n).fill(0));
+    for(let i=0;i<n;i++){
+      for(let j=i+1;j<n;j++){
+        const w = randi(1,10); // rule 3: random 1-10 for each location pair
+        M[i][j] = w; M[j][i] = w;
+      }
+    }
+    return M;
+  }
+
+  function key(a,b){return a<b? `${a}|${b}` : `${b}|${a}`}
+
+  function buildEdges(nodes, M){
+    const edges = new Map();
+    const n = nodes.length;
+
+    // Rule 1: Half of the locations (excluding Town 1) connect directly to Town 1
+    const others = nodes.slice(1).map(n=>n.id);
+    const half = Math.floor(others.length/2); // "half of the locations" (3 of 7)
+    const selected = shuffle(others).slice(0, half);
+    selected.forEach(id => {
+      const k = key(0, id);
+      edges.set(k, {a:0, b:id, kind:'primary', w:M[0][id]});
+    });
+
+    // Rule 2: Each location connects to its closest neighbour by distance matrix
+    for(let i=0;i<n;i++){
+      // find min j != i
+      let bestJ = -1, bestW = Infinity;
+      for(let j=0;j<n;j++) if(j!==i){
+        const w = M[i][j];
+        if(w < bestW){ bestW = w; bestJ = j; }
+      }
+      const k = key(i, bestJ);
+      if(!edges.has(k)) edges.set(k, {a:i, b:bestJ, kind:'closest', w:bestW});
+    }
+
+    return edges;
+  }
+
+  // ===== Rendering =====
+  function clear(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+
+  function render(){
+    const {svg, nodes, matrix: M, edges} = state;
+    clear(svg);
+
+    // Draw edges
+    edges.forEach(e => {
+      const A = nodes[e.a], B = nodes[e.b];
+      const line = el('line', {
+        x1:A.x, y1:A.y, x2:B.x, y2:B.y,
+        class:`edge ${e.kind}`
+      });
+      svg.appendChild(line);
+
+      // weight label at midpoint
+      const mx = (A.x+B.x)/2, my = (A.y+B.y)/2;
+      const label = el('text', {x:mx, y:my - 4, class:'edge-label', 'text-anchor':'middle'});
+      label.textContent = e.w;
+      svg.appendChild(label);
+    });
+
+    // Draw nodes
+    nodes.forEach(n => {
+      const g = el('g', {class:'g-node', 'data-id': n.id});
+      const cls = n.id===0? 'node town1' : 'node other';
+      const circle = el('circle', {cx:n.x, cy:n.y, r:10, class:cls});
+      const label = el('text', {x:n.x, y:n.y-14, class:'label', 'text-anchor':'middle'});
+      label.textContent = n.name;
+      g.appendChild(circle); g.appendChild(label);
+      g.addEventListener('click', ()=> selectNode(n.id));
+      svg.appendChild(g);
+    });
+
+    // Stats
+    document.getElementById('count').textContent = nodes.length;
+    document.getElementById('primaryCount').textContent = [...edges.values()].filter(e=>e.kind==='primary').length;
+    document.getElementById('closestCount').textContent = [...edges.values()].filter(e=>e.kind==='closest').length;
+  }
+
+  function selectNode(id){
+    const nodes = state.nodes, M = state.matrix, edges = state.edges;
+    state.panelTitle.textContent = nodes[id].name;
+
+    // Highlight selection
+    document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected'));
+    const gn = document.querySelector(`.g-node[data-id="${id}"] .node`);
+    if(gn) gn.classList.add('selected');
+
+    // Distances list
+    const list = document.getElementById('distanceList');
+    list.innerHTML = '';
+    const items = nodes.map((n, j)=> ({j, name:n.name, w: M[id][j]})).filter(it=>it.j!==id).sort((a,b)=> a.w - b.w);
+    items.forEach(it => {
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      const left = document.createElement('div');
+      left.innerHTML = `<strong>${it.name}</strong> <span class="muted">(w=${it.w})</span>`;
+      const btn = document.createElement('button');
+      btn.textContent = 'Highlight route';
+      btn.addEventListener('click', ()=> highlightEdge(id, it.j));
+      pill.appendChild(left); pill.appendChild(btn);
+      list.appendChild(pill);
+    });
+  }
+
+  function highlightEdge(a,b){
+    const k = key(a,b);
+    // briefly thicken the matching edge; if not present, add a dashed preview
+    const svg = state.svg;
+    let found = false;
+    svg.querySelectorAll('.edge').forEach(line => {
+      // compare coordinates — simple heuristic
+      const x1 = +line.getAttribute('x1'), y1 = +line.getAttribute('y1');
+      const x2 = +line.getAttribute('x2'), y2 = +line.getAttribute('y2');
+      const A = state.nodes[a], B = state.nodes[b];
+      const same = (x1===A.x && y1===A.y && x2===B.x && y2===B.y) || (x1===B.x && y1===B.y && x2===A.x && y2===A.y);
+      if(same){
+        found = true;
+        line.style.strokeWidth = 3;
+        line.style.opacity = 1;
+        setTimeout(()=>{ line.style.strokeWidth = ''; line.style.opacity = ''; }, 800);
+      }
+    });
+    if(!found){
+      // preview line (dashed), disappears shortly
+      const A = state.nodes[a], B = state.nodes[b];
+      const preview = el('line', {x1:A.x, y1:A.y, x2:B.x, y2:B.y, class:'edge', 'stroke-dasharray':'4 6'});
+      state.svg.appendChild(preview);
+      setTimeout(()=> preview.remove(), 900);
+    }
+  }
+
+  function el(tag, attrs){
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for(const k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  function regenerate(){
+    state.nodes = generateNodes();
+    state.matrix = generateMatrix(state.nodes.length);
+    state.edges = buildEdges(state.nodes, state.matrix);
+    render();
+    state.panelTitle.textContent = 'Select a location';
+    state.distanceList.innerHTML = '';
+  }
+
+  // Init
+  document.getElementById('regen').addEventListener('click', regenerate);
+  regenerate();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cards vs. God — Octaves Prototype</title>
+<style>
+  :root{
+    /* Magic-esque palette: earth, wood, steel, brass */
+    --bg:#0f110e; --panel:#15140f; --panel-grad: linear-gradient(180deg,#1a1913 0%, #0f0e0a 100%);
+    --ink:#f5f1e6; --muted:#b7b0a3; --accent:#c19a44; --accent-2:#6c8f77; --danger:#d26a5c; --gold:#d6b56d; --border:#2f2b22; --steel:#7f8a8f;
+    --glow: 0 0 0 1px rgba(214,181,109,.12) inset, 0 10px 28px rgba(0,0,0,.45);
+    --radius:16px;
+
+    --tcg-h: clamp(140px, 22vh, 196px);
+    --tcg-w: calc(var(--tcg-h) * 0.704);
+    --reveal-h: clamp(120px, 24vh, 170px);
+    --reveal-w: calc(var(--reveal-h) * 0.706);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    height:100vh; margin:0; color:var(--ink);
+    font:14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; align-items:stretch; justify-content:center; padding:16px;
+    overflow:hidden; overscroll-behavior:none;
+    background:
+      radial-gradient(1200px 800px at 20% -10%, #2c2a1e55, transparent 60%),
+      radial-gradient(1000px 800px at 100% 0%, #1c2a2355, transparent 55%),
+      var(--bg);
+  }
+  .app{ width:100%; max-width:1600px; height: calc(100vh - 32px); display:grid; grid-template-columns:1fr; gap:16px; min-height:0; }
+  .card{ background:var(--panel-grad); border:1px solid var(--border); border-radius:var(--radius); padding:12px; display:flex; flex-direction:column; height:100%; overflow:hidden; box-shadow:var(--glow); }
+  h1{font-size:16px; margin:0 0 6px 0; color:var(--gold); letter-spacing:.3px}
+  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .pill{border:1px solid var(--border); border-radius:999px; padding:4px 10px; color:var(--muted); background:#0f100c}
+  .counts .pill strong{color:var(--ink)}
+  .hr{height:1px; background:var(--border); margin:10px 0}
+  button{
+    background:#14140f; color:var(--ink); border:1px solid var(--border); border-radius:12px;
+    padding:10px 12px; cursor:pointer; letter-spacing:.2px; transition:transform .06s ease, box-shadow .12s ease, border-color .12s ease;
+    box-shadow:0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+  button:hover{ transform:translateY(-1px); border-color:#4a4333; box-shadow:0 6px 16px rgba(0,0,0,.35) }
+  button:disabled{opacity:.55; cursor:not-allowed}
+
+  /* Condensed stats row */
+  .stats{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .stat{ display:flex; align-items:center; gap:10px; padding:6px 10px; border:1px solid var(--border); border-radius:12px; background:#13130e; min-width:0; box-shadow:var(--glow); }
+  .stat .label{font-weight:800; letter-spacing:.3px; color:var(--accent)}
+  .hpmini{ width:180px; height:8px; border:1px solid var(--border); border-radius:999px; overflow:hidden; background:#0c0c09 }
+  .hpfill{height:100%; background:linear-gradient(90deg,#5aa066,#b9e0c1)}
+
+  /* Board (reveal + log) */
+  .board{ display:grid; grid-template-columns:1.2fr .8fr; gap:12px; flex:1 1 auto; min-height:0; }
+  @media (max-width: 980px){ .board{ grid-template-columns:1fr } }
+  .panel-title{ font-weight:800; margin-bottom:6px; color:var(--accent-2) }
+
+  .revealPane{ display:flex; flex-direction:column; min-height:0; }
+  .arena{
+    border:1px solid var(--border); border-radius:14px; padding:10px; margin-top:10px;
+    flex:1 1 auto; min-height:0; overflow:hidden; display:flex; flex-direction:column;
+    background:linear-gradient(180deg,#19180f 0%, #12110c 100%); box-shadow:var(--glow);
+  }
+  .lane-title{ font-size:12px; color:#d3ccbd; margin-bottom:6px; letter-spacing:.2px }
+  .lane{ display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; min-height:var(--reveal-h) }
+  .lane + .lane{ margin-top:8px }
+
+  .reveal{ width:var(--reveal-w); height:var(--reveal-h); perspective:800px; position:relative }
+  .flip{ position:absolute; inset:0; transform-style:preserve-3d; transition: transform .5s ease }
+  .flip.revealed{ transform: rotateY(180deg) }
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:12px; border:1px solid #3a3429; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    padding:8px; text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+  .front{ background:#1a1912; color:#6e6a5c; letter-spacing:.5px }
+  .back{ transform: rotateY(180deg); background:linear-gradient(180deg,#1e1c14 0%, #14130d 100%); color:#f4efe2 }
+  .badge{ position:absolute; top:6px; right:6px; font-size:10px; padding:2px 6px; border-radius:999px; background:#2a3a33; color:#e8f3ed; border:1px solid #3b5146; box-shadow:0 1px 0 rgba(255,255,255,.06) inset; }
+  .reveal[data-type="WL"] .back{ box-shadow:0 0 0 1px #2f4b31 inset; }
+  .reveal[data-type="MN"] .back{ box-shadow:0 0 0 1px #655127 inset; color:#f4e1b9 } /* mirror knave (amber leather) */
+  .reveal[data-type="DK"] .back{ box-shadow:0 0 0 1px #3b474c inset; }
+  .reveal[data-type="PM"] .back{ box-shadow:0 0 0 1px #3e564f inset; color:#d9efe6 } /* parrot mask (verdigris) */
+  .reveal[data-type="MC"] .back{ box-shadow:0 0 0 1px #3a5e53 inset; color:#cbe4d6 }
+  .reveal[data-type="PY"] .back{ box-shadow:0 0 0 1px #6b3e22 inset; color:#ffd39a }
+  .reveal[data-type="MK"] .back{ box-shadow:0 0 0 1px #4b5a3a inset; color:#e0f0c5 } /* mantis green */
+
+  .icon{ font-size:26px; margin-bottom:6px }
+  .src{ font-size:10px; color:#cfc7b4; margin-top:6px }
+
+  .log{ border:1px solid var(--border); border-radius:14px; padding:10px; height:100%; min-height:0; overflow:auto; white-space:pre-wrap;
+        background:linear-gradient(180deg,#19180f 0%, #12110c 100%); box-shadow:var(--glow); }
+
+  /* Hand */
+  .hand{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start; align-content:flex-start; width:100% }
+  .hand .cardlet{
+    width:var(--tcg-w); height:var(--tcg-h); border-radius:14px; cursor:pointer; user-select:none;
+    position:relative; display:flex; flex-direction:column;
+    transition:transform .12s ease, box-shadow .12s ease, outline .12s ease;
+    background:var(--panel-grad); border:1px solid #3a3429; box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 26px rgba(0,0,0,.35);
+    overflow:hidden; isolation:isolate;
+  }
+  .hand .cardlet::before{
+    content:""; position:absolute; inset:-20% -20%;
+    background:conic-gradient(from 0deg, rgba(209,178,98,.16), rgba(108,143,119,.08), rgba(209,178,98,.16));
+    filter:blur(18px); opacity:.28; pointer-events:none; mix-blend-mode:overlay; animation:foil 7s linear infinite; z-index:0;
+  }
+  @keyframes foil{to{transform:rotate(360deg)}}
+  .hand .cardlet:hover{ transform:translateY(-4px); box-shadow:0 12px 28px rgba(0,0,0,.45) }
+  .hand .cardlet.sel{ outline:2px solid var(--accent); box-shadow:0 16px 32px rgba(0,0,0,.55) }
+
+  .tcg-head{ display:flex; align-items:center; justify-content:flex-start; padding:6px 8px; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0)); border-bottom:1px solid #3a3429; z-index:1 }
+  .tcg-name{ font-weight:800; letter-spacing:.1px; font-size:11px; color:#f7f4ea; text-shadow:0 1px 0 rgba(0,0,0,.55);
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100% }
+  .tcg-art{
+    flex:1; margin:8px; border-radius:10px; position:relative; z-index:1;
+    background: radial-gradient(60% 60% at 50% 35%, rgba(207,178,98,.18), transparent 60%), linear-gradient(180deg,#1a170f 0%, #0d0c09 100%);
+    border:1px solid #3a3429; display:grid; place-items:center; color:#d6b56d; font-weight:800; font-size:12px; letter-spacing:.3px
+  }
+  .cardlet[data-type="WL"] .tcg-art{ color:#9dd2a8 }
+  .cardlet[data-type="MN"] .tcg-art{ color:#f4e1b9 }
+  .cardlet[data-type="DK"] .tcg-art{ color:#c4d1d6 }
+  .cardlet[data-type="PM"] .tcg-art{ color:#d9efe6 }
+  .cardlet[data-type="MC"] .tcg-art{ color:#cbe4d6 }
+  .cardlet[data-type="PY"] .tcg-art{ color:#ffd39a }
+  .cardlet[data-type="MK"] .tcg-art{ color:#e0f0c5 }
+
+  .tcg-text{ padding:6px 8px 8px; color:#e7dfcf; font-size:11px; line-height:1.35; z-index:1; min-height:44px }
+  .tcg-footer{ display:flex; align-items:center; justify-content:space-between; padding:6px 8px 8px; z-index:1 }
+  .pips{display:flex; gap:4px}
+  .pip{ width:9px; height:9px; border-radius:999px; background:#3a3429; box-shadow:0 1px 0 rgba(255,255,255,.05) inset }
+  .pip.on{ background:#6aa374 }
+  .cardlet[data-type="MN"] .pip.on{ background:#c79b52 }
+  .cardlet[data-type="DK"] .pip.on{ background:#9aa5ab }
+  .cardlet[data-type="PM"] .pip.on{ background:#6c8f77 }
+  .cardlet[data-type="MC"] .pip.on{ background:#6c8f77 }
+  .cardlet[data-type="PY"] .pip.on{ background:#cf8a49 }
+  .cardlet[data-type="MK"] .pip.on{ background:#8db36a }
+
+  .note{color:#cfc7b4}
+
+  .toast{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); z-index:10}
+  .toast.show{display:grid}
+  .toast .modal{width:min(440px,90%); background:var(--panel-grad); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--glow)}
+  .danger{color:#d26a5c}
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="card">
+      <h1>Cards vs. God — Turn <span id="turnNo">1</span></h1>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="label">Player</span>
+          <span class="pill">HP: <strong id="pHP">10</strong>/10</span>
+          <div class="hpmini"><div id="pHPFill" class="hpfill" style="width:100%"></div></div>
+        </div>
+        <div class="stat">
+          <span class="label">God</span>
+          <span class="pill">Unharmed</span>
+        </div>
+      </div>
+
+      <div class="row counts" style="margin-top:8px">
+        <span class="pill">Your Deck: <strong id="deckCount">14</strong></span>
+        <span class="pill">Your Hand: <strong id="handCount">0</strong></span>
+        <span class="pill">Your Set: <strong id="setCount">0 / 4</strong></span>
+        <span class="pill">God Deck: <strong id="gDeckCount">14</strong></span>
+        <span class="pill">God Hand: <strong id="gHandCount">0</strong></span>
+        <span class="pill">God Set: <strong id="gSetCount">0 / 4</strong></span>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="board">
+        <div class="revealPane">
+          <div class="panel-title">Reveals</div>
+          <div class="arena">
+            <div class="lane-title">Player</div>
+            <div id="laneP" class="lane"></div>
+            <div class="lane-title" style="margin-top:8px">God</div>
+            <div id="laneG" class="lane"></div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; min-height:0;">
+          <div class="panel-title">Log</div>
+          <div id="log" class="log" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div>
+        <div class="row" style="justify-content:space-between">
+          <strong>Your Hand</strong>
+          <span class="note">Select 0–4 to form your face-down set. (No mixed octaves.)</span>
+        </div>
+        <div id="hand" class="hand" aria-label="Hand cards"></div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; margin-top:8px">
+        <button id="btnEndTurn">End Turn ➜ Duel</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="gameOver">
+    <div class="modal">
+      <h2 class="danger">Game Over.</h2>
+      <div class="note">You died. Continue?</div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="btnQuit">Quit</button>
+        <button id="btnContinue">Continue</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = sel => document.querySelector(sel);
+  const rint = n => Math.floor(Math.random()*n);
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const clamp = (n,min,max)=> Math.max(min, Math.min(max, n));
+
+  const BULLET_DMG_BASE = 4;
+  const BULLET_DMG_LIT  = 5;
+  const START_HP = 10;
+  const HAND_TARGET = 6;
+  const MAX_SET = 4;
+  const REVEAL_DELAY = 3000;
+
+  const CARD_DEFS = [
+    { key:"WL", name:"Wandering Lantern", desc:"Reflects the fired shot.", octave:3 },
+    { key:"MK", name:"Mantis Knight",     desc:"Splits bullet in 2 and reflects them.", octave:3 },
+    { key:"MN", name:"Mirror Knave",      desc:"Creates an extra bullet headed the other way.", octave:2 },
+    { key:"DK", name:"Dark Knight",       desc:"Absorbs the shot (0 dmg).", octave:1 },
+    { key:"PM", name:"Parrot Mask",       desc:"Cancel opponent’s just-revealed card.", octave:1 },
+    { key:"MC", name:"Mimic Chamber",     desc:"Adds bullet to random chamber.", octave:0 },
+    { key:"PY", name:"Pyrophant",         desc:"Next bullet you shoot deals 5.", octave:0 },
+  ];
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+  function buildStarterDeck(){
+    // 2 WL, 2 MK, 2 MN, 3 DK, 2 PM, 2 MC, 1 PY = 14
+    const counts = { WL:2, MK:2, MN:2, DK:3, PM:2, MC:2, PY:1 };
+    const deck = [];
+    for(const def of CARD_DEFS){
+      const n = counts[def.key] || 0;
+      for(let i=0;i<n;i++) deck.push({...def, id:`${def.key}-${i+1}`});
+    }
+    return shuffle(deck);
+  }
+
+  const state = {
+    turn: 1,
+    p: { hp: START_HP, deck: [], hand: [], set: [], discard: [], litCount: 0 },
+    g: { deck: [], hand: [], set: [], discard: [], litCount: 0 }, // God has no HP
+    resolving: false,
+  };
+
+  function hpPct(hp){ return clamp(Math.round((hp/START_HP)*100),0,100); }
+  function renderCounts(){
+    $("#deckCount").textContent   = state.p.deck.length;
+    $("#handCount").textContent   = state.p.hand.length;
+    $("#setCount").textContent    = `${state.p.set.length} / ${MAX_SET}`;
+    $("#gDeckCount").textContent  = state.g.deck.length;
+    $("#gHandCount").textContent  = state.g.hand.length;
+    $("#gSetCount").textContent   = `${state.g.set.length} / ${MAX_SET}`;
+    $("#turnNo").textContent      = state.turn;
+
+    $("#pHP").textContent = state.p.hp;
+    $("#pHPFill").style.width = hpPct(state.p.hp) + "%";
+  }
+  function cardPipsHTML(o){ let out=""; for(let i=1;i<=3;i++) out+=`<span class="pip ${i<=o?'on':''}"></span>`; return out; }
+  function makeCardEl(card){
+    const el = document.createElement("div");
+    el.className = "cardlet"; el.dataset.id = card.id; el.dataset.type = card.key;
+    const art = card.key==="WL" ? "✧ Lantern"
+              : card.key==="MK" ? "⚔ Mantis"
+              : card.key==="MN" ? "🪞 Mirror"
+              : card.key==="DK" ? "♜ Knight"
+              : card.key==="PM" ? "🦜 Mask"
+              : card.key==="MC" ? "◎ Mimic"
+              : "🔥 Pyrophant";
+    el.innerHTML = `
+      <div class="tcg-head"><div class="tcg-name">${card.name}</div></div>
+      <div class="tcg-art">${art}</div>
+      <div class="tcg-text">${card.desc}</div>
+      <div class="tcg-footer"><div class="pips">${cardPipsHTML(card.octave)}</div><div style="font-size:10px; color:#e7dfcf;">Octave</div></div>`;
+    return el;
+  }
+  function renderHand(){
+    const handEl = $("#hand"); handEl.innerHTML = "";
+    state.p.hand.forEach(card=>{
+      const el = makeCardEl(card);
+      if(state.p.set.some(c=>c.id===card.id)) el.classList.add("sel");
+      el.addEventListener("click", ()=> { if(!state.resolving) toggleSelect(card.id) });
+      handEl.appendChild(el);
+    });
+  }
+  function renderSets(){}
+
+  function log(msg){
+    const logEl = $("#log");
+    const atBottom = Math.abs(logEl.scrollHeight - (logEl.scrollTop + logEl.clientHeight)) < 4;
+    logEl.textContent += (logEl.textContent ? "\n" : "") + msg;
+    if(atBottom) logEl.scrollTop = logEl.scrollHeight;
+  }
+  function updateUI(){ renderCounts(); renderHand(); renderSets(); }
+  function setControlsEnabled(on){ $("#btnEndTurn").disabled = !on; }
+
+  function clearArena(){ $("#laneP").innerHTML=""; $("#laneG").innerHTML=""; }
+  function iconFor(k){ return k==="WL"?"✧":k==="MK"?"⚔":k==="MN"?"🪞":k==="DK"?"♜":k==="PM"?"🦜":k==="MC"?"◎":k==="PY"?"🔥":"☠"; }
+  function makeRevealEl(sideKey, typeKey, label, src, badgeText=""){
+    const lane = sideKey==="p" ? $("#laneP") : $("#laneG");
+    const wrap = document.createElement("div"); wrap.className="reveal"; wrap.dataset.type=typeKey;
+    const flip = document.createElement("div"); flip.className="flip";
+    const front = document.createElement("div"); front.className="face front"; front.textContent="face-down";
+    const back = document.createElement("div"); back.className="face back";
+    back.innerHTML = `<div><div class="icon">${iconFor(typeKey)}</div><div style="font-weight:800">${label}</div><div class="src">${src}</div></div>`;
+    if(badgeText){ const b=document.createElement("div"); b.className="badge"; b.textContent=badgeText; back.appendChild(b); }
+    flip.appendChild(front); flip.appendChild(back); wrap.appendChild(flip); lane.appendChild(wrap);
+    requestAnimationFrame(()=>{ flip.classList.add("revealed"); });
+    return wrap;
+  }
+  async function revealStep(sideKey, typeKey, label, src, badgeText=""){ makeRevealEl(sideKey,typeKey,label,src,badgeText); await sleep(REVEAL_DELAY); }
+
+  /* drawing (finite deck) */
+  function drawToHand(side,n){ for(let i=0;i<n;i++){ if(side.deck.length===0) return; side.hand.push(side.deck.pop()); } }
+  function drawToReach(side, target){ const need = Math.max(0, target - side.hand.length); if(need>0) drawToHand(side, need); }
+
+  /* no mixed octaves (different keys) in a set */
+  function canAddToSet(card, set){
+    for(const c of set){ if(c.octave===card.octave && c.key!==card.key) return false; }
+    return true;
+  }
+
+  function startTurn(){
+    drawToReach(state.p, HAND_TARGET); drawToReach(state.g, HAND_TARGET);
+    log(`\n— Turn ${state.turn} begins. Hands refill toward ${HAND_TARGET} (if deck allows). Select 0–${MAX_SET}; no mixed octaves.`);
+    clearArena(); updateUI();
+  }
+  function toggleSelect(cardId){
+    const inHand = state.p.hand.find(c=>c.id===cardId); if(!inHand) return;
+    const idx = state.p.set.findIndex(c=>c.id===cardId);
+    if(idx>=0) state.p.set.splice(idx,1);
+    else if(state.p.set.length < MAX_SET){
+      if(canAddToSet(inHand, state.p.set)) state.p.set.push(inHand);
+      else log(`• Cannot add ${inHand.name}: set already contains a different card of octave ${inHand.octave}.`);
+    }
+    updateUI();
+  }
+
+  function commitPlayerSet(){
+    const ids = new Set(state.p.set.map(c=>c.id));
+    state.p.hand = state.p.hand.filter(c=>!ids.has(c.id));
+  }
+  function commitGodSet(){
+    const pool = shuffle(state.g.hand.slice());
+    const chosen = [];
+    for(const cand of pool){
+      if(chosen.length >= Math.min(MAX_SET, state.g.hand.length)) break;
+      if(canAddToSet(cand, chosen)) chosen.push(cand);
+    }
+    if(chosen.length < Math.min(MAX_SET, state.g.hand.length)){
+      for(const cand of pool){
+        if(chosen.length >= Math.min(MAX_SET, state.g.hand.length)) break;
+        if(chosen.some(c=>c.id===cand.id)) continue;
+        let ok = true;
+        for(const c of chosen){ if(c.octave===cand.octave && c.key!==cand.key){ ok=false; break; } }
+        if(ok) chosen.push(cand);
+      }
+    }
+    state.g.set = chosen.slice(0, Math.min(MAX_SET, state.g.hand.length));
+    const ids = new Set(state.g.set.map(c=>c.id));
+    state.g.hand = state.g.hand.filter(c=>!ids.has(c.id));
+  }
+
+  function countByKey(cards){ return cards.reduce((m,c)=> (m[c.key]=(m[c.key]||0)+1, m), {}); }
+  function consumeFirstByKey(arr,key){ const i=arr.findIndex(c=>c.key===key); return i>=0 ? arr.splice(i,1)[0] : null; }
+
+  // Parrot Mask cancellation: if the OPPOSING side has PM, cancel the just-revealed card
+  async function tryParrotCancel(actingSideKey, usedRefs){
+    const opp = actingSideKey==="p" ? "g" : "p";
+    const idx = state[opp].set.findIndex(c=>c.key==="PM");
+    if(idx>=0){
+      const [pm] = state[opp].set.splice(idx,1);
+      (opp==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(pm);
+      await revealStep(opp, "PM", "Parrot Mask", "Octave 1", "Cancel");
+      if(opp==="p"){
+        log(`• ... but your Parrot Mask took you to a timeline where that never happened.`);
+      }else{
+        log(`• ... but the god's Parrot Mask took you to a timeline where that never happened.`);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async function resolveAgainstSet(targetKey, usedRefs, damage){
+    const tgt = (targetKey==="p") ? state.p : state.g;
+    const counts = countByKey(tgt.set);
+    const other = (targetKey==="p") ? "g" : "p";
+
+    // High octave (3): Mantis Knight or Wandering Lantern (cannot coexist by rule)
+    if((counts["MK"]||0)>0){
+      const card = consumeFirstByKey(tgt.set,"MK");
+      (targetKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(card);
+      const half = Math.max(1, Math.floor(damage/2));
+      await revealStep(targetKey, "MK", "Mantis Knight", "Set", `Split & Redirect (×2 @ ${half})`);
+      log(`• ${targetKey==="p"?"Your":"God’s"} Mantis Knight cleaves the shot into two and sends them back!`);
+      if(await tryParrotCancel(targetKey, usedRefs)){
+        // canceled: no split; continue processing same target
+        return { action:"continue" };
+      }
+      return { action:"split", damageHalf: half };
+    }
+
+    if((counts["WL"]||0)>0){
+      const card = consumeFirstByKey(tgt.set,"WL");
+      (targetKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(card);
+      await revealStep(targetKey, "WL", "Wandering Lantern", "Set", "Redirect");
+      log(`• ${targetKey==="p"?"Your":"God’s"} Wandering Lantern redirects the shot!`);
+      if(await tryParrotCancel(targetKey, usedRefs)){
+        // canceled: no redirect; continue on same target
+        return { action:"continue" };
+      }
+      return { action:"redirect", damage };
+    }
+
+    // Mid octave (2): Mirror Knave
+    if((counts["MN"]||0)>0){
+      const card = consumeFirstByKey(tgt.set,"MN");
+      (targetKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(card);
+      await revealStep(targetKey, "MN", "Mirror Knave", "Set", "Spawn opposite");
+      log(`• ${targetKey==="p"?"Your":"God’s"} Mirror Knave conjures a twin bullet in the opposite direction!`);
+      if(await tryParrotCancel(targetKey, usedRefs)){
+        // canceled: no spawn; continue on same target
+        return { action:"continue" };
+      }
+      // spawn extra toward the other side; current bullet continues here
+      return { action:"spawn", damage };
+    }
+
+    // Low octave (1): Dark Knight absorb
+    if((counts["DK"]||0)>0){
+      const card = consumeFirstByKey(tgt.set,"DK");
+      (targetKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(card);
+      await revealStep(targetKey, "DK", "Dark Knight", "Set", "Absorb");
+      log(`• ${targetKey==="p"?"Your":"God’s"} Dark Knight absorbs the shot. No damage.`);
+      if(await tryParrotCancel(targetKey, usedRefs)){
+        // canceled: absorb undone; continue
+        return { action:"continue" };
+      }
+      return { action:"end", damage };
+    }
+
+    // No protection
+    if(targetKey==="p"){
+      tgt.hp = Math.max(0, tgt.hp - damage);
+      renderCounts();
+      log(`• You take ${damage} damage.`);
+      return { action:"end", damage };
+    }else{
+      log(`• The bullet strikes the God. He is momentarily impacted, then gestures for the game to continue.`);
+      return { action:"end", damage };
+    }
+  }
+
+  function checkDeath(){ if(state.p.hp<=0){ showGameOver(); return true; } return false; }
+
+  // Revolver
+  function addRandomBullet(bullets){
+    if(bullets.size>=6) return false;
+    const empties=[]; for(let i=0;i<6;i++) if(!bullets.has(i)) empties.push(i);
+    if(!empties.length) return false;
+    bullets.add(empties[rint(empties.length)]); return true;
+  }
+  async function applyOctave0AndLoadBullets(bullets, usedRefs){
+    addRandomBullet(bullets); // base bullet
+    for(const sideKey of ["p","g"]){
+      // Mimic Chamber(s)
+      while(true){
+        const idx = state[sideKey].set.findIndex(c=>c.key==="MC");
+        if(idx<0) break;
+        const [mc] = state[sideKey].set.splice(idx,1);
+        (sideKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(mc);
+        const ok = addRandomBullet(bullets);
+        await revealStep(sideKey, "MC", "Mimic Chamber", "Octave 0", ok?"+Bullet":"No space");
+        log(`• ${sideKey==="p"?"Your":"God’s"} Mimic Chamber ${ok?"adds a bullet.":"had no empty chamber."}`);
+      }
+      // Pyrophant(s)
+      while(true){
+        const idx = state[sideKey].set.findIndex(c=>c.key==="PY");
+        if(idx<0) break;
+        const [py] = state[sideKey].set.splice(idx,1);
+        (sideKey==="p" ? usedRefs.pUsed : usedRefs.gUsed).push(py);
+        state[sideKey].litCount += 1;
+        await revealStep(sideKey, "PY", "Pyrophant", "Octave 0", "Next is LIT (5)");
+        log(`• ${sideKey==="p"?"Your":"God’s"} Pyrophant empowers the next bullet (+1 dmg).`);
+      }
+    }
+  }
+
+  // Unified consecutive resolver (supports redirect, split, spawn, cancel -> continue)
+  async function resolveChainSets(initialTarget, usedRefs, damage){
+    const queue = [{ target: initialTarget, damage }];
+    const otherOf = s => s==="p" ? "g" : "p";
+
+    while(queue.length){
+      const task = queue.shift();
+      let target = task.target;
+      let currentDmg = task.damage;
+      let hops = 0, MAX_HOPS = 30;
+
+      while(hops++ < MAX_HOPS){
+        const res = await resolveAgainstSet(target, usedRefs, currentDmg);
+        if(res.action === "end"){ break; }
+        if(res.action === "continue"){ continue; }
+        if(res.action === "redirect"){
+          target = otherOf(target);
+          continue;
+        }
+        if(res.action === "spawn"){
+          // extra bullet toward the other side; current continues here
+          queue.push({ target: otherOf(target), damage: res.damage });
+          continue;
+        }
+        if(res.action === "split"){
+          // current ends; push two bullets at the other side, consecutively
+          queue.push({ target: otherOf(target), damage: res.damageHalf });
+          queue.push({ target: otherOf(target), damage: res.damageHalf });
+          break;
+        }
+      }
+
+      if(checkDeath()) return;
+    }
+  }
+
+  async function duelRussianRoulette(usedRefs){
+    const bullets = new Set();
+    await applyOctave0AndLoadBullets(bullets, usedRefs);
+
+    let pointer = rint(6), turn="p";
+    log(`• Six-shooter spun. ${bullets.size} bullet${bullets.size!==1?"s":""} loaded.`);
+
+    while(bullets.size>0){
+      const puller = (turn==="p")?"You":"God";
+      log(`${puller} pull the trigger...`);
+      if(bullets.has(pointer)){
+        bullets.delete(pointer);
+        let damage = BULLET_DMG_BASE;
+        if(turn==="p" && state.p.litCount>0){ state.p.litCount--; damage = BULLET_DMG_LIT; log("→ Lit bullet! (5 dmg)"); }
+        else if(turn==="g" && state.g.litCount>0){ state.g.litCount--; damage = BULLET_DMG_LIT; log("→ Lit bullet! (5 dmg)"); }
+        const initialTarget = (turn==="p") ? "p" : "g";
+        log(`→ Bang! The shot is headed for ${initialTarget==="p"?"you":"God"}…`);
+        await resolveChainSets(initialTarget, usedRefs, damage);
+        if(checkDeath()) return;
+      }else{
+        log("→ Click.");
+      }
+      pointer = (pointer + 1) % 6;
+      turn = (turn==="p") ? "g" : "p";
+    }
+    log("• Cylinder empty. Duel ends.");
+  }
+
+  async function endTurnAndDuel(){
+    if(state.resolving) return;
+    state.resolving = true; setControlsEnabled(false);
+
+    commitPlayerSet(); commitGodSet(); updateUI();
+    log(`• You played ${state.p.set.length} modifier(s).`);
+    log(`• God played ${state.g.set.length} modifier(s).`);
+
+    const usedRefs = { pUsed: [], gUsed: [] };
+    await duelRussianRoulette(usedRefs);
+    if(checkDeath()){ state.resolving=false; setControlsEnabled(true); return; }
+
+    discardAfterDuel(state.p, usedRefs.pUsed);
+    discardAfterDuel(state.g, usedRefs.gUsed);
+
+    state.turn += 1;
+    startTurn();
+
+    state.resolving = false; setControlsEnabled(true);
+  }
+  function discardAfterDuel(side, consumedFromSet){ side.discard.push(...side.set, ...consumedFromSet); side.set = []; }
+
+  function showGameOver(){ $("#gameOver").classList.add("show"); }
+  function hideGameOver(){ $("#gameOver").classList.remove("show"); }
+
+  function resetGame(){
+    state.turn = 1;
+    state.p = { hp: START_HP, deck: buildStarterDeck(), hand: [], set: [], discard: [], litCount: 0 };
+    state.g = { deck: buildStarterDeck(), hand: [], set: [], discard: [], litCount: 0 };
+    $("#log").textContent = "";
+    clearArena(); updateUI();
+    drawToReach(state.p, HAND_TARGET); drawToReach(state.g, HAND_TARGET);
+    updateUI();
+    log(`— New game. Hands draw up to ${HAND_TARGET} if deck allows.`);
+  }
+
+  $("#btnEndTurn").addEventListener("click", endTurnAndDuel);
+  $("#btnContinue").addEventListener("click", ()=>{ hideGameOver(); resetGame(); });
+  $("#btnQuit").addEventListener("click", ()=>{ hideGameOver(); log("• You quit. Refresh page to restart."); });
+
+  resetGame();
+})();
+</script>
+</body>
+</html>
