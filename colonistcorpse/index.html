@@ -1,18 +1,174 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>COLONIST CORPSE</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="./script.js" defer></script>
+  <style>
+    html {
+      font-variant-emoji: text;
+      font-family: "Courier New", monospace;
+    }
+    /*style.css*/
+    body {
+      font-family: "Courier New", monospace;
+      background-color: black;
+      color: #83946B;
+      font-weight: bold;
+      text-align: left;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #game-container {
+      position: absolute;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+    #inventory {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 40%;
+      height: 100%;
+      border: 3px dotted #83946B;
+      padding: 10px;
+      color: #927951;
+      box-sizing: border-box;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    /* Unified log (replaces message-log and action-log) */
+    #log {
+      position: fixed;
+      text-align: right;
+      top: 0;
+      right: 0;
+      width: 60%;
+      height: 100%;
+      border: 3px dotted #83946B;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    #inventory div,
+    #log div {
+      padding: 3px;
+      cursor: pointer;
+      color: #83946B;
+      font-size: 18px;
+      font-weight: normal;
+    }
+    #inventory div:hover, #build-menu div:hover {
+      background: #2A372C;
+    }
+    #build-menu {
+      display: none;
+      position: absolute;
+      font-size: 18px;
+      top: 10%;
+      left: 50%;
+      border-radius: 10px;
+      transform: translateX(-50%);
+      background: black;
+      text-align: center;
+      font-weight: lighter;
+      color: #83946B;
+      border: 3px dotted #83946B;
+      padding: 0px;
+      width: 350px;
+      z-index: 1001;
+    }
+    #build-menu div {
+      padding: 5px;
+      cursor: pointer;
+    }
+    #close-build-menu {
+      cursor: pointer;
+      padding: 5px;
+      font-weight: bold;
+    }
+    #close-build-menu:hover {
+      background: #2A372C;
+    }
+    /* Date modal */
+    #date-modal {
+      position: fixed;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: black;
+      border-radius: 10px;
+      color: #83946B;
+      font-weight: bold;
+      font-size: 18px;
+      padding: 10px;
+      border: 3px dotted #83946B;
+      font-family: "Courier New", monospace;
+      z-index: 1000;
+    }
+    /* Scrollbars (kept for compatibility) */
+    #result::-webkit-scrollbar {
+      width: .5em;
+      height: .2em;
+    }
+    #result::-webkit-scrollbar-track {
+      background: #777e55;
+    }
+    #result::-webkit-scrollbar-thumb {
+      background: #5d6342;
+      border-radius: 0px;
+    }
+    #log::-webkit-scrollbar {
+      width: 0.5em;
+      height: 0.5em;
+    }
+    #log::-webkit-scrollbar-track {
+      background: #777e55;
+    }
+    #log::-webkit-scrollbar-thumb {
+      background: #5d6342;
+      border-radius: 0;
+    }
+    /* Media Query for cell phones */
+    @media only screen and (max-width: 600px) {
+      body, #log {
+        font-size: 14px;
+        width: 55%;
+        letter-spacing: -.1vw;
+      }
+      #inventory {
+        font-size: 14px;
+        letter-spacing: -1px;
+        width: 45%;
+      }
+      #date-modal {
+        letter-spacing: -.08vw;
+        font-size: 14px;
+      }
+      #build-menu {
+        width: 270px;
+        font-size: 14px;
+        letter-spacing: -.05vw;
+      }
+      #log div {
+        font-size: 14px;
+        letter-spacing: -.1vw;
+      }
+      #inventory div {
+        font-size: 14px;
+        letter-spacing: -1px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="game-container">
     <div id="inventory"></div>
-    <div id="message-log"></div>
-    <div id="action-log"></div>
+    <!-- unified log -->
+    <div id="log"></div>
   </div>
 
   <!-- Build menu opens when the user clicks "Colonist" in the inventory -->
@@ -29,5 +185,511 @@
   <div id="date-modal">
     <span id="current-date-display"></span>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Force monochrome emoji
+      const emojiMapping = {
+        "Colonist": "😅\uFE0E",
+        "Enlightened Colonist": "🧘\uFE0E",
+        "Food": "🍖\uFE0E",
+        "Colonist Corpse": "☠\uFE0E",
+        "Enlightened Colonist Corpse": "☠\uFE0E",
+        "Starving Colonist": "😐\uFE0E",
+        "Grave": "🕀\uFE0E",
+        "Horned Tuna": "🦈\uFE0E",
+        "Monastery": "🏘\uFE0E",
+        "Fish Market": "🏘\uFE0E",
+        "Kelp Farm": "🏘\uFE0E",
+        "Lumber Camp": "🏘\uFE0E",
+        "Bonfire": "🔥\uFE0E",
+        "Freshwater Cod": "🐟\uFE0E",
+        "Plump Hare": "🐇\uFE0E",
+        "Hemlock": "🌲\uFE0E",
+        "Cache of Books": "📚\uFE0E",
+        "White Elk": "🦌\uFE0E",
+        "Lemon Tree": "🌲\uFE0E",
+        "Golden Spruce": "🌲\uFE0E",
+        "Eldershrub": "🌿\uFE0E",
+        "Wood": "🌲\uFE0E",
+        "Work": "⛏\uFE0E"
+      };
+
+      let currentDate = new Date("2040-01-01");
+
+      // Core state
+      const inventory = {
+        "Wood": 25,
+        "Food": 20,
+        "Work": 0,
+        "Grave": 0,
+        "Colonist": 1,
+        // Singletons default to 0 (not built)
+        "Kelp Farm": 0,
+        "Bonfire": 0,
+        "Lumber Camp": 0,
+        "Fish Market": 0,
+        "Monastery": 0,
+        // Enlightened state
+        "Enlightened Colonist": 0,
+        "Enlightened Colonist Corpse": 0
+      };
+
+      const timeInterval = 5000;
+
+      // Unified log (buffered; flushed once per day)
+      const logDiv = document.getElementById("log");
+      let dayBuffer = [];
+
+      const inventoryList = document.getElementById("inventory");
+      const buildMenu = document.getElementById("build-menu");
+      const closeBuildMenu = document.getElementById("close-build-menu");
+      const buildLumberCamp = document.getElementById("build-lumber-camp");
+      const buildFishMarket = document.getElementById("build-fish-market");
+      const buildBonfire = document.getElementById("build-bonfire");
+      const buildKelpFarm = document.getElementById("build-kelp-farm");
+      const buildMonastery = document.getElementById("build-monastery");
+
+      // Date header (human-friendly)
+      document.getElementById("current-date-display").textContent = currentDate.toDateString();
+
+      // Track meditating colonists
+      let meditating = []; // each = { days: number }
+
+      // Helpers
+      function formatDate(date) {
+        const dd = String(date.getDate()).padStart(2, "0");
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const yyyy = date.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      // Log helpers (buffered; DOM updates only at end of day)
+      function pushLog(message) {
+        dayBuffer.push(`${formatDate(currentDate)}: ${message}`);
+      }
+      function logMessage(message) { pushLog(message); }
+      function logAction(message) { pushLog(message); }
+      function flushDayLog() {
+        // Show only today's entries: clear, then render today's buffer
+        logDiv.innerHTML = "";
+        if (!dayBuffer.length) return;
+        for (let i = dayBuffer.length - 1; i >= 0; i--) {
+          const entry = document.createElement("div");
+          entry.textContent = dayBuffer[i];
+          entry.style.textAlign = "left";
+          logDiv.prepend(entry);
+        }
+        dayBuffer = [];
+      }
+
+      const woodMult = () => (inventory["Lumber Camp"] ? 2 : 1);
+      const fishFoodMult = () => (inventory["Fish Market"] ? 2 : 1);
+
+      // Click handlers for inventory items
+      function handleItemClick(item) {
+        if (item === "Colonist") {
+          buildMenu.style.display = "block";
+          return;
+        }
+
+        if (item === "Fish Market") {
+          // Manual processing: try Cod first, then Tuna, applying Fish Market doubling
+          if ((inventory["Freshwater Cod"] || 0) > 0) {
+            inventory["Freshwater Cod"]--;
+            inventory["Food"] = (inventory["Food"] || 0) + 10 * fishFoodMult();
+            logAction(`Fish Market: 1 Freshwater Cod into ${10 * fishFoodMult()} Food.`);
+            updateInventoryDisplay();
+            return;
+          }
+          if ((inventory["Horned Tuna"] || 0) > 0) {
+            inventory["Horned Tuna"]--;
+            inventory["Food"] = (inventory["Food"] || 0) + 15 * fishFoodMult();
+            logAction(`Fish Market: 1 Horned Tuna into ${15 * fishFoodMult()} Food.`);
+            updateInventoryDisplay();
+            return;
+          }
+          logAction("Fish Market: No fish to process.");
+          return;
+        }
+
+        if (item === "Lumber Camp") {
+          logAction("Lumber Camp: Wood yields from harvested trees are doubled (click trees to collect).");
+          return;
+        }
+
+        if (item === "Lemon Tree") {
+          // Special: +10 Wood (doubled if Lumber Camp) and +5 Food
+          inventory["Lemon Tree"]--;
+          inventory["Wood"] = (inventory["Wood"] || 0) + 10 * woodMult();
+          inventory["Food"] = (inventory["Food"] || 0) + 5;
+          logAction(`Lemon Tree harvested: +${10 * woodMult()} Wood, +5 Food.`);
+          updateInventoryDisplay();
+          return;
+        }
+
+        if (item === "Bonfire") {
+          // Manual corpse burning
+          const corpsesAvailable = inventory["Colonist Corpse"] || 0;
+          if (inventory["Bonfire"] && corpsesAvailable > 0) {
+            const corpsesToBurn = corpsesAvailable;
+            inventory["Colonist Corpse"] -= corpsesToBurn;
+            inventory["Grave"] = (inventory["Grave"] || 0) + corpsesToBurn;
+            logAction(`The bonfire burns ${corpsesToBurn} bod${corpsesToBurn === 1 ? "y" : "ies"}, creating ${corpsesToBurn} Grave${corpsesToBurn === 1 ? "" : "s"}.`);
+            updateInventoryDisplay();
+          } else if (!inventory["Bonfire"]) {
+            logAction("No bonfire is burning. Build one first.");
+          } else {
+            logAction("There are no colonist corpses to burn.");
+          }
+          return;
+        }
+
+        if (item === "Monastery") {
+          const maxMonks = inventory["Monastery"] ? 1 : 0; // singleton capacity
+          const currentMonks = meditating.length;
+          if (currentMonks < maxMonks) {
+            if ((inventory["Colonist"] || 0) > 0) {
+              inventory["Colonist"]--;
+              meditating.push({ days: 0 });
+              logAction(currentMonks === 0
+                ? "A colonist began meditating in the monastery."
+                : "Another colonist is meditating in the monastery.");
+              updateInventoryDisplay();
+            } else {
+              logAction("No colonists available to meditate.");
+            }
+          } else {
+            logAction("The monastery is at capacity (1).");
+          }
+          return;
+        }
+
+        // Generic conversions (trees require clicks; no auto-milling)
+        convertItem(item);
+      }
+
+      // Feeding / health
+      function feedColonists() {
+        let foodAvailable = inventory["Food"] || 0;
+
+        // Recover/die for previously starving colonists (need 2 Food each)
+        const oldStarving = inventory["Starving Colonist"] || 0;
+        if (oldStarving > 0) {
+          const required = oldStarving * 2;
+          if (foodAvailable >= required) {
+            foodAvailable -= required;
+            inventory["Colonist"] = (inventory["Colonist"] || 0) + oldStarving;
+            inventory["Starving Colonist"] = 0;
+            logAction(`${oldStarving} Starving Colonists have recovered.`);
+          } else {
+            const fedOld = Math.floor(foodAvailable / 2);
+            const unfedOld = oldStarving - fedOld;
+            foodAvailable -= fedOld * 2;
+            inventory["Colonist"] = (inventory["Colonist"] || 0) + fedOld;
+            inventory["Starving Colonist"] = 0;
+            if (fedOld > 0) logAction(`${fedOld} Starving Colonists have recovered.`);
+            if (unfedOld > 0) {
+              inventory["Colonist Corpse"] = (inventory["Colonist Corpse"] || 0) + unfedOld;
+              logAction(`${unfedOld} Starving Colonists died...`);
+            }
+          }
+        }
+
+        // Feed healthy colonists (1 Food each) or they become starving
+        const normalColonists = inventory["Colonist"] || 0;
+        let newStarving = 0;
+        if (normalColonists > 0) {
+          if (foodAvailable >= normalColonists) {
+            foodAvailable -= normalColonists;
+          } else {
+            const fedNormal = foodAvailable;
+            const unfedNormal = normalColonists - fedNormal;
+            foodAvailable = 0;
+            inventory["Colonist"] = fedNormal;
+            newStarving = unfedNormal;
+            if (unfedNormal > 0) logAction(`${unfedNormal} Colonists are now starving, sadly.`);
+          }
+        }
+
+        inventory["Starving Colonist"] = (inventory["Starving Colonist"] || 0) + newStarving;
+        inventory["Food"] = foodAvailable;
+      }
+
+      // Build menu
+      function closeBuildMenuFunction() {
+        buildMenu.style.display = "none";
+      }
+
+      function buildSingleton(item, cost) {
+        if (inventory[item]) {
+          logAction(`${item} is already built.`);
+          return;
+        }
+        for (const [k, v] of Object.entries(cost)) {
+          if ((inventory[k] || 0) < v) {
+            logAction(`Not enough ${k} to build ${item}.`);
+            return;
+          }
+        }
+        for (const [k, v] of Object.entries(cost)) {
+          inventory[k] -= v;
+        }
+        inventory[item] = 1;
+        logAction(`${item} constructed.`);
+        updateInventoryDisplay();
+        closeBuildMenuFunction();
+      }
+
+      // Conversions (trees/fish require clicking; fish market doubles fish yields)
+      function convertItem(item) {
+        if (item === "Cache of Books" && (inventory[item] || 0) > 0) {
+          inventory["Work"] = (inventory["Work"] || 0) + 25;
+          inventory[item]--;
+          logAction("Cache of Books converted into 25 Work.");
+        } else if (item === "Hemlock" && (inventory[item] || 0) > 0) {
+          inventory["Wood"] = (inventory["Wood"] || 0) + 15 * woodMult();
+          inventory[item]--;
+          logAction(`Hemlock converted into ${15 * woodMult()} Wood.`);
+        } else if (item === "Lemon Tree" && (inventory[item] || 0) > 0) {
+          inventory["Wood"] = (inventory["Wood"] || 0) + 10 * woodMult();
+          inventory["Food"] = (inventory["Food"] || 0) + 5;
+          inventory[item]--;
+          logAction(`Lemon Tree harvested: +${10 * woodMult()} Wood, +5 Food.`);
+        } else if (item === "Golden Spruce" && (inventory[item] || 0) > 0) {
+          inventory["Wood"] = (inventory["Wood"] || 0) + 18 * woodMult();
+          inventory[item]--;
+          logAction(`Golden Spruce milled: +${18 * woodMult()} Wood.`);
+        } else if (item === "Eldershrub" && (inventory[item] || 0) > 0) {
+          inventory["Wood"] = (inventory["Wood"] || 0) + 5 * woodMult();
+          inventory["Food"] = (inventory["Food"] || 0) + 2;
+          inventory[item]--;
+          logAction(`Eldershrub harvested: +${5 * woodMult()} Wood, +2 Food.`);
+        } else if (item === "Freshwater Cod" && (inventory[item] || 0) > 0) {
+          inventory["Food"] = (inventory["Food"] || 0) + 10 * fishFoodMult();
+          inventory[item]--;
+          logAction(`Freshwater Cod converted into ${10 * fishFoodMult()} Food.`);
+        } else if (item === "Horned Tuna" && (inventory[item] || 0) > 0) {
+          inventory["Food"] = (inventory["Food"] || 0) + 15 * fishFoodMult();
+          inventory[item]--;
+          logAction(`Horned Tuna converted into ${15 * fishFoodMult()} Food.`);
+        } else if (item === "Plump Hare" && (inventory[item] || 0) > 0) {
+          inventory["Food"] = (inventory["Food"] || 0) + 5;
+          inventory[item]--;
+          logAction("Plump Hare converted into 5 Food.");
+        } else if (item === "White Elk" && (inventory[item] || 0) > 0) {
+          inventory["Food"] = (inventory["Food"] || 0) + 15;
+          inventory[item]--;
+          logAction("White Elk converted into 15 Food.");
+        }
+        updateInventoryDisplay();
+      }
+
+      // Build button wiring with singleton rules
+      closeBuildMenu.addEventListener("click", closeBuildMenuFunction);
+
+      buildLumberCamp.addEventListener("click", function () {
+        if (inventory["Lumber Camp"]) return logAction("Lumber Camp is already built.");
+        if ((inventory["Wood"] || 0) >= 10 && (inventory["Work"] || 0) >= 50) {
+          buildSingleton("Lumber Camp", { Wood: 10, Work: 50 });
+        } else {
+          logAction("Insufficient resources for Lumber Camp.");
+        }
+      });
+
+      buildFishMarket.addEventListener("click", function () {
+        if (inventory["Fish Market"]) return logAction("Fish Market is already built.");
+        if ((inventory["Wood"] || 0) >= 100 && (inventory["Work"] || 0) >= 50) {
+          buildSingleton("Fish Market", { Wood: 100, Work: 50 });
+        } else {
+          logAction("Insufficient resources for Fish Market.");
+        }
+      });
+
+      buildBonfire.addEventListener("click", function () {
+        if (inventory["Bonfire"]) return logAction("Bonfire is already burning.");
+        if ((inventory["Wood"] || 0) >= 25 && (inventory["Work"] || 0) >= 5) {
+          buildSingleton("Bonfire", { Wood: 25, Work: 5 });
+        } else {
+          logAction("Insufficient resources for Bonfire.");
+        }
+      });
+
+      buildKelpFarm.addEventListener("click", function () {
+        if (inventory["Kelp Farm"]) return logAction("Kelp Farm is already built.");
+        if ((inventory["Work"] || 0) >= 50 && (inventory["Wood"] || 0) >= 20 && (inventory["Food"] || 0) >= 10) {
+          buildSingleton("Kelp Farm", { Work: 50, Wood: 20, Food: 10 });
+        } else {
+          logAction("Insufficient resources for Kelp Farm.");
+        }
+      });
+
+      buildMonastery.addEventListener("click", function () {
+        if (inventory["Monastery"]) return logAction("Monastery is already built.");
+        if ((inventory["Work"] || 0) >= 200 && (inventory["Wood"] || 0) >= 200 && (inventory["Grave"] || 0) >= 10) {
+          buildSingleton("Monastery", { Work: 200, Wood: 200, Grave: 10 });
+        } else {
+          logAction("Insufficient resources for Monastery.");
+        }
+      });
+
+      // Daily RNG and auto-processing (no auto tree milling)
+      function checkDailyEvents() {
+        // Bonfire upkeep (1 Wood/turn)
+        if (inventory["Bonfire"]) {
+          if ((inventory["Wood"] || 0) >= 1) {
+            inventory["Wood"] -= 1;
+          } else {
+            inventory["Bonfire"] = 0; // goes out; can be rebuilt later
+            logAction("Ran out of Wood — the Bonfire has gone out.");
+          }
+        }
+
+        const eventMessages = [];
+
+        // Random spawns (added Golden Spruce & Eldershrub)
+        const freshFishChance = 0.05 + (inventory["Fish Market"] ? 0.05 : 0); // 5% base, 10% with Fish Market
+        const events = [
+          { name: "Colonist", chance: 0.20 },
+          { name: "Cache of Books", chance: 0.05 },
+          { name: "White Elk", chance: 0.05 },
+          { name: "Plump Hare", chance: 0.06 },
+          { name: "Horned Tuna", chance: 0.04 },
+          { name: "Freshwater Cod", chance: freshFishChance },
+          { name: "Lemon Tree", chance: 0.07 },
+          { name: "Hemlock", chance: 0.07 },
+          { name: "Golden Spruce", chance: 0.03 },
+          { name: "Eldershrub", chance: 0.09 }
+        ];
+
+        events.forEach((ev) => {
+          if (Math.random() < ev.chance) {
+            inventory[ev.name] = (inventory[ev.name] || 0) + 1;
+            eventMessages.push(`${ev.name} has appeared.`);
+          }
+        });
+
+        // Auto-processing for fish if Fish Market exists (one per day, prefer Cod)
+        if (inventory["Fish Market"] && (inventory["Freshwater Cod"] || 0) > 0) {
+          inventory["Freshwater Cod"]--;
+          const gain = 10 * fishFoodMult();
+          inventory["Food"] = (inventory["Food"] || 0) + gain;
+          eventMessages.push(`Fish Market: 1 Freshwater Cod into ${gain} Food.`);
+        } else if (inventory["Fish Market"] && (inventory["Horned Tuna"] || 0) > 0) {
+          inventory["Horned Tuna"]--;
+          const gain = 15 * fishFoodMult();
+          inventory["Food"] = (inventory["Food"] || 0) + gain;
+          eventMessages.push(`Fish Market: 1 Horned Tuna into ${gain} Food.`);
+        }
+
+        // Buffer all messages
+        eventMessages.forEach((msg) => pushLog(msg));
+      }
+
+      // Inventory UI
+      function updateInventoryDisplay() {
+        // Two corpse headings
+        inventoryList.innerHTML = '<div id="corpse-title">COLONIST CORPSE</div>'
+          + (inventory["Enlightened Colonist Corpse"] ? '<div id="en-corpse-title">ENLIGHTENED COLONIST CORPSE</div>' : '');
+
+        const categories = {
+          "Store Room": ["Work", "Food", "Wood", "Grave"],
+          "Colony": [
+            "Colonist",
+            "Enlightened Colonist",
+            "Starving Colonist",
+            "Colonist Corpse",
+            "Enlightened Colonist Corpse",
+            "Lumber Camp",
+            "Monastery",
+            "Kelp Farm",
+            "Fish Market",
+            "Bonfire"
+          ],
+          "The Wilds": [
+            "Hemlock",
+            "Lemon Tree",
+            "Golden Spruce",
+            "Eldershrub",
+            "Cache of Books",
+            "Freshwater Cod",
+            "White Elk",
+            "Plump Hare",
+            "Horned Tuna"
+          ]
+        };
+
+        Object.keys(categories).forEach((category) => {
+          const categoryTitle = document.createElement("div");
+          categoryTitle.textContent = category;
+          categoryTitle.style.fontWeight = "bold";
+          categoryTitle.style.marginTop = "10px";
+          categoryTitle.style.cursor = "default"; // not clickable
+          inventoryList.appendChild(categoryTitle);
+
+          categories[category].forEach((item) => {
+            if ((inventory[item] || 0) > 0) {
+              const entry = document.createElement("div");
+              const emoji = emojiMapping[item] || "";
+              entry.textContent = emoji ? `${emoji} ${item} (${inventory[item]})` : `${item} (${inventory[item]})`;
+              if (emoji) entry.classList.add("emoji");
+              entry.dataset.item = item;
+              entry.addEventListener("click", () => handleItemClick(item));
+              inventoryList.appendChild(entry);
+            }
+          });
+        });
+      }
+
+      // Turn / time progression
+      function advanceDay() {
+        // 1) Date first
+        currentDate.setDate(currentDate.getDate() + 1);
+        document.getElementById("current-date-display").textContent = currentDate.toDateString();
+
+        // 2) Per-turn production (auto)
+        if (inventory["Kelp Farm"]) {
+          inventory["Food"] = (inventory["Food"] || 0) + 5;
+          logAction("Kelp Farm produced +5 Food.");
+        }
+
+        // 3) Resolve Bonfire upkeep + daily RNG/auto-processing
+        checkDailyEvents();
+
+        // 4) Feeding (after production/processing)
+        feedColonists();
+
+        // 5) Work production from healthy Colonists
+        const workers = (inventory["Colonist"] || 0);
+        if (workers > 0) {
+          inventory["Work"] = (inventory["Work"] || 0) + workers;
+          logAction(`Colonists produced +${workers} Work.`);
+        }
+
+        // 6) Meditation progress & enlightenment
+        for (let i = meditating.length - 1; i >= 0; i--) {
+          meditating[i].days++;
+          if (meditating[i].days >= 10) {
+            meditating.splice(i, 1);
+            // Respawn enlightened colonist AND leave a corpse
+            inventory["Enlightened Colonist"] = (inventory["Enlightened Colonist"] || 0) + 1;
+            inventory["Enlightened Colonist Corpse"] = (inventory["Enlightened Colonist Corpse"] || 0) + 1;
+            logAction("Monastery: A colonist has become Enlightened (and left an Enlightened Corpse).");
+          }
+        }
+
+        updateInventoryDisplay();
+
+        // 7) End-of-day: render ONLY today's buffered log lines, then clear buffer
+        flushDayLog();
+      }
+
+      // Kickoff
+      setTimeout(advanceDay, 100);
+      setInterval(advanceDay, timeInterval);
+      updateInventoryDisplay();
+      logAction("Game started.");
+    });
+  </script>
 </body>
 </html>
