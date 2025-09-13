@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Capital Ship Duel — JS single file (Battleship Feel)</title>
+<style>
+  :root{ --bg:#0b0f14; --ink:#cfe3ef; --muted:#8aa2b3; --accent:#9fc46b; --warn:#ffb86b; --danger:#ff7a7a; --enemy:#ff8e8e; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 800px at 50% 40%, #0f1520 0%, #0b0f14 60%, #070a0f 100%);
+    color:var(--ink); font:14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* Outer frame holds the header above the game panel */
+  #frame{ width:min(100vw, 980px); display:flex; flex-direction:column; gap:8px; }
+
+  /* Game panel (starfield) */
+  #wrap{position:relative; width:100%; aspect-ratio:16/9; border:1px solid #24313b; border-radius:12px; overflow:hidden; box-shadow:0 10px 40px #0008; display:flex; flex-direction:column;}
+
+  /* Header sits ABOVE the starfield */
+  #game-header{display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:transparent; border:0; z-index:1}
+  #game-header h1{margin:0; font-size:14px; color:var(--muted); font-weight:600}
+  #hud{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  #hud .pill{border:1px solid #22303a; padding:4px 8px; border-radius:999px; background:transparent}
+  #controls{opacity:.85}
+  .bar{width:160px; height:8px; background:#1a222b; border:1px solid #22303a; border-radius:999px; overflow:hidden; position:relative}
+  .bar>i{display:block; height:100%; background:linear-gradient(90deg, #79d26a, #9fc46b)}
+  .bar span{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#e6f1f7; text-shadow:0 1px 0 #000}
+  .bar.enemy>i{background:linear-gradient(90deg, #ff7a7a, #ff9a9a)}
+  canvas{flex:1; width:100%; height:100%;}
+  #overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none}
+  .centercard{background:#0d141bcc; border:1px solid #22303a; padding:18px 22px; border-radius:12px; text-align:center; max-width:640px}
+  .centercard h2{margin:.2em 0 .3em; font-size:18px}
+  .centercard .sub{opacity:.9; text-align:left}
+  .btns{display:flex; gap:10px; justify-content:center; margin-top:10px}
+  button{appearance:none; border:1px solid #2a3541; background:#101821; color:var(--ink); padding:8px 12px; border-radius:8px; font:inherit; cursor:pointer}
+  button:hover{border-color:#3a4a59}
+  kbd{background:#101821; border:1px solid #2a3541; padding:1px 5px; border-radius:6px}
+</style>
+</head>
+<body>
+  <div id="frame">
+    <!-- Header row sits above the starfield panel now -->
+    <div id="game-header">
+      <h1>CAPITAL SHIP DUEL</h1>
+      <div id="hud">
+        <span class="pill">Player HP
+          <span class="bar"><i id="php" style="width:100%"></i><span id="phpPct">100%</span></span>
+        </span>
+        <span class="pill">Enemy HP
+          <span class="bar enemy"><i id="ehp" style="width:100%"></i><span id="ehpPct">100%</span></span>
+        </span>
+        <span class="pill">CD
+          <span class="bar" style="width:120px"><i id="cannonBar" style="width:100%"></i><span id="cannonPct">100%</span></span>
+        </span>
+        <span class="pill">Missiles
+          <span class="bar" style="width:120px"><i id="missileBar" style="width:100%"></i><span id="missilePct">100%</span></span>
+        </span>
+        <span id="controls" class="pill">A/D rotate · W thrust · <kbd>1</kbd> starboard broadside · <kbd>2</kbd> double dumbfire missiles · <kbd>Shift</kbd> warp · <kbd>P</kbd> pause</span>
+      </div>
+      <button id="infoBtn" title="About wraparound">Info</button>
+    </div>
+
+    <!-- Starfield panel -->
+    <div id="wrap">
+      <canvas id="game" width="1280" height="720"></canvas>
+      <div id="overlay"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ------- DOM refs -------
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var phpEl = document.getElementById('php');
+  var ehpEl = document.getElementById('ehp');
+  var phpPctEl = document.getElementById('phpPct');
+  var ehpPctEl = document.getElementById('ehpPct');
+  var cannonBar = document.getElementById('cannonBar');
+  var missileBar = document.getElementById('missileBar');
+  var cannonPctEl = document.getElementById('cannonPct');
+  var missilePctEl = document.getElementById('missilePct');
+
+  // --- Utils ---
+  var TAU = Math.PI * 2;
+  function rand(a,b){ if(a===void 0) a=1; if(b===void 0) b=0; return Math.random()*(a-b)+b; }
+  function clamp(v,min,max){ return v<min?min:v>max?max:v; }
+  function dist2(a,b){ var dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy; }
+
+  function wrap(p, w, h){
+    if (p.x < -p.r) p.x = w + p.r; else if (p.x > w + p.r) p.x = -p.r;
+    if (p.y < -p.r) p.y = h + p.r; else if (p.y > h + p.r) p.y = -p.r;
+  }
+
+  // Input
+  var keys = {};
+  window.addEventListener('keydown', function(e){
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].indexOf(e.key) >= 0) e.preventDefault();
+    keys[(e.key||'').toLowerCase()] = true;
+  });
+  window.addEventListener('keyup', function(e){ delete keys[(e.key||'').toLowerCase()]; });
+
+  var W = canvas.width, H = canvas.height;
+
+  // Starfield
+  var stars = []; for(var i=0;i<160;i++){ stars.push({x:rand(W), y:rand(H), s: Math.random()<.2?2:1, a:rand(.6,.9)}); }
+
+  // ---------- Particles ----------
+  function Particle(x,y,vx,vy,life,r,col){ this.x=x; this.y=y; this.vx=vx; this.vy=vy; this.life=life; this.r=r; this.max=life; this.col=col; }
+  Particle.prototype.step = function(dt){ this.x+=this.vx*dt; this.y+=this.vy*dt; this.life-=dt; wrap(this,W,H); };
+  Particle.prototype.draw = function(){ var t = clamp(this.life/this.max,0,1); ctx.save(); ctx.globalAlpha=t; ctx.fillStyle = this.col || (t>.5? '#9fc46b' : '#ffb86b'); ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,TAU); ctx.fill(); ctx.restore(); };
+
+  // ---------- Weapons ----------
+  function CannonShot(x,y,vx,vy,owner){ this.x=x; this.y=y; this.vx=vx; this.vy=vy; this.r=3; this.life=0; this.max=1.2; this.dmg=5; this.owner=owner; }
+  CannonShot.prototype.step = function(dt){ this.x+=this.vx*dt; this.y+=this.vy*dt; this.life+=dt; wrap(this,W,H); };
+  CannonShot.prototype.draw = function(){ ctx.save(); ctx.translate(this.x,this.y); ctx.fillStyle='#cfe3ef'; ctx.beginPath(); ctx.arc(0,0,this.r,0,TAU); ctx.fill(); ctx.restore(); };
+
+  function Missile(x,y,angle,speed,owner){ this.x=x; this.y=y; this.a=angle; this.speed=speed; this.vx=Math.cos(angle)*speed; this.vy=Math.sin(angle)*speed; this.r=4; this.life=0; this.max=6; this.dmg=25; this.owner=owner; }
+  Missile.prototype.step = function(dt){ this.x += this.vx*dt; this.y += this.vy*dt; this.life+=dt; wrap(this,W,H); particles.push(new Particle(this.x - Math.cos(this.a)*8, this.y - Math.sin(this.a)*8, rand(-12,12), rand(-12,12), .28, 2, '#ffb86b')); };
+  Missile.prototype.draw = function(){ ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.a); ctx.strokeStyle='#ffd19e'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(6,0); ctx.lineTo(-6,0); ctx.stroke(); ctx.restore(); };
+
+  // --- Geometric, faceted battleship hull generator ---
+  function makeBattleshipShape(opts){
+    opts = opts||{}; var len=opts.len!=null?opts.len:58, wid=opts.wid!=null?opts.wid:36, verts=opts.verts!=null?opts.verts:22, jitter=opts.jitter!=null?opts.jitter:0.05, facets=opts.facets!=null?opts.facets:12, power=opts.power!=null?opts.power:5, bow=opts.bow!=null?opts.bow:0.12;
+    var pts=[]; var a=len*0.5, b=wid*0.5; var step = TAU/verts; var facetStep = TAU/facets;
+    for(var i=0;i<verts;i++){
+      var t = i*step; var tq = Math.round(t/facetStep)*facetStep; var c = Math.cos(tq), s = Math.sin(tq);
+      var ca = Math.pow(Math.abs(c), power); var sa = Math.pow(Math.abs(s), power);
+      var R = 1 / Math.pow(ca/Math.pow(a, power) + sa/Math.pow(b, power), 1/power);
+      var x = R*c; var y = R*s; var f = Math.max(0, Math.cos(t)); x += f*len*bow; x += (Math.random()*2-1)*jitter*len; y += (Math.random()*2-1)*jitter*wid; pts.push({x:x,y:y});
+    }
+    var r=0; for(var j=0;j<pts.length;j++){ var px=pts[j].x, py=pts[j].y; var rr=Math.sqrt(px*px+py*py); if(rr>r) r=rr; }
+    return {pts:pts, r:r};
+  }
+
+  // ---------- Ships ----------
+  function Ship(x,y,color){
+    this.x=x; this.y=y; this.vx=0; this.vy=0; this.a=-Math.PI/2; this.color=color||'#cfe3ef';
+    var s = makeBattleshipShape({len:60, wid:38, jitter:0.04, verts:24, facets:12, power:5, bow:0.10});
+    this.shape = s.pts; this.r = s.r;
+    this.hp=this.maxhp=100;
+    this.cannonCD=0; this.cannonMax=0.28;
+    this.missileCD=0; this.missileMax=4.5;
+    this.thrusting=false; this.blink=0; this.inv=1.2;
+  }
+  Ship.prototype.thrust = function(dt,power){ if(power==null) power=80; this.vx += Math.cos(this.a)*power*dt; this.vy += Math.sin(this.a)*power*dt; var px=this.x - Math.cos(this.a)*18, py=this.y - Math.sin(this.a)*18; particles.push(new Particle(px,py, rand(-30,30)-Math.cos(this.a)*60, rand(-30,30)-Math.sin(this.a)*60, .25, 2)); };
+  Ship.prototype.fireBroadside = function(shots){ if(this.cannonCD>0) return; this.cannonCD = this.cannonMax; var rightAng = this.a + Math.PI/2; var speed = 320; shots.push(new CannonShot(this.x + Math.cos(rightAng)*this.r*0.9, this.y + Math.sin(rightAng)*this.r*0.9, Math.cos(rightAng)*speed, Math.sin(rightAng)*speed, this)); };
+  Ship.prototype.fireMissiles = function(missiles,target){ if(this.missileCD>0) return; this.missileCD = this.missileMax; var dx=target.x-this.x, dy=target.y-this.y; if(Math.abs(dx)>W/2) dx -= Math.sign(dx)*W; if(Math.abs(dy)>H/2) dy -= Math.sign(dy)*H; var base = Math.atan2(dy,dx); var spread = 0.10; var speed = 120; missiles.push(new Missile(this.x + Math.cos(this.a)*20, this.y + Math.sin(this.a)*20, base + spread, speed, this)); missiles.push(new Missile(this.x + Math.cos(this.a)*20, this.y + Math.sin(this.a)*20, base - spread, speed, this)); };
+  Ship.prototype.takeDamage = function(d){ if(this.inv>0) return; this.hp = Math.max(0, this.hp - d); this.blink = 0; };
+  Ship.prototype.step = function(dt){ var rotL = keys['a']||keys['arrowleft']; var rotR = keys['d']||keys['arrowright']; var rotRate = 1.0; if(rotL) this.a -= rotRate*dt; if(rotR) this.a += rotRate*dt; if(this.thrusting){ this.thrust(dt,80); } this.vx *= 0.99; this.vy *= 0.99; var v = Math.sqrt(this.vx*this.vx + this.vy*this.vy); var maxSpeed = 140; if(v>maxSpeed){ var f=maxSpeed/v; this.vx*=f; this.vy*=f; } this.x += this.vx*dt; this.y += this.vy*dt; wrap(this,W,H); this.cannonCD -= dt; this.missileCD -= dt; if(this.inv>0){ this.inv-=dt; this.blink+=dt*12; } };
+  Ship.prototype.draw = function(){ ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.a); var ghost = (this.inv>0) && (Math.floor(this.blink)%2===0); ctx.strokeStyle = ghost? '#9fc46b' : this.color; ctx.lineWidth=2; ctx.beginPath(); var pts=this.shape; ctx.moveTo(pts[0].x, pts[0].y); for(var i=1;i<pts.length;i++){ ctx.lineTo(pts[i].x, pts[i].y);} ctx.closePath(); ctx.stroke(); ctx.globalAlpha=0.25; ctx.beginPath(); ctx.arc(0,0,this.r*0.9,-Math.PI/2-0.2,-Math.PI/2+0.2); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); };
+
+  function EnemyShip(x,y){ Ship.call(this,x,y,'#ff9a9a'); this.inv=1.5; this.state='approach'; this.desiredRadius=480; var s = makeBattleshipShape({len:66, wid:42, jitter:0.06, verts:24, facets:10, power:5.5, bow:0.08}); this.shape=s.pts; this.r=s.r; }
+  EnemyShip.prototype = Object.create(Ship.prototype); EnemyShip.prototype.constructor = EnemyShip;
+  EnemyShip.prototype.ai = function(dt, target, shots, missiles){ var dx=target.x-this.x, dy=target.y-this.y; if(Math.abs(dx)>W/2) dx -= Math.sign(dx)*W; if(Math.abs(dy)>H/2) dy -= Math.sign(dy)*H; var angTo = Math.atan2(dy,dx); var dist = Math.sqrt(dx*dx+dy*dy); if(this.state==='approach' && dist<=this.desiredRadius) this.state='orbit'; if(this.state==='orbit' && dist>=this.desiredRadius+140) this.state='approach'; if(this.state==='approach'){ var turn=0.9; var da = (angTo - this.a + Math.PI)%(TAU) - Math.PI; this.a += clamp(da, -turn*dt, turn*dt); this.thrusting=true; this.thrust(dt,75); } else { var desired = angTo - Math.PI/2; var turn2=0.9; var da2 = (desired - this.a + Math.PI)%(TAU) - Math.PI; this.a += clamp(da2, -turn2*dt, turn2*dt); if(dist>this.desiredRadius+50){ this.thrusting=true; this.thrust(dt,70); } else if(dist<this.desiredRadius-40){ this.thrusting=true; this.thrust(dt,-60); } else { this.thrusting=false; } } var rel = (angTo - (this.a + Math.PI/2) + Math.PI)%(TAU) - Math.PI; if(Math.abs(rel) < 0.45) this.fireBroadside(shots); if(this.missileCD<=0) this.fireMissiles(missiles,target); };
+
+  // ---------- Game state ----------
+  var particles=[], shots=[], missiles=[];
+  var player = new Ship(W*0.3, H*0.5, '#cfe3ef');
+  var enemy  = new EnemyShip(W*0.7, H*0.5);
+  var paused=false;
+
+  function updateBars(){
+    var php = (player.hp/player.maxhp); var ehp = (enemy.hp/enemy.maxhp);
+    phpEl.style.width = (php*100).toFixed(1)+'%'; ehpEl.style.width = (ehp*100).toFixed(1)+'%';
+    phpPctEl.textContent = Math.round(php*100)+'%'; ehpPctEl.textContent = Math.round(ehp*100)+'%';
+
+    var cMax = Math.max(player.cannonMax, 0.0001), mMax=Math.max(player.missileMax, 0.0001);
+    var cReady = clamp(1 - clamp(player.cannonCD,0,cMax)/cMax, 0,1);
+    var mReady = clamp(1 - clamp(player.missileCD,0,mMax)/mMax, 0,1);
+    cannonBar.style.width = (cReady*100).toFixed(1)+'%';
+    missileBar.style.width = (mReady*100).toFixed(1)+'%';
+    cannonPctEl.textContent = Math.round(cReady*100)+'%';
+    missilePctEl.textContent = Math.round(mReady*100)+'%';
+  }
+
+  function showOverlay(title, html, buttons){
+    overlay.style.pointerEvents='auto'; overlay.innerHTML='';
+    var card=document.createElement('div'); card.className='centercard';
+    card.innerHTML = '<h2>'+title+'</h2>' + (html?('<div class="sub">'+html+'</div>'):'');
+    var wrap=document.createElement('div'); wrap.className='btns';
+    (buttons||[]).forEach(function(b){ var btn=document.createElement('button'); btn.textContent=b.label; btn.onclick=function(){ overlay.innerHTML=''; overlay.style.pointerEvents='none'; b.onClick();}; wrap.appendChild(btn); });
+    card.appendChild(wrap); overlay.appendChild(card);
+  }
+
+  function restart(){
+    particles=[]; shots=[]; missiles=[];
+    player.x=W*0.3; player.y=H*0.5; player.vx=0; player.vy=0; player.a=-Math.PI/2; player.hp=100; player.inv=1.2; player.cannonCD=0; player.missileCD=0;
+    enemy.x=W*0.7; enemy.y=H*0.5; enemy.vx=0; enemy.vy=0; enemy.a=-Math.PI/2; enemy.hp=100; enemy.inv=1.5; enemy.state='approach';
+    updateBars(); paused=false; overlay.innerHTML=''; overlay.style.pointerEvents='none';
+  }
+
+  function circleHit(a,b){ var r=a.r+b.r; return dist2(a,b) <= r*r; }
+
+  function gameStep(dt){
+    if(paused) return;
+    // Player controls
+    player.thrusting = !!(keys['w'] || keys['arrowup']);
+    if(keys['1']){ delete keys['1']; player.fireBroadside(shots); }
+    if(keys['2']){ delete keys['2']; player.fireMissiles(missiles, enemy); }
+    if(keys['shift']){ delete keys['shift']; // hyperspace
+      for(var t=0;t<30;t++){ var nx=rand(W), ny=rand(H); var tooClose = circleHit({x:nx,y:ny,r:80},{x:enemy.x,y:enemy.y,r:enemy.r}); if(!tooClose){ player.x=nx; player.y=ny; player.vx=0; player.vy=0; player.inv=1.0; break; } }
+    }
+
+    // Steps
+    player.step(dt); enemy.ai(dt, player, shots, missiles); enemy.step(dt);
+    for(var i=0;i<shots.length;i++) shots[i].step(dt);
+    for(var j=0;j<missiles.length;j++) missiles[j].step(dt);
+    for(var k=0;k<particles.length;k++) particles[k].step(dt);
+    // prune
+    var tmp=[]; for(i=0;i<shots.length;i++) if(shots[i].life<shots[i].max) tmp.push(shots[i]); shots=tmp;
+    tmp=[]; for(i=0;i<missiles.length;i++) if(missiles[i].life<missiles[i].max) tmp.push(missiles[i]); missiles=tmp;
+    tmp=[]; for(i=0;i<particles.length;i++) if(particles[i].life>0) tmp.push(particles[i]); particles=tmp;
+
+    // Collisions
+    for(i=shots.length-1;i>=0;i--){ var s=shots[i];
+      if(circleHit(s, enemy) && s.owner!==enemy){ enemy.takeDamage(s.dmg); explodeSmall(s.x,s.y); shots.splice(i,1); }
+      else if(circleHit(s, player) && s.owner!==player){ player.takeDamage(s.dmg); explodeSmall(s.x,s.y); shots.splice(i,1); }
+    }
+    for(i=missiles.length-1;i>=0;i--){ var m=missiles[i];
+      if(circleHit(m, enemy) && m.owner!==enemy){ enemy.takeDamage(m.dmg); explode(m.x,m.y); missiles.splice(i,1); }
+      else if(circleHit(m, player) && m.owner!==player){ player.takeDamage(m.dmg); explode(m.x,m.y); missiles.splice(i,1); }
+    }
+
+    // End conditions
+    updateBars();
+    if(player.hp<=0 || enemy.hp<=0){
+      paused=true; var winner = player.hp>0? 'You win!' : 'Defeat';
+      showOverlay(winner, 'Player '+(player.hp>0? 'destroyed the enemy flagship' : 'was destroyed')+'.', [ {label:'Restart', onClick:restart} ]);
+    }
+  }
+
+  function explode(x,y){ for(var i=0;i<26;i++){ var a=rand(TAU), s=rand(40,180); particles.push(new Particle(x,y,Math.cos(a)*s,Math.sin(a)*s, rand(.3,.8), rand(1,3))); } }
+  function explodeSmall(x,y){ for(var i=0;i<12;i++){ var a=rand(TAU), s=rand(20,100); particles.push(new Particle(x,y,Math.cos(a)*s,Math.sin(a)*s, rand(.2,.5), rand(1,2))); } }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<stars.length;i++){ var st=stars[i]; ctx.globalAlpha=st.a; ctx.fillStyle='#3a4a59'; ctx.fillRect(st.x, st.y, st.s, st.s); }
+    ctx.globalAlpha=1;
+    for(i=0;i<particles.length;i++) particles[i].draw();
+    for(i=0;i<shots.length;i++) shots[i].draw();
+    for(i=0;i<missiles.length;i++) missiles[i].draw();
+    player.draw(); enemy.draw();
+  }
+
+  // Pause & restart hotkeys
+  window.addEventListener('keydown', function(e){
+    var key=(e.key||'').toLowerCase();
+    if(key==='p'){
+      paused=!paused; if(!paused){ overlay.innerHTML=''; overlay.style.pointerEvents='none'; }
+      else { showOverlay('Paused','Press P to resume',[{label:'Resume', onClick:function(){paused=false; overlay.innerHTML=''; overlay.style.pointerEvents='none';}}]); }
+    }
+    if(key==='r'){ restart(); }
+  });
+
+  // Main loop with rAF
+  var lastT=0; function loop(t){ var now=t*0.001; var dt=Math.min(0.033, now-(lastT||now)); lastT=now; gameStep(dt); draw(); requestAnimationFrame(loop); }
+
+  // Info button
+  var infoBtn = document.getElementById('infoBtn');
+  if(infoBtn){
+    var infoHTML = ''+
+      '<h3>Wraparound playfield</h3>'+
+      '<p>Fly off one edge and re-enter from the opposite side. Projectiles wrap too.</p>'+
+      '<h3>Controls</h3>'+
+      '<p><kbd>A/D</kbd> rotate, <kbd>W</kbd> thrust, <kbd>1</kbd> starboard broadside, <kbd>2</kbd> double <b>dumbfire</b> missiles (aimed at target <i>on launch</i>), <kbd>Shift</kbd> warp, <kbd>P</kbd> pause.</p>';
+    infoBtn.onclick = function(){ paused=true; showOverlay('How to Play', infoHTML, [{label:'Close', onClick:function(){paused=false; overlay.innerHTML=''; overlay.style.pointerEvents='none';}}]); };
+  }
+
+  // ---------- Minimal console tests (non-intrusive) ----------
+  try {
+    // hull generator
+    var hull = makeBattleshipShape({len:60,wid:40,verts:16});
+    console.assert(hull.pts && hull.pts.length===16, 'Hull should produce 16 points');
+    console.assert(hull.r>0, 'Hull radius should be > 0');
+    // wrap helper
+    var p={x:-5,y:10,r:10}; wrap(p,100,100); console.assert(p.x>0, 'Wrap should move object inside bounds');
+    // firing
+    var testShip = new Ship(50,50,'#fff'); var shotsTest=[]; var missilesTest=[]; var dummy={x:80,y:50,r:10};
+    testShip.cannonCD=0; testShip.fireBroadside(shotsTest); console.assert(shotsTest.length===1, 'Broadside should add one shot');
+    testShip.missileCD=0; testShip.fireMissiles(missilesTest,dummy); console.assert(missilesTest.length===2, 'Missile fire should add two missiles');
+    console.log('%cBasic tests passed','color:#9fc46b');
+  } catch(e){ console.warn('Test failure:', e); }
+
+  // Start
+  updateBars();
+  showOverlay('CAPITAL SHIP DUEL', 'Approach then orbit to unleash starboard broadsides. Missiles are slower, dumbfire in pairs toward the target at launch.', [ {label:'Begin', onClick:function(){ overlay.innerHTML=''; overlay.style.pointerEvents='none'; }} ]);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
