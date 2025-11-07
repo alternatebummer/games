@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PACKAGE KNIGHT WIZARD</title>
+<title>PACKAGE KNIGHT WIZARD — Brython Delivery</title>
 <style>
   :root{
     --bg:black; --panel:black; --ink:#9eba8f; --muted:#91a1aa;
@@ -11,6 +11,11 @@
     --gap:16px; --slot-size:100px;              /* desktop/base slot size */
     --gold-soft:#d9b36a; --ice-soft:#8a9fb5; --btnclr:#0f1318;
     --design-max: 500px;                        /* max layout width */
+
+    /* Delivery map */
+    --wrap: 500; --w: 30; --h: 30;
+    --path:#a36f4b; --grass:#38452e; --tree:#2c6a3f; --rock:#6f818f; --water:#3da3d5;
+    --accent-red:#ff5a5a; --player:#ffffff;
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
@@ -18,24 +23,21 @@
     margin:0; background:var(--bg); color:var(--ink);
     font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     display:flex; align-items:flex-start; justify-content:center;
-    overflow-x:hidden;                           /* prevent sideways scroll on mobile */
+    overflow-x:hidden;
   }
 
-  /* Centered column container with max width; stretches down to 100vw on phones */
   .wrap{
     padding:0;
     display:flex; flex-direction:column; align-items:center; gap:var(--gap);
     width:min(100vw, var(--design-max));
   }
 
-  /* Topbar should follow container width (not 100vw) so it shrinks with .wrap */
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     padding:0;
     background:var(--panel);
     border:0px dashed var(--outline); border-radius:12px;
-    width:100%;                                   /* was 100vw */
-    max-width:none;                                /* let .wrap control width */
+    width:100%;
   }
   .title{ margin:0; font-size:20px; color:var(--ink); letter-spacing:.5px }
   .stats{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -48,17 +50,14 @@
   .stat.coins{ color:var(--gold-soft); }
   .stat.mana{ color:var(--ice-soft); }
 
-  /* Column layout */
   .main{
     display:flex; flex-direction:column; gap:var(--gap);
     margin-top:16px; align-items:center; flex-wrap:nowrap;
     width:100%;
   }
 
-  /* Cards follow container width; no fixed/min widths that would overflow phones */
   .wizardKnight, .inv, .delivery { width:100%; }
 
-  /* Card base */
   .card{
     background:var(--panel);
     border:1px dashed var(--outline); border-radius:12px; padding:14px;
@@ -69,7 +68,6 @@
     text-transform:uppercase; letter-spacing:.06em; text-align:center;
   }
 
-  /* STACKS */
   .vstack{
     display:flex; flex-direction:column; align-items:center; gap:10px;
     width:auto;
@@ -79,7 +77,6 @@
     gap:16px 32px; justify-content:center; align-items:start;
   }
 
-  /* Slots */
   .slot, .knight-slot, .inv-slot{
     width:var(--slot-size); height:var(--slot-size);
     background:var(--slot); border:1px dashed var(--outline);
@@ -89,17 +86,15 @@
   .slot:hover, .knight-slot:hover, .inv-slot:hover{ border-color:var(--accent); }
   .placeholder{ color:var(--muted); font-size:12px; opacity:.9; }
 
-  /* Inventory (horizontal row of 4) */
   .inv .grid{
     display:grid;
-    grid-template-columns: repeat(4, var(--slot-size));   /* always 4 across */
+    grid-template-columns: repeat(4, var(--slot-size));
     grid-auto-rows: var(--slot-size);
     gap:12px;
     justify-content:center;
-    overflow:hidden;                                      /* no horizontal scroll on phones */
+    overflow:hidden;
   }
 
-  /* Package chip */
   .pkg{
     --ring:transparent;
     display:grid; place-items:center; gap:4px; text-align:center;
@@ -119,7 +114,6 @@
     outline:1px dashed rgba(217,179,106,.25);
   }
 
-  /* Buttons */
   .actions{ display:flex; gap:8px; justify-content:center; }
   .btn{
     border:1px dashed var(--outline); background:var(--btnclr);
@@ -130,48 +124,43 @@
   .btn[disabled]{ opacity:.5; cursor:not-allowed; }
   .divider{ width:100%; height:1px; background:var(--outline); }
 
-  /* Overlay (long-press) */
-  .overlay-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:999; }
-  .overlay-card{ width:min(480px, 92vw); background:var(--bg); border:1px dashed var(--outline); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; }
-  .overlay-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .overlay-title{ font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
-  .overlay-close{ border:1px dashed var(--outline); background:#1a1f25; color:var(--ink); border-radius:8px; padding:4px 8px; cursor:pointer; }
-  .overlay-body{ display:flex; gap:10px; align-items:flex-start; }
-  .overlay-icon{ font-size:40px; line-height:1; }
-  .overlay-texts{ display:flex; flex-direction:column; gap:6px; }
-  .overlay-name{ font-weight:700; }
-  .overlay-desc{ color:var(--muted); font-size:13px; white-space:pre-line; }
-  .overlay-metrics{ font-size:12px; color:var(--muted); }
-
-  /* Delivery panel log */
-  .battle-log{
-    width:100%;
-    flex:1;
-    min-height:260px;
-    background:#0f1318;
-    border:1px dashed var(--outline);
-    border-radius:10px;
-    padding:10px;
-    overflow:auto;
-    white-space:pre-wrap;
+  /* Delivery grid (reuses wilderness styles) */
+  .grid{
+    width:calc(var(--wrap)*1px);height:calc(var(--wrap)*1px);
+    display:grid;grid-template-columns:repeat(var(--w),1fr);grid-template-rows:repeat(var(--h),1fr);
+    border:1px solid #25303a;background:#0f1318;box-shadow:0 0 0 1px #141b22 inset,0 4px 24px rgba(0,0,0,.35);overflow:hidden;
   }
+  .cell{
+    display:flex;align-items:center;justify-content:center;font-weight:800;aspect-ratio:1/1;
+    --tight:1.2;font-size:calc((var(--wrap)*1px)/var(--w)*var(--tight));line-height:1;
+    min-width:0;min-height:0;overflow:hidden;contain:size layout paint;
+    text-shadow:0 0 3px currentColor,0 0 3px currentColor;transition:opacity 80ms linear;
+  }
+  .t-path{color:var(--path)} .t-grass{color:var(--grass)} .t-tree{color:var(--tree)}
+  .t-rock{color:var(--rock)} .t-water{color:var(--water)}
+  .t-arrow{color:var(--accent-red);transform:rotate(-90deg)} .t-x{color:var(--accent-red)}
+  .t-player{color:var(--player)}
+  .fog-unseen { color:#000 !important; opacity:1 !important; }
+  .fog-seen   { color:#000 !important; opacity:.20; }
 
-  /* ===== Phone fit: shrink slots so 4-wide always fits viewport ===== */
+  .legend{width:100%;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;color:#8da2b2;font-size:12px}
+  .legend b{color:#cfe3ef}
+  .msg{color:#9fc46b;font-weight:600}
+
   @media (max-width: 500px){
-    /* Compute slot size so: 4*slot + 3*gap(12) + card padding(14*2) fits 100vw */
-    :root{
-      --slot-size: calc((100vw - 36px - 28px) / 4);  /* 36 = 3 gaps, 28 = card paddings */
-    }
-    .wrap{ width:100vw; }            /* container follows viewport on phones */
+    :root{ --slot-size: calc((100vw - 36px - 28px) / 4); }
+    .wrap{ width:100vw; }
     .wizardKnight .wk-row{ gap:12px 24px; }
     .btn, .btn-buy{ padding:10px 14px; }
   }
 </style>
 
+<!-- Brython -->
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython_stdlib.js"></script>
 </head>
-<body>
+<body onload="brython()">
   <div class="wrap">
-    <!-- Title -->
     <h1 class="title">PACKAGE KNIGHT WIZARD</h1>
     <header class="topbar">
       <div class="stats">
@@ -181,12 +170,10 @@
       </div>
     </header>
 
-    <!-- Board -->
     <div class="main" id="board">
-      <!-- wizardKnight (merged) -->
+      <!-- wizardKnight -->
       <section class="card wizardKnight" aria-label="wizardKnight">
         <div class="wk-row">
-          <!-- Column 1: Portal slot + Activate -->
           <div class="vstack" aria-label="Package Portal section">
             <div class="subhead">Package Portal</div>
             <div class="slot" id="portal-slot" aria-label="Portal slot">
@@ -197,14 +184,13 @@
             </div>
           </div>
 
-          <!-- Column 2: Knight header + slot + Begin -->
           <div class="vstack" aria-label="Knight section">
             <div class="subhead">Package Knight</div>
-            <div class="knight-slot" aria-label="Knight slot">
+            <div class="knight-slot" id="knight-slot" aria-label="Knight slot">
               <div class="placeholder">no package</div>
             </div>
             <div class="actions">
-              <button class="btn" id="btn-begin" type="button">Begin Delivery</button>
+              <button class="btn" id="btn-begin" type="button" disabled>Begin Delivery</button>
             </div>
           </div>
         </div>
@@ -213,7 +199,7 @@
       <!-- Inventory -->
       <section class="card inv" aria-label="Inventory">
         <div class="subhead">Inventory</div>
-        <div class="grid">
+        <div class="grid" id="inv-grid">
           <div class="inv-slot" aria-label="Inventory slot 1"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 2"><div class="placeholder">empty</div></div>
           <div class="inv-slot" aria-label="Inventory slot 3"><div class="placeholder">empty</div></div>
@@ -221,117 +207,81 @@
         </div>
       </section>
 
-      <!-- Delivery -->
+      <!-- Delivery (the game renders here) -->
       <section class="card delivery" aria-label="Delivery">
         <div class="subhead">Delivery</div>
-        <div id="battle-log" class="battle-log" aria-live="polite"></div>
+
+        <div class="delivery-body">
+          <header style="width:100%;display:flex;justify-content:space-between;align-items:center;font-weight:600;color:#8aa2b3">
+            <div class="left" style="display:flex;gap:12px;align-items:center">
+              <div>Wilderness Roguelike</div>
+              <div>• <span id="level">Map 1/3</span></div>
+            </div>
+            <div class="right" style="font-size:12px">Move: <b>W A S D</b> • Restart: <b>R</b> • Fog: <b>F</b></div>
+          </header>
+          <div id="grid" class="grid" aria-label="map grid"></div>
+          <div class="legend">
+            <span><b>@</b> you (white)</span><span><b>X</b> spawn & destination (red)</span>
+            <span><b>.</b> path</span><span><b>"</b> grass</span><span><b>A</b> tree ❌</span>
+            <span><b>a</b> boulder ❌</span><span><b>~</b> water ❌</span><span><b>➨</b> arrow → next map</span>
+            <span class="msg" id="msg"></span>
+          </div>
+        </div>
       </section>
     </div>
   </div>
 
-<script>
-/* Click-to-move + Mana/Coins + Generator + Long-press overlay + Delivery log + Autobattle hook */
-(function(){
-  const board = document.getElementById('board');
-  const SLOT_SEL = '.slot, .knight-slot, .inv-slot';
-  const portalSlot = document.getElementById('portal-slot');
-  const battleLogEl = document.getElementById('battle-log');
+<script type="text/python">
+from browser import document, html, bind
+import random, math
 
-  // Currency state
-  let mana = 50;
-  let coins = 10;
+# ============= Basic wiring & state (coins/mana & UI) =============
+mana = 50
+coins = 10
 
-  const manaReadout = document.getElementById('mana-readout');
-  const coinsReadout = document.getElementById('coins-readout');
-  const btnActivate = document.getElementById('btn-activate');
-  const btnBegin = document.getElementById('btn-begin');
-  const btnBuyMana = document.getElementById('btn-buy-mana');
+mana_readout = document["mana-readout"]
+coins_readout = document["coins-readout"]
+btn_activate = document["btn-activate"]
+btn_begin = document["btn-begin"]
+btn_buy_mana = document["btn-buy-mana"]
+board = document["board"]
+portal_slot = document["portal-slot"]
+knight_slot = document["knight-slot"]
 
-  function updateCurrencyUI(){
-    manaReadout.textContent = `Mana Crystals: ${mana}`;
-    coinsReadout.textContent = `Coins: ${coins}`;
-    btnActivate.disabled = mana < 15;
-    btnBuyMana.disabled = coins < 10;
-  }
+def update_currency_ui():
+    mana_readout.text = f"Mana Crystals: {mana}"
+    coins_readout.text = f"Coins: {coins}"
+    btn_activate.disabled = (mana < 15)
+    btn_buy_mana.disabled = (coins < 10)
 
-  // --- Gate "Begin Delivery" on Knight slot contents ---
-  const knightSlot = document.querySelector('.knight-slot');
-  function hasKnightPackage(){ return !!knightSlot.querySelector('.pkg'); }
-  function updateBeginEnabled(){ btnBegin.disabled = !hasKnightPackage(); }
-  updateBeginEnabled();
-  new MutationObserver(updateBeginEnabled).observe(knightSlot, { childList:true, subtree:true });
+def has_knight_package():
+    return len(knight_slot.select(".pkg")) > 0
 
-  // --- Delivery log helpers (no change if you already have these) ---
-  function clearBattleLog(){ battleLogEl.textContent = ''; }
-  function streamLog(lines, delay=30){
-    clearBattleLog();
-    let i = 0;
-    (function step(){
-      if(i >= lines.length) return;
-      battleLogEl.insertAdjacentText('beforeend', lines[i++] + '\n');
-      battleLogEl.scrollTop = battleLogEl.scrollHeight;
-      setTimeout(step, delay);
-    })();
-  }
+def update_begin_enabled():
+    btn_begin.disabled = not has_knight_package()
 
-  // --- Begin Delivery: Knight vs Wandering Blade, import from Netlify ---
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
+update_currency_ui()
+update_begin_enabled()
 
-    clearBattleLog();
-    battleLogEl.textContent = 'Starting delivery battle...';
-
-    try {
-      // Use HTTPS to avoid mixed-content blocks
-      const { runAutobattle } = await import('https://reptileroom.netlify.app/pkgknt/autobattle.js');
-
-      const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-      streamLog(result.log, 30);
-
-      // TODO: on victory, award coins/mana using the package's data, then clear the Knight slot.
-      // if (result.winner === 'Knight') { ... }
-
-    } catch (err) {
-      battleLogEl.textContent =
-        'Could not load autobattle.js from Netlify.\n' +
-        'Tip: ensure this page also runs on https://reptileroom.netlify.app (same origin).\n\n' +
-        String(err);
-    }
-  });
-
-
-  updateCurrencyUI();
-  updateBeginEnabled();
-
-  // Buy mana: 10 coins -> +1 mana
-  btnBuyMana.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    if (coins >= 10){
-      coins -= 10; mana += 1;
-      updateCurrencyUI();
-    }
-  });
-
-  // ===== Generator Data =====
-  const Sizes = [ {name:'small', c:1}, {name:'large', c:2}, {name:'huge', c:3} ];
-  const Weights = [ {name:'light', c:1}, {name:'iron-plated', c:2}, {name:'supermassive', c:3} ];
-  const Grips = [ {name:'sticky', c:1}, {name:'manageable', c:2}, {name:'slimy', c:3} ];
-  const Types = [
-    {name:'letter', c:1, icon:'✉️'},
-    {name:'parcel', c:2, icon:'📦'},
-    {name:'crate',  c:3, icon:'🗃️'}
-  ];
-  const Destinations = [
-    'Rockslide Inn, New Claudia',
-    'Red Temple, Pilgrim Lake',
+# ============= Inventory / package generation =============
+Sizes = [ {"name":"small","c":1}, {"name":"large","c":2}, {"name":"huge","c":3} ]
+Weights = [ {"name":"light","c":1}, {"name":"iron-plated","c":2}, {"name":"supermassive","c":3} ]
+Grips = [ {"name":"sticky","c":1}, {"name":"manageable","c":2}, {"name":"slimy","c":3} ]
+Types = [
+    {"name":"letter","c":1,"icon":"✉️"},
+    {"name":"parcel","c":2,"icon":"📦"},
+    {"name":"crate","c":3,"icon":"🗃️"}
+]
+Destinations = [
+    "Rockslide Inn, New Claudia",
+    "Red Temple, Pilgrim Lake",
     "Wuulk's Spawning Grounds, Badlands",
-  ];
-  const Senders = [
-    {name:'Sibil the Miraculous', m:5, c:0},
-    {name:'Bork the Wealthy',     m:2, c:30},
-  ];
-  const SpecialInstructions = [
+]
+Senders = [
+    {"name":"Sibil the Miraculous","m":5,"c":0},
+    {"name":"Bork the Wealthy","m":2,"c":30},
+]
+SpecialInstructions = [
     "Do not shake, and definitely do not light on fire. I'll see you in the morning.",
     "Package contains a manuscript. Never open and keep out of reach of children and animals.",
     "Originally intended for a lover, but now? My mother.",
@@ -349,212 +299,390 @@
     "This is everything I know about Wandering Ones, including one of their masks.",
     "Hey, Knight: Wizards are paranoid. They believe some of their order are dead and replaced by knights.",
     "I can't stay. Lanturns gathering by night, lighting up the hills. I'm already gone."
-  ];
+]
 
-  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+def pick(arr): return arr[random.randrange(len(arr))]
 
-  function makePackage(){
-    const size = pick(Sizes);
-    const weight = pick(Weights);
-    const grip = pick(Grips);
-    const type = pick(Types);
-    const dest = pick(Destinations);
-    const sender = pick(Senders);
-    const note = pick(SpecialInstructions);
-    const baseCoin = size.c + weight.c + grip.c + type.c;
-    const coinTotal = baseCoin + sender.c;
-    const manaBonus = sender.m;
+def make_placeholder(slot_el):
+    ph = html.DIV("empty", Class="placeholder")
+    if "knight-slot" in slot_el.class_name:
+        ph.text = "no package"
+    return ph
 
-    const name = `${capitalize(type.name)}`;
-    const descLines = [
-      `A ${size.name}, ${weight.name}, ${grip.name} ${type.name}.`,
-      `Base value: ${baseCoin} coin(s).`,
-      `Destination: ${dest}`,
-      `Sender: ${sender.name} (m${sender.m}${sender.c?`, c${sender.c}`:''})`,
-      ``,
-      note
-    ];
-    const desc = descLines.join('\n');
+def make_package_chip():
+    size = pick(Sizes)
+    weight = pick(Weights)
+    grip = pick(Grips)
+    typ = pick(Types)
+    dest = pick(Destinations)
+    sender = pick(Senders)
+    note = pick(SpecialInstructions)
+    baseCoin = size["c"] + weight["c"] + grip["c"] + typ["c"]
+    coinTotal = baseCoin + sender["c"]
+    manaBonus = sender["m"]
 
-    const chip = document.createElement('div');
-    chip.className = 'pkg';
-    chip.dataset.name = name;
-    chip.dataset.icon = type.icon;
-    chip.dataset.desc = desc;
-    chip.dataset.coinsBase = baseCoin;
-    chip.dataset.coinsSender = sender.c;
-    chip.dataset.coinsTotal = coinTotal;
-    chip.dataset.manaSender = manaBonus;
-    chip.innerHTML = `
-      <div class="icon">${type.icon}</div>
-      <div class="tag">${capitalize(type.name)}</div>
-    `;
-    return chip;
-  }
+    desc_lines = [
+        f"A {size['name']}, {weight['name']}, {grip['name']} {typ['name']}.",
+        f"Base value: {baseCoin} coin(s).",
+        f"Destination: {dest}",
+        f"Sender: {sender['name']} (m{sender['m']}{', c'+str(sender['c']) if sender['c'] else ''})",
+        "",
+        note
+    ]
+    chip = html.DIV(Class="pkg")
+    chip.attrs["data-name"] = typ["name"].title()
+    chip.attrs["data-icon"] = typ["icon"]
+    chip.attrs["data-desc"] = "\n".join(desc_lines)
+    chip.attrs["data-coins-base"] = str(baseCoin)
+    chip.attrs["data-coins-sender"] = str(sender["c"])
+    chip.attrs["data-coins-total"] = str(coinTotal)
+    chip.attrs["data-mana-sender"] = str(manaBonus)
+    chip <= html.DIV(typ["icon"], Class="icon")
+    chip <= html.DIV(typ["name"].title(), Class="tag")
+    return chip
 
-  // Activate generates a new package into the portal slot (replacing any existing one)
-  btnActivate.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (mana < 15) return;
-    mana -= 15;
-    updateCurrencyUI();
+@bind(btn_activate, "click")
+def on_activate(ev):
+    global mana
+    if mana < 15: return
+    mana -= 15
+    update_currency_ui()
+    chip = make_package_chip()
+    portal_slot.clear()
+    portal_slot <= chip
 
-    const chip = makePackage();
-    portalSlot.replaceChildren(chip);
-  });
+@bind(document["btn-buy-mana"], "click")
+def on_buy_mana(ev):
+    global coins, mana
+    if coins >= 10:
+        coins -= 10
+        mana += 1
+        update_currency_ui()
 
-  // Begin Delivery — runs Knight vs Wandering Blade, logs to Delivery panel
-  btnBegin.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (btnBegin.disabled) return;
+# ============= Click-to-move & selection (Brython-safe) =============
+selected_chip = None
+selected_from = None
 
-    // Optional: clear log first
-    clearBattleLog();
+def select_chip_visual(chip, on):
+    if on:
+        chip.classList.add("is-selected")
+        board.classList.add("board-selecting")
+    else:
+        chip.classList.remove("is-selected")
+        board.classList.remove("board-selecting")
 
-    // Dynamic import so we don't have to convert the whole file to type="module"
-    const { runAutobattle } = await import('./autobattle.js');
+def clear_selection():
+    global selected_chip, selected_from
+    if selected_chip:
+        select_chip_visual(selected_chip, False)
+    selected_chip = None
+    selected_from = None
 
-    const result = runAutobattle({ fighters: ['Knight','Wandering Blade'] });
-    // Stream the log so it "plays out"
-    playLog(result.log, 40);
-    // (Later: reward coins/mana on victory, consume package, etc.)
-  });
+def safe_closest(el, selector):
+    """Return el.closest(selector) or None; avoid raising when no match."""
+    try:
+        return el.closest(selector)
+    except Exception:
+        return None
 
-  // ===== Click-to-move selection/placement =====
-  let selectedChip = null;
-  let selectedFrom = null;
+def move_chip_to(slot):
+    global selected_chip, selected_from
+    if not selected_chip or slot is None: return
+    if slot == selected_from:
+        clear_selection()
+        return
+    slot.clear()
+    slot <= selected_chip
+    if selected_from and len(selected_from.children) == 0:
+        selected_from <= make_placeholder(selected_from)
+    ph = safe_closest(selected_chip, ".placeholder")
+    if ph: ph.remove()
+    clear_selection()
+    update_begin_enabled()
 
-  function makePlaceholderFor(slot){
-    const ph = document.createElement('div');
-    ph.className = 'placeholder';
-    ph.textContent = slot.classList.contains('knight-slot') ? 'no package' : 'empty';
-    return ph;
-  }
+@bind(board, "click")
+def board_click(ev):
+    # ignore button clicks
+    tgt = ev.target
+    if tgt.tagName == "BUTTON": return
 
-  function selectChip(chip){
-    if (selectedChip) selectedChip.classList.remove('is-selected');
-    selectedChip = chip;
-    selectedFrom = chip.parentElement;
-    chip.classList.add('is-selected');
-    board.classList.add('board-selecting');
-  }
+    chip = safe_closest(tgt, ".pkg")
+    slot = safe_closest(tgt, ".slot, .knight-slot, .inv-slot")
 
-  function clearSelection(){
-    if (selectedChip) selectedChip.classList.remove('is-selected');
-    selectedChip = null;
-    selectedFrom = null;
-    board.classList.remove('board-selecting');
-  }
+    if chip is not None:
+        ev.stopPropagation()
+        global selected_chip, selected_from
+        if selected_chip and selected_chip is chip:
+            # second click on same chip = deselect
+            clear_selection()
+            return
+        if selected_chip:
+            select_chip_visual(selected_chip, False)
+        selected_chip = chip
+        selected_from = chip.parent
+        select_chip_visual(chip, True)
+        return
 
-  function moveChipTo(slot){
-    if (!selectedChip) return;
-    if (slot === selectedFrom){ clearSelection(); return; }
+    if slot is not None and selected_chip is not None:
+        move_chip_to(slot)
+        return
 
-    slot.replaceChildren(selectedChip);
+    clear_selection()
 
-    if (selectedFrom && selectedFrom.children.length === 0){
-      selectedFrom.appendChild(makePlaceholderFor(selectedFrom));
-    }
+# ============= DELIVERY GAME (Brython wilderness, fast FOV) =============
+grid_el = document["grid"]; level_el = document["level"]; msg_el = document["msg"]
+W, H, MAPS = 30, 30, 3
+R = 7
+T_GRASS, T_TREE, T_ROCK, T_DIRT, T_WATER, T_ARROW, T_DEST, T_SPAWN, T_PLAYER = '"','A','a','.','~','➨','X','X','@'
+CLASS = { '"':'t-grass','A':'t-tree','a':'t-rock','.' :'t-path','~':'t-water','➨':'t-arrow','X':'t-x','@':'t-player' }
 
-    const ph = slot.querySelector('.placeholder');
-    if (ph) ph.remove();
+def in_bounds(x,y): return 0 <= x < W and 0 <= y < H
+def is_blocked(ch): return ch in (T_TREE, T_ROCK, T_WATER)
+def msg(s=""): msg_el.text = s
 
-    clearSelection();
-    updateBeginEnabled(); // <-- re-evaluate button after any move
-  }
+cells = []
+def build_grid_dom():
+    grid_el.clear()
+    for _ in range(W*H):
+        grid_el <= html.DIV(Class="cell")
+    flat = list(grid_el.children)
+    del cells[:]
+    for y in range(H):
+        row = []
+        for x in range(W):
+            row.append(flat[y*W + x])
+        cells.append(row)
 
-  // ===== Long-press detection (mouse & touch) for package info =====
-  const LONG_PRESS_MS = 550, MOVE_CANCEL_PX = 10;
-  let lpTimer = null, lpStartX = 0, lpStartY = 0, longPressTriggered = false;
+def gen_trail_map(final_part=False):
+    m = [[T_GRASS for _ in range(W)] for _ in range(H)]
+    cx = W//2
+    for y in range(1,H-1):
+        for x in range(1,W-1):
+            d = abs(x-cx)/(W/2)
+            treeP = max(0.0, (d**1.5)*0.70 + 0.04)
+            rockP = (d**1.2)*0.05
+            r = random.random()
+            if r < treeP: m[y][x] = T_TREE
+            elif r < treeP + rockP: m[y][x] = T_ROCK
+    borderL = 4 + random.randrange(3); borderR = 4 + random.randrange(3)
+    for y in range(H):
+        for x in range(borderL): m[y][x] = T_TREE
+        for x in range(W-borderR, W): m[y][x] = T_TREE
+    tx = random.randrange(W-10)+5; ty = H-2; startX = tx
+    while ty > 1:
+        m[ty][tx] = T_DIRT
+        if random.random()<0.25 and tx+1 < W-1: m[ty][tx+1] = T_DIRT
+        if random.random()<0.25 and tx-1 > 0:   m[ty][tx-1] = T_DIRT
+        dx = random.choice([-1,0,1,0]); tx = max(1, min(W-2, tx+dx)); ty -= 1
+        m[ty][tx] = T_DIRT
+    pools = 1 + random.randrange(3)
+    for _ in range(pools):
+        size = 3 + random.randrange(4); tries = 0
+        while True:
+            sx = random.randrange(1,W-1); sy = random.randrange(1,H-1); tries += 1
+            if m[sy][sx] != T_DIRT or tries >= 100: break
+        pool = [(sx,sy)]
+        def ok(x,y): return m[y][x] not in (T_DIRT,T_ARROW,T_DEST,T_SPAWN)
+        while len(pool) < size:
+            px,py = random.choice(pool); stepx,stepy = random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+            nx,ny = px+stepx, py+stepy
+            if in_bounds(nx,ny) and ok(nx,ny): pool.append((nx,ny))
+            if len(pool) > size*2: break
+        for wx,wy in pool:
+            if m[wy][wx] != T_DIRT: m[wy][wx] = T_WATER
+    m[H-2][startX] = T_SPAWN
+    topX = tx
+    for sx in range(W):
+        cand = max(1, min(W-2, tx + (-math.ceil(sx/2) if sx%2 else math.ceil(sx/2))))
+        if m[1][cand] == T_DIRT: topX = cand; break
+    m[1][topX] = T_DEST if final_part else T_ARROW
+    return m
 
-  function startLongPress(e, chip){
-    if (!chip) return;
-    longPressTriggered = false;
-    const p = getPoint(e);
-    lpStartX = p.x; lpStartY = p.y;
-    clearTimeout(lpTimer);
-    lpTimer = setTimeout(() => { longPressTriggered = true; openPkgOverlay(chip); }, LONG_PRESS_MS);
-  }
-  function moveLongPress(e){
-    if (!lpTimer) return;
-    const p = getPoint(e);
-    if (Math.abs(p.x - lpStartX) > MOVE_CANCEL_PX || Math.abs(p.y - lpStartY) > MOVE_CANCEL_PX) clearTimeout(lpTimer), lpTimer=null;
-  }
-  function endLongPress(){ clearTimeout(lpTimer); lpTimer=null; }
-  function getPoint(e){
-    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-    return { x: e.clientX ?? 0, y: e.clientY ?? 0 };
-  }
+state = {
+  "mapIndex":0, "fog":True, "map":None,
+  "px":0, "py":0, "prev_px":0, "prev_py":0,
+  "seenMask":None, "visMask":None, "gameOver":False
+}
+maps = []
+base_class = [[None]*W for _ in range(H)]
 
-  board.addEventListener('contextmenu', (e)=> { if (e.target.closest('.pkg')) e.preventDefault(); });
-  board.addEventListener('mousedown', (e) => { const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip); });
-  board.addEventListener('mousemove', moveLongPress);
-  board.addEventListener('mouseup', endLongPress);
-  board.addEventListener('mouseleave', endLongPress);
-  board.addEventListener('touchstart', (e) => { const chip = e.target.closest('.pkg'); if (!chip) return; startLongPress(e, chip); }, { passive:true });
-  board.addEventListener('touchmove', moveLongPress, { passive:true });
-  board.addEventListener('touchend', endLongPress);
-  board.addEventListener('touchcancel', endLongPress);
+def make_mask(val=False): return [[val for _ in range(W)] for _ in range(H)]
 
-  // Click handler (selection / placement) — ignore if a long-press just fired
-  board.addEventListener('click', (e) => {
-    if (e.target.closest('button')) return;
-    if (longPressTriggered) { longPressTriggered = false; return; }
+def paint_static_map():
+    m = state["map"]
+    for y in range(H):
+        for x in range(W):
+            ch = m[y][x]
+            el = cells[y][x]
+            el.text = ch
+            base_class[y][x] = "cell " + CLASS.get(ch, "t-grass")
 
-    const chip = e.target.closest('.pkg');
-    const slot = e.target.closest(SLOT_SEL);
+def fov_compute():
+    px, py = state["px"], state["py"]
+    prev_vis = state["visMask"]
+    vis = make_mask(False)
+    x0, x1 = max(0, px-R), min(W-1, px+R)
+    y0, y1 = max(0, py-R), min(H-1, py+R)
+    for y in range(y0, y1+1):
+        for x in range(x0, x1+1):
+            dx, dy = x-px, y-py
+            if dx*dx + dy*dy > R*R: continue
+            steps = max(abs(dx), abs(dy))
+            stepx = dx/steps if steps else 0
+            stepy = dy/steps if steps else 0
+            cx, cy = float(px), float(py)
+            for _ in range(steps+1):
+                ix, iy = int(round(cx)), int(round(cy))
+                if not in_bounds(ix,iy): break
+                vis[iy][ix] = True
+                if is_blocked(state["map"][iy][ix]): break
+                cx += stepx; cy += stepy
+    for y in range(H):
+        for x in range(W):
+            if vis[y][x]: state["seenMask"][y][x] = True
+    dirty = set()
+    if prev_vis is None:
+        for y in range(y0, y1+1):
+            for x in range(x0, x1+1):
+                dirty.add((x,y))
+    else:
+        for y in range(y0, y1+1):
+            for x in range(x0, x1+1):
+                if vis[y][x] != prev_vis[y][x]: dirty.add((x,y))
+    state["visMask"] = vis
+    return dirty
 
-    if (chip){ e.stopPropagation(); selectChip(chip); return; }
-    if (slot){ moveChipTo(slot); return; }
-    clearSelection();
-  });
+def fog_suffix(x,y):
+    if not state["fog"]: return ""
+    if not state["seenMask"][y][x]: return " fog-unseen"
+    if not state["visMask"][y][x]:  return " fog-seen"
+    return ""
 
-  // ===== Overlay for package details =====
-  function openPkgOverlay(chip){
-    const name = chip.dataset.name || chip.querySelector('.tag')?.textContent?.trim() || 'Package';
-    const icon = chip.dataset.icon || chip.querySelector('.icon')?.textContent?.trim() || '📦';
-    const desc = chip.dataset.desc || 'No description available.';
-    const coinsTotal = chip.dataset.coinsTotal ?? '?';
-    const coinsBase  = chip.dataset.coinsBase ?? '?';
-    const manaSender = chip.dataset.manaSender ?? '0';
+def paint_fog(dirty, full=False):
+    if full:
+        for y in range(H):
+            for x in range(W):
+                cells[y][x].class_name = base_class[y][x] + fog_suffix(x,y)
+        return
+    for (x,y) in dirty:
+        cells[y][x].class_name = base_class[y][x] + fog_suffix(x,y)
 
-    const backdrop = document.createElement('div');
-    backdrop.className = 'overlay-backdrop';
-    backdrop.setAttribute('role', 'dialog'); backdrop.setAttribute('aria-modal', 'true');
+def paint_player():
+    px0, py0 = state["prev_px"], state["prev_py"]
+    if in_bounds(px0, py0):
+        c0 = cells[py0][px0]
+        c0.text = state["map"][py0][px0]
+        c0.class_name = base_class[py0][px0] + fog_suffix(px0,py0)
+    px, py = state["px"], state["py"]
+    c1 = cells[py][px]
+    c1.class_name = "cell t-player" + fog_suffix(px,py)
+    c1.text = T_PLAYER
 
-    const card = document.createElement('div');
-    card.className = 'overlay-card';
-    card.innerHTML = `
-      <div class="overlay-header">
-        <div class="overlay-title">Package Details</div>
-        <button class="overlay-close" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="overlay-body">
-        <div class="overlay-icon">${icon}</div>
-        <div class="overlay-texts">
-          <div class="overlay-name">${name}</div>
-          <div class="overlay-desc">${desc}</div>
-          <div class="overlay-metrics">Total coin on return: <b>${coinsTotal}</b> (base ${coinsBase}${chip.dataset.coinsSender?` + sender ${chip.dataset.coinsSender}`:''}); Mana bonus on return: <b>m${manaSender}</b></div>
-        </div>
-      </div>
-    `;
-    backdrop.appendChild(card);
-    document.body.appendChild(backdrop);
+def load_map(idx, place_player):
+    state["map"] = maps[idx]
+    state["gameOver"] = False
+    # spawn at bottom 'X'
+    px = 1; py = H-2
+    for x in range(1, W-1):
+        if state["map"][H-2][x] == 'X':
+            px = x; break
+    if place_player:
+        state["px"] = px; state["py"] = py
+        state["prev_px"] = px; state["prev_py"] = py
 
-    function close(){
-      document.removeEventListener('keydown', onKey);
-      backdrop.removeEventListener('click', onBackdrop);
-      backdrop.remove();
-    }
-    function onBackdrop(ev){ if (ev.target === backdrop || ev.target.classList.contains('overlay-close')) close(); }
-    function onKey(ev){ if (ev.key === 'Escape') close(); }
+    paint_static_map()
+    if state["fog"]:
+        state["seenMask"] = make_mask(False); state["visMask"] = make_mask(False)
+        paint_fog(set(), full=True); paint_fog(fov_compute(), full=False)
+    else:
+        state["seenMask"] = make_mask(True); state["visMask"] = make_mask(True)
+        paint_fog(set(), full=True)
+    paint_player()
+    level_el.text = f"Map {idx+1}/{MAPS}"
 
-    backdrop.addEventListener('click', onBackdrop);
-    document.addEventListener('keydown', onKey);
-  }
-})();
+def init_delivery_map():
+    global maps
+    maps = [gen_trail_map(False), gen_trail_map(False), gen_trail_map(True)]
+    state["mapIndex"] = 0; state["gameOver"] = False
+    load_map(state["mapIndex"], True)
+    msg("")
+
+def award_and_consume_package():
+    """On reaching the final destination, pay out and consume the package in Knight slot."""
+    chip_list = knight_slot.select(".pkg")
+    chip = chip_list[0] if chip_list else None
+    coin_total = int(chip.attrs.get("data-coins-total","0")) if chip else 0
+    mana_bonus = int(chip.attrs.get("data-mana-sender","0")) if chip else 0
+    if chip:
+        chip.remove()
+        if len(knight_slot.children) == 0:
+            knight_slot <= make_placeholder(knight_slot)
+    update_begin_enabled()
+    global coins, mana
+    coins += coin_total; mana += mana_bonus
+    update_currency_ui()
+    msg(f"Delivery complete! +{coin_total} coins, +m{mana_bonus} mana. Press R to restart.")
+    # Re-enable Begin for next package run
+    btn_begin.disabled = True
+
+def try_move(dx, dy):
+    if state["gameOver"]: return
+    nx = max(0, min(W-1, state["px"] + dx))
+    ny = max(0, min(H-1, state["py"] + dy))
+    t = state["map"][ny][nx]
+    if is_blocked(t): return
+    state["prev_px"], state["prev_py"] = state["px"], state["py"]
+    state["px"], state["py"] = nx, ny
+
+    if state["fog"]:
+        dirty = fov_compute(); paint_fog(dirty, full=False)
+    else:
+        cells[state["prev_py"]][state["prev_px"]].class_name = base_class[state["prev_py"]][state["prev_px"]]
+        cells[ny][nx].class_name = base_class[ny][nx]
+
+    paint_player()
+
+    if t == T_ARROW and state["mapIndex"] < MAPS-1:
+        state["mapIndex"] += 1
+        msg(f"Advancing to Map {state['mapIndex']+1}…")
+        load_map(state["mapIndex"], True); msg("")
+    elif t == T_DEST and state["py"] == 1 and state["mapIndex"] == MAPS-1:
+        state["gameOver"] = True
+        award_and_consume_package()
+
+@bind(document, "keydown")
+def on_keydown(e):
+    k = (e.key or "").lower()
+    if   k == "w": try_move(0,-1)
+    elif k == "s": try_move(0, 1)
+    elif k == "a": try_move(-1,0)
+    elif k == "d": try_move(1, 0)
+    elif k == "r": init_delivery_map()
+    elif k == "f":
+        state["fog"] = not state["fog"]
+        if state["fog"]:
+            state["seenMask"] = make_mask(False); state["visMask"] = make_mask(False)
+            paint_fog(set(), full=True); paint_fog(fov_compute(), full=False)
+        else:
+            state["seenMask"] = make_mask(True); state["visMask"] = make_mask(True)
+            paint_fog(set(), full=True)
+        paint_player()
+
+# Hook for the Begin button
+@bind(btn_begin, "click")
+def on_begin(ev):
+    if btn_begin.disabled: return
+    # Start the wilderness delivery
+    build_grid_dom()
+    init_delivery_map()
+    msg("Carry the package to the final X at the top!")
+    # Disable begin during run; re-enabled after payout
+    btn_begin.disabled = True
+
+# Enable Begin when a package is dropped into the Knight slot
+# (we already re-check on any selection/move)
+# ============= End delivery =============
+
 </script>
 </body>
 </html>

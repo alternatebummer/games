@@ -3,588 +3,330 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wilderness Roguelike — 3 Maps, 30×30 (FOV + Enemies + Neighbor FOV)</title>
+<title>Wilderness Roguelike — Brython (Fast FOV, No Enemies)</title>
 <style>
   :root{
-    --wrap: 500;              /* wrapper size in px (square) */
-    --w: 30; --h: 30;         /* grid size (30×30) */
+    --wrap: 500; --w: 30; --h: 30;
     --bg:#0b0e12; --ink:#cfe3ef; --muted:#8aa2b3;
-
-    /* Tile colors */
-    --path:#a36f4b;           /* . brown */
-    --grass:#38452e;          /* " green (your latest) */
-    --tree:#2c6a3f;           /* A dark green (impassable) */
-    --rock:#6f818f;           /* a gunmetal grey (impassable) */
-    --water:#3da3d5;          /* ~ blue (impassable) */
-    --accent-red:#ff5a5a;     /* ➨ and both Xs (spawn + destination) */
-    --player:#ffffff;         /* @ (white) */
-    --enemy:#f78952;          /* enemy @ light orange */
-    --enemy-fov:#f7c26f;      /* amber tint for enemy sight tiles */
+    --path:#a36f4b; --grass:#38452e; --tree:#2c6a3f; --rock:#6f818f; --water:#3da3d5;
+    --accent-red:#ff5a5a; --player:#ffffff;
   }
-
-  *{ box-sizing:border-box }
-  html,body{ height:100% }
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; background:var(--bg); color:var(--ink);
+    margin:0;background:var(--bg);color:var(--ink);
     font:12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    display:flex; align-items:center; justify-content:center; padding:12px;
-    user-select:none;
+    display:flex;align-items:center;justify-content:center;padding:12px;user-select:none;
   }
-
-  .wrap{
-    width: calc(var(--wrap) * 1px);
-    display:flex; flex-direction:column; gap:8px; align-items:center;
-  }
-
-  header{
-    width:100%; display:flex; justify-content:space-between; align-items:center;
-    font-weight:600; color:var(--muted);
-  }
-  header .left{display:flex; gap:12px; align-items:center}
+  .wrap{width:calc(var(--wrap)*1px);display:flex;flex-direction:column;gap:8px;align-items:center}
+  header{width:100%;display:flex;justify-content:space-between;align-items:center;font-weight:600;color:var(--muted)}
+  header .left{display:flex;gap:12px;align-items:center}
   header .right{font-size:12px}
-
   .grid{
-    width: calc(var(--wrap) * 1px);
-    height: calc(var(--wrap) * 1px);
-    display:grid;
-    grid-template-columns: repeat(var(--w), 1fr);
-    grid-template-rows: repeat(var(--h), 1fr);
-    border:1px solid #25303a;
-    background:#0f1318;
-    box-shadow:0 0 0 1px #141b22 inset, 0 4px 24px rgba(0,0,0,0.35);
-    overflow:hidden;
+    width:calc(var(--wrap)*1px);height:calc(var(--wrap)*1px);
+    display:grid;grid-template-columns:repeat(var(--w),1fr);grid-template-rows:repeat(var(--h),1fr);
+    border:1px solid #25303a;background:#0f1318;box-shadow:0 0 0 1px #141b22 inset,0 4px 24px rgba(0,0,0,.35);overflow:hidden;
   }
-
   .cell{
-    display:flex; align-items:center; justify-content:center;
-    font-weight:800;
-    aspect-ratio: 1 / 1;
-
-    /* largest possible glyphs without expanding the grid */
-    --tight: 1.2;
-    font-size: calc((var(--wrap) * 1px) / var(--w) * var(--tight));
-    line-height: 1;
-
-    /* allow shrink within tracks */
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
-    contain: size layout paint;
-
-    /* faint glow */
-    text-shadow:
-      0 0 3px currentColor,
-      0 0 3px currentColor;
-
-    transition: opacity 80ms linear;
+    display:flex;align-items:center;justify-content:center;font-weight:800;aspect-ratio:1/1;
+    --tight:1.2;font-size:calc((var(--wrap)*1px)/var(--w)*var(--tight));line-height:1;
+    min-width:0;min-height:0;overflow:hidden;contain:size layout paint;
+    text-shadow:0 0 3px currentColor,0 0 3px currentColor;transition:opacity 80ms linear;
   }
+  .t-path{color:var(--path)} .t-grass{color:var(--grass)} .t-tree{color:var(--tree)}
+  .t-rock{color:var(--rock)} .t-water{color:var(--water)}
+  .t-arrow{color:var(--accent-red);transform:rotate(-90deg)} .t-x{color:var(--accent-red)}
+  .t-player{color:var(--player)}
 
-  /* Base tile classes (color only) */
-  .t-path   { color: var(--path); }
-  .t-grass  { color: var(--grass); }
-  .t-tree   { color: var(--tree); }
-  .t-rock   { color: var(--rock); }
-  .t-water  { color: var(--water); }
-  .t-arrow  { color: var(--accent-red); transform: rotate(-90deg); } /* ➨ red, up */
-  .t-x      { color: var(--accent-red); }   /* red X (spawn + destination) */
-  .t-player { color: var(--player); }       /* @ */
-  .t-enemy  { color: var(--enemy); }        /* enemy @ (light orange) */
-  .t-efov   { color: var(--enemy-fov) !important; } /* amber cone tint */
+  /* Fog of War — force glyphs black when covered */
+  .fog-unseen { color:#000 !important; opacity:1 !important; }
+  .fog-seen   { color:#000 !important; opacity:.20; }
 
-  /* Fog of War */
-  .fog-unseen { color:#13181d !important; opacity:1 !important; }
-  .fog-seen   { opacity:.20; }
-
-  .legend{
-    width:100%;
-    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-    color:#8da2b2; font-size:12px;
-  }
+  .legend{width:100%;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;color:#8da2b2;font-size:12px}
   .legend b{color:#cfe3ef}
-  .msg{ color:#9fc46b; font-weight:600 }
+  .msg{color:#9fc46b;font-weight:600}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython_stdlib.js"></script>
 </head>
-<body>
+<body onload="brython()">
 <div class="wrap">
   <header>
     <div class="left">
       <div>Wilderness Roguelike</div>
       <div>• <span id="level">Map 1/3</span></div>
     </div>
-    <div class="right">
-      Move: <b>W A S D</b> • Restart: <b>R</b> • Fog: <b>F</b>
-    </div>
+    <div class="right">Move: <b>W A S D</b> • Restart: <b>R</b> • Fog: <b>F</b></div>
   </header>
-
   <div id="grid" class="grid" aria-label="map grid"></div>
-
   <div class="legend">
-    <span><b>@</b> you (white)</span>
-    <span><b>@</b> enemy (light orange)</span>
-    <span>amber cells = enemy sight (adjacent 8)</span>
-    <span><b>X</b> spawn & destination (red)</span>
-    <span><b>.</b> path (brown)</span>
-    <span><b>"</b> grass (green)</span>
-    <span><b>A</b> tree (dark green, ❌)</span>
-    <span><b>a</b> boulder (gunmetal, ❌)</span>
-    <span><b>~</b> water (blue, ❌)</span>
-    <span><b>➨</b> arrow (red, up) → next map</span>
+    <span><b>@</b> you (white)</span><span><b>X</b> spawn & destination (red)</span>
+    <span><b>.</b> path</span><span><b>"</b> grass</span><span><b>A</b> tree ❌</span>
+    <span><b>a</b> boulder ❌</span><span><b>~</b> water ❌</span><span><b>➨</b> arrow → next map</span>
     <span class="msg" id="msg"></span>
   </div>
 </div>
 
-<script>
-(() => {
-  "use strict";
+<script type="text/python">
+from browser import document, html, bind
+import random, math
 
-  // ===== Config =====
-  const W = 30, H = 30, MAPS = 3;
-  const gridEl = document.getElementById("grid");
-  const levelEl = document.getElementById("level");
-  const msgEl = document.getElementById("msg");
+# ===== Config =====
+W, H, MAPS = 30, 30, 3
+R = 7  # FOV radius
+grid_el = document["grid"]; level_el = document["level"]; msg_el = document["msg"]
 
-  // ===== Helpers =====
-  const rnd = (n)=> Math.floor(Math.random()*n);
-  const choice = (arr)=> arr[rnd(arr.length)];
-  const inBounds = (x,y)=> x>=0 && y>=0 && x<W && y<H;
+# ===== Helpers =====
+rnd = lambda n: random.randrange(n)
+def choice(arr): return arr[rnd(len(arr))]
+def in_bounds(x,y): return 0 <= x < W and 0 <= y < H
 
-  // ===== Tiles =====
-  const TILES = {
-    GRASS:  '"',
-    TREE:   'A',
-    STONE:  'a',
-    DIRT:   '.',
-    WATER:  '~',
-    ARROW:  '➨',
-    DEST:   'X',
-    SPAWN:  'X',
-    PLAYER: '@'
-  };
+# ===== Tiles / classes =====
+TILES = {"GRASS":'"',"TREE":'A',"STONE":'a',"DIRT":'.',"WATER":'~',"ARROW":'➨',"DEST":'X',"SPAWN":'X',"PLAYER":'@'}
+CLASS = {'"':'t-grass','A':'t-tree','a':'t-rock','.':'t-path','~':'t-water','➨':'t-arrow','X':'t-x','@':'t-player'}
+def is_blocked(ch): return ch in ('A','a','~')
 
-  const CLASS = {
-    '"': 't-grass',
-    'A': 't-tree',
-    'a': 't-rock',
-    '.': 't-path',
-    '~': 't-water',
-    '➨': 't-arrow',
-    'X': 't-x',
-    '@': 't-player'
-  };
+# ===== DOM grid =====
+cells = []
+def build_grid_dom():
+    grid_el.clear()
+    for _ in range(W*H):
+        grid_el <= html.DIV(Class="cell")
+    flat = list(grid_el.children)
+    del cells[:]
+    for y in range(H):
+        row = []
+        for x in range(W):
+            row.append(flat[y*W + x])
+        cells.append(row)
 
-  const PASSABLE = new Set(['.', '"', '➨', 'X', '@']); // path/grass/arrow/dest/spawn
-  const isBlocked = (ch)=> (ch==='A' || ch==='a' || ch==='~'); // blocks movement + vision
-  const isWalkableForEnemy = (ch)=> (ch==='.' || ch==='"');
+# ===== Map gen =====
+def gen_trail_map(final_part=False):
+    m = [[TILES["GRASS"] for _ in range(W)] for _ in range(H)]
+    cx = W//2
+    for y in range(1,H-1):
+        for x in range(1,W-1):
+            d = abs(x-cx)/(W/2)
+            treeP = max(0.0, (d**1.5)*0.70 + 0.04)
+            rockP = (d**1.2)*0.05
+            r = random.random()
+            if r < treeP: m[y][x] = TILES["TREE"]
+            elif r < treeP + rockP: m[y][x] = TILES["STONE"]
+    borderL = 4 + rnd(3); borderR = 4 + rnd(3)
+    for y in range(H):
+        for x in range(borderL): m[y][x] = TILES["TREE"]
+        for x in range(W-borderR, W): m[y][x] = TILES["TREE"]
+    tx = rnd(W-10)+5; ty = H-2; startX = tx
+    while ty > 1:
+        m[ty][tx] = TILES["DIRT"]
+        if random.random()<0.25 and tx+1 < W-1: m[ty][tx+1] = TILES["DIRT"]
+        if random.random()<0.25 and tx-1 > 0:   m[ty][tx-1] = TILES["DIRT"]
+        dx = choice([-1,0,1,0]); tx = max(1, min(W-2, tx+dx)); ty -= 1
+        m[ty][tx] = TILES["DIRT"]
+    pools = 1 + rnd(3)
+    for _ in range(pools):
+        size = 3 + rnd(4); tries = 0
+        while True:
+            sx = rnd(W-2)+1; sy = rnd(H-2)+1; tries += 1
+            if m[sy][sx] != TILES["DIRT"] or tries >= 100: break
+        pool = [(sx,sy)]
+        def ok(x,y): return m[y][x] not in (TILES["DIRT"],TILES["ARROW"],TILES["DEST"],TILES["SPAWN"])
+        while len(pool) < size:
+            px,py = choice(pool); stepx,stepy = choice([(1,0),(-1,0),(0,1),(0,-1)])
+            nx,ny = px+stepx, py+stepy
+            if in_bounds(nx,ny) and ok(nx,ny): pool.append((nx,ny))
+            if len(pool) > size*2: break
+        for wx,wy in pool:
+            if m[wy][wx] != TILES["DIRT"]: m[wy][wx] = TILES["WATER"]
+    m[H-2][startX] = TILES["SPAWN"]
+    topX = tx
+    for sx in range(W):
+        cand = max(1, min(W-2, tx + (-math.ceil(sx/2) if sx%2 else math.ceil(sx/2))))
+        if m[1][cand] == TILES["DIRT"]: topX = cand; break
+    m[1][topX] = TILES["DEST"] if final_part else TILES["ARROW"]
+    return m
 
-  // ===== DOM: build once =====
-  let cells = [];
-  function buildGridDOM(){
-    let html = "";
-    for(let i=0;i<W*H;i++) html += '<div class="cell"></div>';
-    gridEl.innerHTML = html;
+# ===== State =====
+state = {
+    "mapIndex":0, "fog":True, "map":None,
+    "px":0, "py":0, "prev_px":0, "prev_py":0,
+    "seenMask":None, "visMask":None, "gameOver":False
+}
+base_class = [[None]*W for _ in range(H)]  # 'cell t-grass' etc.
 
-    const flat = Array.from(gridEl.children);
-    cells = new Array(H);
-    for(let y=0;y<H;y++){
-      cells[y] = new Array(W);
-      for(let x=0;x<W;x++){
-        cells[y][x] = flat[y*W + x];
-      }
-    }
-  }
+def make_mask(val=False): return [[val for _ in range(W)] for _ in range(H)]
 
-  // ===== Smooth edge→center→edge forest density + meandering trail + water =====
-  function genTrailMap(finalPart=false){
-    const m = Array.from({length:H},()=>Array.from({length:W},()=>TILES.GRASS));
-    const cx = Math.floor(W/2);
+# ===== Static paint once per map =====
+def paint_static_map():
+    m = state["map"]
+    for y in range(H):
+        for x in range(W):
+            ch = m[y][x]
+            el = cells[y][x]
+            el.text = ch
+            base_class[y][x] = "cell " + CLASS.get(ch, "t-grass")
 
-    // Gradient forest
-    for(let y=1;y<H-1;y++){
-      for(let x=1;x<W-1;x++){
-        const d = Math.abs(x - cx) / (W/2);                   // 0 center → 1 edge
-        const treeP = Math.max(0, Math.pow(d, 1.5) * 0.70 + 0.04);
-        const rockP = Math.pow(d, 1.2) * 0.05;
-        const r = Math.random();
-        if (r < treeP) m[y][x] = TILES.TREE;
-        else if (r < treeP + rockP) m[y][x] = TILES.STONE;
-      }
-    }
+# ===== Fog of war =====
+def fov_compute():
+    """Compute current visMask within radius R (raycast), return set of changed cells vs previous vis."""
+    px, py = state["px"], state["py"]
+    prev_vis = state["visMask"]
+    vis = make_mask(False)
+    x0, x1 = max(0, px-R), min(W-1, px+R)
+    y0, y1 = max(0, py-R), min(H-1, py+R)
+    for y in range(y0, y1+1):
+        for x in range(x0, x1+1):
+            dx, dy = x-px, y-py
+            if dx*dx + dy*dy > R*R: continue
+            steps = max(abs(dx), abs(dy))
+            stepx = dx/steps if steps else 0
+            stepy = dy/steps if steps else 0
+            cx, cy = float(px), float(py)
+            for _ in range(steps+1):
+                ix, iy = int(round(cx)), int(round(cy))
+                if not in_bounds(ix,iy): break
+                vis[iy][ix] = True
+                if is_blocked(state["map"][iy][ix]): break
+                cx += stepx; cy += stepy
+    for y in range(H):
+        for x in range(W):
+            if vis[y][x]: state["seenMask"][y][x] = True
+    dirty = set()
+    if prev_vis is None:
+        for y in range(y0, y1+1):
+            for x in range(x0, x1+1):
+                dirty.add((x,y))
+    else:
+        for y in range(y0, y1+1):
+            for x in range(x0, x1+1):
+                if vis[y][x] != prev_vis[y][x]: dirty.add((x,y))
+    state["visMask"] = vis
+    return dirty
 
-    // Dense borders (4–6 cols)
-    const borderL = 4 + rnd(3), borderR = 4 + rnd(3);
-    for(let y=0;y<H;y++){
-      for(let x=0;x<borderL;x++) m[y][x] = TILES.TREE;
-      for(let x=W-borderR;x<W;x++) m[y][x] = TILES.TREE;
-    }
+def fog_class_suffix(x,y):
+    if not state["fog"]: return ""
+    if not state["seenMask"][y][x]: return " fog-unseen"
+    if not state["visMask"][y][x]:  return " fog-seen"
+    return ""
 
-    // Meandering trail bottom→top
-    let tx = rnd(W-10)+5;
-    let ty = H-2;
-    const startX = tx;
-    while(ty>1){
-      m[ty][tx] = TILES.DIRT;
-      if(Math.random()<0.25 && tx+1<W-1) m[ty][tx+1] = TILES.DIRT;
-      if(Math.random()<0.25 && tx-1>0)   m[ty][tx-1] = TILES.DIRT;
-      const dx = choice([-1,0,1,0]);
-      tx = Math.max(1, Math.min(W-2, tx+dx));
-      ty = ty - 1;
-      m[ty][tx] = TILES.DIRT;
-    }
+def paint_fog(dirty_cells, full=False):
+    """Apply fog classes to only dirty cells; if full=True, repaint all."""
+    if full:
+        for y in range(H):
+            for x in range(W):
+                cells[y][x].class_name = base_class[y][x] + fog_class_suffix(x,y)
+        return
+    for (x,y) in dirty_cells:
+        cells[y][x].class_name = base_class[y][x] + fog_class_suffix(x,y)
 
-    // Water pools 1–3, size 3–6
-    const pools = 1 + rnd(3);
-    for(let p=0;p<pools;p++){
-      const size = 3 + rnd(4);
-      let sx=0, sy=0, tries=0;
-      do { sx = rnd(W-2)+1; sy = rnd(H-2)+1; tries++; }
-      while(m[sy][sx]===TILES.DIRT && tries<100);
+# ===== Player paint (respects fog) =====
+def paint_player():
+    px0, py0 = state["prev_px"], state["prev_py"]
+    if in_bounds(px0, py0):
+        c0 = cells[py0][px0]
+        c0.text = state["map"][py0][px0]
+        c0.class_name = base_class[py0][px0] + fog_class_suffix(px0,py0)
+    px, py = state["px"], state["py"]
+    c1 = cells[py][px]
+    c1.class_name = "cell t-player" + fog_class_suffix(px,py)
+    c1.text = TILES["PLAYER"]
 
-      const pool = [];
-      const ok = (x,y)=> m[y][x]!==TILES.DIRT && m[y][x]!==TILES.ARROW && m[y][x]!==TILES.DEST && m[y][x]!==TILES.SPAWN;
-      pool.push([sx,sy]);
-      while(pool.length<size){
-        const [px,py] = pool[rnd(pool.length)];
-        const step = [[1,0],[-1,0],[0,1],[0,-1]][rnd(4)];
-        const nx=px+step[0], ny=py+step[1];
-        if(inBounds(nx,ny) && ok(nx,ny)) pool.push([nx,ny]);
-        if(pool.length>size*2) break;
-      }
-      for(const [wx,wy] of pool){
-        if(m[wy][wx]!==TILES.DIRT) m[wy][wx] = TILES.WATER;
-      }
-    }
+# ===== Flow =====
+maps = []
+def msg(s=""): msg_el.text = s
 
-    // Spawn X (bottom) and exit/destination (top)
-    m[H-2][startX] = TILES.SPAWN;
-    let topX = tx;
-    for(let sx=0; sx<W; sx++){
-      const cand = Math.max(1, Math.min(W-2, tx + (sx%2 ? -Math.ceil(sx/2) : Math.ceil(sx/2))));
-      if(m[1][cand]===TILES.DIRT){ topX = cand; break; }
-    }
-    m[1][topX] = finalPart ? TILES.DEST : TILES.ARROW;
+def load_map(idx, place_player):
+    state["map"] = maps[idx]
+    state["gameOver"] = False
+    # spawn at bottom X
+    px = 1; py = H-2
+    for x in range(1, W-1):
+        if state["map"][H-2][x] == 'X':
+            px = x; break
+    if place_player:
+        state["px"], state["py"] = px, py
+        state["prev_px"], state["prev_py"] = px, py
 
-    return m;
-  }
+    paint_static_map()
 
-  // ===== ENEMIES =====
-  const DIRS = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
-  const dirChoices = [DIRS.up, DIRS.down, DIRS.left, DIRS.right];
+    # ---- FOG INIT: paint all unseen, then reveal the ring ----
+    if state["fog"]:
+        state["seenMask"] = make_mask(False)
+        state["visMask"]  = make_mask(False)
+        paint_fog(set(), full=True)      # all tiles unseen (black)
+        dirty = fov_compute()            # compute current FOV around player
+        paint_fog(dirty, full=False)     # update only changed tiles
+    else:
+        state["seenMask"] = make_mask(True)
+        state["visMask"]  = make_mask(True)
+        paint_fog(set(), full=True)      # clears fog classes
 
-  function spawnEnemiesForCurrentMap(){
-    const part = state.mapIndex + 1; // 1..3
-    const enemies = [];
-    let ecount = 8 + (part-1)*3 + rnd(3); // 8–10, 11–13, 14–16
-    let guard = 0;
+    paint_player()
+    level_el.text = f"Map {idx+1}/{MAPS}"
 
-    const bottomY = H-2;
-    let bottomX = -1;
-    for(let x=1;x<W-1;x++){ if(state.map[bottomY][x]==='X'){ bottomX=x; break; } }
-    const topY = 1;
-    let topMarkerX = -1;
-    for(let x=1;x<W-1;x++){ if(state.map[topY][x]==='➨' || state.map[topY][x]==='X'){ topMarkerX=x; break; } }
+def init_all():
+    global maps
+    maps = [gen_trail_map(False), gen_trail_map(False), gen_trail_map(True)]
+    state["mapIndex"] = 0
+    state["gameOver"] = False
+    load_map(state["mapIndex"], True)
+    msg("")
 
-    while(ecount>0 && guard++<12000){
-      const ex=rnd(W), ey=rnd(H);
-      const t = inBounds(ex,ey) ? state.map[ey][ex] : '#';
-      const farFromMarkers = !(ey===bottomY && ex===bottomX) && !(ey===topY && ex===topMarkerX);
-      const open = (t===TILES.DIRT || t===TILES.GRASS);
-      const empty = enemies.every(e => !(e.x===ex && e.y===ey));
-      if(open && farFromMarkers && empty){
-        enemies.push({x:ex,y:ey,dir:choice(dirChoices),patrolTimer:rnd(6)+3});
-        ecount--;
-      }
-    }
-    state.enemies = enemies;
-  }
+def try_move(dx, dy):
+    if state["gameOver"]: return
+    nx = max(0, min(W-1, state["px"] + dx))
+    ny = max(0, min(H-1, state["py"] + dy))
+    t = state["map"][ny][nx]
+    if is_blocked(t): return
+    state["prev_px"], state["prev_py"] = state["px"], state["py"]
+    state["px"], state["py"] = nx, ny
 
-  // Adjacent (8) tiles as enemy FOV
-  function tilesInEnemyFOV(g){
-    const out=[];
-    for(let dy=-1; dy<=1; dy++){
-      for(let dx=-1; dx<=1; dx++){
-        if(dx===0 && dy===0) continue;
-        const x = g.x + dx, y = g.y + dy;
-        if(inBounds(x,y)) out.push([x,y]);
-      }
-    }
-    return out;
-  }
+    if state["fog"]:
+        dirty = fov_compute()
+        paint_fog(dirty, full=False)
+    else:
+        # ensure base restored for previous/current when fog is off
+        cells[state["prev_py"]][state["prev_px"]].class_name = base_class[state["prev_py"]][state["prev_px"]]
+        cells[ny][nx].class_name = base_class[ny][nx]
 
-  function enemySeesPlayer(g){
-    // With neighbor-FOV, "sees" means player is in the adjacent ring
-    for(const [x,y] of tilesInEnemyFOV(g)){
-      if(x===state.px && y===state.py) return true;
-    }
-    return false;
-  }
+    paint_player()
 
-  function occupiedByEnemy(nx,ny){
-    return state.enemies.some(e => e.x===nx && e.y===ny);
-  }
+    if t == '➨':
+        if state["mapIndex"] < MAPS-1:
+            state["mapIndex"] += 1
+            msg(f"Advancing to Map {state['mapIndex']+1}...")
+            load_map(state["mapIndex"], True); msg("")
+    elif t == 'X' and state["py"] == 1 and state["mapIndex"] == MAPS-1:
+        msg("You reached the destination! Press R to restart."); state["gameOver"] = True
 
-  function stepEnemies(){
-    if(state.gameOver) return;
-    for(const g of state.enemies){
-      // patrol timer / turn
-      g.patrolTimer--;
-      if(g.patrolTimer<=0 || Math.random()<0.15){
-        g.dir = choice(dirChoices);
-        g.patrolTimer = rnd(6)+3;
-      }
+# ===== Controls =====
+@bind(document, "keydown")
+def on_keydown(e):
+    k = (e.key or "").lower()
+    if   k == "w": try_move(0,-1)
+    elif k == "s": try_move(0, 1)
+    elif k == "a": try_move(-1,0)
+    elif k == "d": try_move(1, 0)
+    elif k == "r": init_all()
+    elif k == "f":
+        state["fog"] = not state["fog"]
+        if state["fog"]:
+            # turning fog on: reset to full unseen, then reveal
+            state["seenMask"] = make_mask(False)
+            state["visMask"]  = make_mask(False)
+            paint_fog(set(), full=True)
+            dirty = fov_compute()
+            paint_fog(dirty, full=False)
+        else:
+            # fog off: clear classes across map
+            state["seenMask"] = make_mask(True)
+            state["visMask"]  = make_mask(True)
+            paint_fog(set(), full=True)
+        paint_player()
 
-      // chase only if player is in adjacent FOV (move towards player if possible)
-      let moved = false;
-      if(enemySeesPlayer(g)){
-        const dx = Math.sign(state.px - g.x);
-        const dy = Math.sign(state.py - g.y);
-        const trySteps = dx && dy ? [[dx,0],[0,dy],[dx,dy]] : [[dx,dy]];
-        for(const [sx,sy] of trySteps){
-          const nx = g.x + sx, ny = g.y + sy;
-          if(inBounds(nx,ny) && isWalkableForEnemy(state.map[ny][nx]) && !occupiedByEnemy(nx,ny)){
-            g.x = nx; g.y = ny; moved = true; break;
-          }
-        }
-      }
-
-      // otherwise continue forward or reroll dir
-      if(!moved){
-        const nx = g.x + g.dir[0];
-        const ny = g.y + g.dir[1];
-        if(inBounds(nx,ny) && isWalkableForEnemy(state.map[ny][nx]) && !occupiedByEnemy(nx,ny)){
-          g.x = nx; g.y = ny;
-        }else{
-          g.dir = choice(dirChoices);
-        }
-      }
-
-      // collision with player
-      if(g.x===state.px && g.y===state.py){
-        state.gameOver = true;
-        msg("Tagged by a ranger! Press R to restart.");
-      }
-    }
-  }
-
-  // ===== FOV / Fog of War =====
-  const state = {
-    mapIndex: 0,
-    fog: true,
-    map: null,
-    px: 0, py: 0,
-    seenMask: null,
-    visMask: null,
-    enemies: [],
-    gameOver: false,
-  };
-
-  function makeMask(val=false){
-    return Array.from({length:H},()=>Array.from({length:W},()=>val));
-  }
-
-  function revealAll(){
-    state.seenMask = makeMask(true);
-    state.visMask  = makeMask(true);
-  }
-
-  function fov(){
-    if(!state.fog){ revealAll(); return; }
-    const R = 7;
-    const seen = makeMask(false);
-    for(let dy=-R; dy<=R; dy++){
-      for(let dx=-R; dx<=R; dx++){
-        const tx = state.px + dx, ty = state.py + dy;
-        if(!inBounds(tx,ty)) continue;
-        if(dx*dx + dy*dy > R*R) continue;
-
-        const steps = Math.max(Math.abs(dx), Math.abs(dy));
-        const stepx = dx/steps || 0;
-        const stepy = dy/steps || 0;
-        let cx = state.px, cy = state.py;
-
-        for(let s=0; s<=steps; s++){
-          const ix = Math.round(cx), iy = Math.round(cy);
-          if(!inBounds(ix,iy)) break;
-          seen[iy][ix] = true;
-          if(isBlocked(state.map[iy][ix])) break;
-          cx += stepx; cy += stepy;
-        }
-      }
-    }
-    state.visMask = seen;
-    for(let y=0;y<H;y++){
-      for(let x=0;x<W;x++){
-        if(seen[y][x]) state.seenMask[y][x] = true;
-      }
-    }
-  }
-
-  // ===== Rendering =====
-  function paintFrame(){
-    // Build union of enemy FOV tiles (adjacent 8)
-    const efovMask = makeMask(false);
-    for(const g of state.enemies){
-      for(const [x,y] of tilesInEnemyFOV(g)){
-        if(inBounds(x,y)) efovMask[y][x] = true;
-      }
-    }
-
-    // Base tiles + fog + enemy FOV tint
-    for(let y=0;y<H;y++){
-      for(let x=0;x<W;x++){
-        const base = state.map[y][x];
-        const el = cells[y][x];
-
-        el.className = "cell " + (CLASS[base] || 't-grass');
-        el.textContent = base;
-
-        if(state.fog){
-          const visible = state.visMask[y][x];
-          const seen = state.seenMask[y][x];
-          if(!seen){
-            el.classList.add('fog-unseen');
-          } else if(!visible){
-            el.classList.add('fog-seen');
-          }
-          // Show enemy FOV highlight only when currently visible to the player
-          if(visible && efovMask[y][x]){
-            el.classList.add('t-efov');
-          }
-        } else {
-          if(efovMask[y][x]){
-            el.classList.add('t-efov');
-          }
-        }
-      }
-    }
-
-    // draw visible enemies (after tiles/fog/tint)
-    for(const g of state.enemies){
-      if(state.visMask[g.y]?.[g.x]){
-        const el = cells[g.y][g.x];
-        el.className = "cell t-enemy";
-        el.textContent = '@';
-      }
-    }
-
-    // player last
-    const pel = cells[state.py][state.px];
-    pel.className = "cell t-player";
-    pel.textContent = TILES.PLAYER;
-  }
-
-  // ===== Game State / Flow =====
-  let maps = [];
-
-  function msg(s){ msgEl.textContent = s || ""; }
-
-  function initAll(){
-    maps = [ genTrailMap(false), genTrailMap(false), genTrailMap(true) ];
-    state.mapIndex = 0;
-    state.gameOver = false;
-    loadMap(state.mapIndex, true);
-    msg("");
-  }
-
-  function loadMap(idx, placePlayer){
-    state.map = maps[idx];
-    state.gameOver = false;
-
-    // player at bottom spawn X
-    let px = 1, py = H-2;
-    for(let x=1;x<W-1;x++){
-      if(state.map[H-2][x]==='X'){ px=x; break; }
-    }
-    if(placePlayer){ state.px = px; state.py = py; }
-
-    // reset fog and enemies
-    state.seenMask = makeMask(false);
-    state.visMask = makeMask(false);
-    spawnEnemiesForCurrentMap();
-    fov();
-    paintFrame();
-    levelEl.textContent = `Map ${idx+1}/${MAPS}`;
-  }
-
-  // Helper: are we on any enemy FOV tile right now?
-  function playerOnAnyEnemyFOV(){
-    for(const g of state.enemies){
-      for(const [x,y] of tilesInEnemyFOV(g)){
-        if(x===state.px && y===state.py) return true;
-      }
-    }
-    return false;
-  }
-
-  function tryMove(dx,dy){
-    if(state.gameOver) return;
-    const nx = Math.max(0, Math.min(W-1, state.px + dx));
-    const ny = Math.max(0, Math.min(H-1, state.py + dy));
-
-    // block walking into enemy
-    if(state.enemies.some(e => e.x===nx && e.y===ny)) {
-      msg("Enemy blocks the way.");
-      return;
-    }
-
-    const t = state.map[ny][nx];
-    if (isBlocked(t)) return;
-
-    // move player
-    state.px = nx; state.py = ny;
-
-    // if you landed on any enemy's FOV indicator → tagged
-    if (playerOnAnyEnemyFOV()){
-      state.gameOver = true;
-      paintFrame();
-      msg("Spotted! Press R to restart.");
-      return;
-    }
-
-    // Player FOV → enemy turn → check again → paint
-    fov();
-    stepEnemies();
-
-    if (!state.gameOver && playerOnAnyEnemyFOV()){
-      state.gameOver = true;
-      paintFrame();
-      msg("Spotted! Press R to restart.");
-      return;
-    }
-
-    fov();
-    paintFrame();
-
-    // Interactions
-    if (t === '➨'){
-      if (state.mapIndex < MAPS-1){
-        state.mapIndex++;
-        msg(`Advancing to Map ${state.mapIndex+1}...`);
-        loadMap(state.mapIndex, true);
-        msg("");
-      }
-    } else if (t === 'X' && state.py===1){
-      if (state.mapIndex === MAPS-1){
-        msg("You reached the destination! Press R to restart.");
-        state.gameOver = true;
-      }
-    }
-  }
-
-  // ===== Controls =====
-  window.addEventListener("keydown", (e) => {
-    const k = e.key.toLowerCase();
-    if (k==="w")      tryMove( 0,-1);
-    else if (k==="s") tryMove( 0, 1);
-    else if (k==="a") tryMove(-1, 0);
-    else if (k==="d") tryMove( 1, 0);
-    else if (k==="r") initAll();
-    else if (k==="f"){ state.fog = !state.fog; fov(); paintFrame(); }
-  });
-
-  // ===== Boot =====
-  buildGridDOM();
-  initAll();
-})();
+# ===== Boot =====
+build_grid_dom()
+init_all()
 </script>
 </body>
 </html>

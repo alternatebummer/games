@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>In Loving Memory</title>
+  <meta name="description" content="A simple, elegant single‑page obituary." />
+  <meta property="og:title" content="In Loving Memory" />
+  <meta property="og:description" content="A simple, elegant single‑page obituary." />
+  <meta property="og:type" content="website" />
+  <style>
+    :root {
+      --bg: #f8f1e7; /* ivory/tan background */
+      --ink: #2c2c2c; /* near-black text */
+      --muted: #706e6b; /* softer gray for secondary text */
+      --rule: #e2d8cd; /* light tan for dividers */
+      --accent: #a78e7a; /* warm accent */
+      --maxw: 800px;
+    }
+
+
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.8; /* easier reading */
+      letter-spacing: 0.01em;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      padding: 48px 20px 8px 20px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: clamp(28px, 5vw, 44px);
+      letter-spacing: 0.02em;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+
+    .dates {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(14px, 2.5vw, 18px);
+    }
+
+    .container {
+      width: min(92%, var(--maxw));
+      margin: 18px auto 40px auto;
+      padding: 26px 22px;
+      background: color-mix(in srgb, var(--bg), white 3%); /* lower contrast */
+    }
+
+    .portrait-wrap {
+      display: grid;
+      justify-content: center;
+      margin: 8px auto 18px auto;
+    }
+
+    .portrait {
+      max-width: 800px;
+      object-fit: cover;
+      border: 8px solid color-mix(in srgb, var(--bg), white 60%);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+      background: #ddd;
+    }
+
+    figcaption {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .obituary {
+      font-size: clamp(18px, 2.1vw, 20px);
+      max-width: 62ch;
+      margin: 20px auto 0 auto;
+      text-align: justify;
+      -webkit-hyphens: auto; hyphens: auto;
+    }
+
+    .rule {
+      height: 1px; background: linear-gradient(90deg, transparent, var(--rule), transparent);
+      margin: 20px 0; /* slightly tighter to reduce visual jump */
+    }
+
+    .controls {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center;
+      margin: 12px 0 0 0;
+    }
+    .controls .hint { color: var(--muted); font-size: 0.9rem; }
+
+    button, .btn {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: 14px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--rule);
+      background: color-mix(in srgb, var(--bg), white 8%);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    button:hover, .btn:hover { filter: brightness(1.02); }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 16px 20px 48px 20px;
+    }
+
+    /* Make common fields editable for easy customizing without code */
+
+
+
+    /* Print styles */
+    @media print {
+      body { background: white; color: black; }
+      .container { box-shadow: none; border: 0; background: white; }
+      .controls, .hintline { display: none !important; }
+      .portrait { filter: grayscale(100%); border-color: #eee; }
+      a { text-decoration: none; color: black; }
+      footer { color: #444; }
+    }
+    .obituary p { margin: 0 0 1.05em; }
+    .title { text-wrap: balance; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header aria-label="Memorial header">
+      <!-- Click to edit the name and dates -->
+      <h1 class="title" id="name" spellcheck="false">Mary "Mare" Ellen Brockman</h1>
+      <p class="dates" id="dates" spellcheck="false">1950 — 2025</p>
+    </header>
+
+    <main class="container" aria-label="Obituary content">
+      <figure class="portrait-wrap">
+        <img id="portrait" class="portrait" alt="Portrait of the deceased" />
+        <figcaption id="caption" spellcheck="false">Parent, sibling, mentor, friend.</figcaption>
+      </figure>
+
+      <div class="controls" aria-label="Actions">
+        <button id="printBtn" title="Print or save as PDF">Print / Save as PDF</button>
+      </div>
+
+      <div class="rule" aria-hidden="true"></div>
+
+      <article class="obituary" id="obit" spellcheck="true">
+        <p>
+          So passes Mary "Mare" Ellen Brockman, born February 9th, 1950, in Stratford, Ontario.
+        </p>
+        <p>
+          This is less an obituary and more a personally written tribute. I met Mare at a house naming party back in the early 2010s in Victoria, BC. At that time, Victoria punks had been crashing in the same handful of old, junky houses for years and years. These houses were event spaces, bars, art galleries—whatever we needed them to be. It was tradition for these houses to carry names.
+        </p>
+        <p>
+          So Mare introduced themself to me at this party, a 60-something year-old stranger dressed like a jewel thief. They asked for nothing short of my life story and we became fast friends.
+        </p>
+        <p>
+          Mare was a devious activist and artist in the time I knew them, as well as a poet and a lifelong student of history, philosophy, seafaring, literature, geography, bushcraft, and astronomy. They were also the world's most destructive relationship coach.
+        </p>
+        <p>
+          Mare was a natural-born master of authentic expression. They were unwilling and incapable of holding it back. Mare saw the authenticity in you and truly wanted nothing more than to expose it, to declare that you were worthy of love, and to demand that you end your airs of woe and your foolish, superstitious clamour, and immediately join in the fun.
+        </p>
+        <p>
+          Mare's perception of the world was often cut with vivid fantasy, but there was always a core of deep insight within even the most unlikely claims. And Mare had a way of exposing people's anxieties, especially the ones they didn't want exposed. It wasn't ideal when it happened. Mare burnt almost every bridge they built, usually in December.
+        </p>
+        <p>
+          Before their coming out as a de facto elder punk of the Victoria scene, Mare lived a solitary life on their sailboat, Aiaia, and travelled the Salish Sea for years with their partner, Phil Teece. Together, they built a small cabin on Sonora Island. Before that, Mare had a career as a nurse in London, Ontario. Before that, Mare was a wife and a mother. Before, a middle child; one of seven.
+        </p>
+        <p>
+          I observed over the years how difficult it was for them to carry so much life. As loving and encouraging as they were, they struggled with paranoia and regret 'til the very end. I also observed miracles during Mare's final days. Simple things, like how much easier it was for everyone involved to say, "I love you." Unexpected things. Despite having lived such an individualistic, solitary life, family flew to be at Mare's side. Mysterious things. Mare was diagnosed with 2nd stage breast cancer in 2022 and chose to proceed without treatment of any kind. Even so, her final years were relatively pain-free.
+        </p>
+        <p>
+          I was one member of a small circle of care that formed around Mare when accelerated cognitive decline from the cancer's spread prevented their continued independent living. We were concerned that the cognitive decline would outpace the cancer, but this would not be the case. Mare passed on October 20th, 2025, under the care of friends, family, and the excellent staff at Castleview Care Centre in the Kootenays. I'm left with a feeling of profound relief, and I must express my amazement and gratitude for the others who came together to help make Mare's final years safe and enjoyable. They were a mentor and a friend.
+        </p>
+      </article>
+    </main>
+
+    <footer aria-label="Footer">
+      <div class="hintline">To customize: replace the photo, then click to edit text. Use “Print / Save as PDF” to share with family.</div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const img = document.getElementById('portrait');
+      const printBtn = document.getElementById('printBtn');
+      // Set the static portrait image that lives alongside this file
+      img.src = 'mare19502025.jpg';
+      // Print / Save as PDF action
+      printBtn.addEventListener('click', () => window.print());
+    })();
+  </script>
+</body>
+</html>

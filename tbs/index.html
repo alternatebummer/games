@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tactics — 8×8 (Brython)</title>
+  <style>
+    :root{
+      --bg:#0b0e12; --ink:#dce7f1; --muted:#8aa2b3; --accent:#9fc46b; --danger:#ff7a7a; --warn:#ffb86b;
+      --cell:64px; /* grid cell size */
+      --tile:#0f141b; --tile2:#101721; --tileBorder:#162230;
+    }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font:14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      display:flex; align-items:center; justify-content:center; padding:16px;
+    }
+    .wrap{ display:grid; gap:12px; grid-template-columns: 1fr auto; align-items:start; width:min(100vw, 1100px) }
+    #left{ display:grid; gap:12px }
+
+    #hud{ display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+    #hud .pill{
+      background:#0f141bcc; border:1px solid #223040; border-radius:999px; padding:6px 10px; display:flex; align-items:center; gap:8px
+    }
+    .bar{ inline-size:120px; block-size:8px; background:#1b2530; border-radius:999px; overflow:hidden; border:1px solid #223040 }
+    .bar > i{ display:block; block-size:100%; background:linear-gradient(90deg, #37c26a, #6ee7a1) }
+
+    #grid{
+      position:relative;
+      display:grid; grid-template-columns: repeat(8, var(--cell)); grid-auto-rows: var(--cell);
+      background:transparent; border:1px solid #223040; border-radius:12px; overflow:visible; box-shadow:0 6px 24px #0007; padding:8px;
+      isolation:isolate;
+    }
+    .cell{
+      position:relative; user-select:none; cursor:pointer; display:grid; place-items:center;
+    }
+    .diamond{ position:absolute; inset:12%; background:var(--tile); border:1px solid var(--tileBorder); transform:rotate(45deg); border-radius:6px; transition:.1s ease;
+      box-shadow: inset 0 0 0 1px #0008;
+    }
+    .cell.alt .diamond{ background:var(--tile2) }
+    .cell.hl .diamond{ outline:2px solid var(--accent); outline-offset:-3px; box-shadow:0 0 0 2px #0008 inset }
+    .cell.target .diamond{ outline:2px solid #ffd166; outline-offset:-3px }
+
+    .unit{ position:relative; z-index:2; font-size:22px; line-height:1; padding:6px 8px; border-radius:10px; border:1px solid #223040 }
+    .P{ background:#18361f; color:#b9f3c9 }
+    .E{ background:#341b1b; color:#f6b2b2 }
+
+    #actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+    button{
+      background:#0f141bcc; color:var(--ink); border:1px solid #223040; border-radius:10px; padding:8px 12px; cursor:pointer;
+    }
+    button[disabled]{ opacity:.5; cursor:not-allowed }
+    #status{ color:var(--muted) }
+
+    #log{
+      width:340px; background:#0f141bcc; border:1px solid #223040; border-radius:12px; padding:10px; max-height:calc(var(--cell)*8 + 40px); overflow:auto;
+    }
+    #log h3{ margin:0 0 6px 0; font-size:13px; color:var(--muted) }
+    #log .entry{ padding:6px 8px; border-bottom:1px dashed #233242; }
+    #log .entry:last-child{ border-bottom:none }
+    .good{ color:#87e39f } .bad{ color:#ff9e9e } .note{ color:#a6b7c7 } .err{ color:#ffb0b0 }
+
+    #tests{ background:#0f141bcc; border:1px dashed #2b3b4a; border-radius:10px; padding:8px }
+    #tests pre{ white-space:pre-wrap }
+
+    /* Context menu */
+    #ctx{ position:fixed; z-index:9999; min-width:200px; background:#0f141bcc; color:var(--ink); border:1px solid #223040; border-radius:10px; box-shadow:0 12px 28px #000a; display:none }
+    #ctx .item{ padding:8px 12px; border-bottom:1px solid #1a2735; cursor:pointer }
+    #ctx .item:last-child{ border-bottom:none }
+    #ctx .item[disabled]{ opacity:.5; pointer-events:none; cursor:not-allowed }
+    #ctx .label{ font-weight:600 }
+    #ctx .hint{ float:right; color:var(--muted) }
+  </style>
+  <!-- Brython runtime (non-deferred to guarantee availability by body onload). -->
+  <script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/brython@3.12.3/brython_stdlib.js" crossorigin="anonymous"></script>
+  <!-- Surface JS load/runtime errors in-page rather than the opaque "Script error" -->
+  <script>
+    window.addEventListener('error', function(e){
+      try{
+        var holder = document.getElementById('logEntries') || document.body;
+        var pre = document.createElement('pre');
+        pre.textContent = 'JS error: ' + (e.message||'unknown') + '\n' + (e.filename||'') + ':' + (e.lineno||'') + ':' + (e.colno||'');
+        pre.style.cssText = 'white-space:pre-wrap;color:#ffb0b0;background:#1b1b1b;padding:10px;border:1px solid #502;border-radius:8px;';
+        holder.appendChild(pre);
+      }catch(_){}
+    });
+    window.addEventListener('unhandledrejection', function(e){
+      try{
+        var holder = document.getElementById('logEntries') || document.body;
+        var pre = document.createElement('pre');
+        pre.textContent = 'Unhandled promise rejection: ' + (e.reason && (e.reason.stack||e.reason.message) || String(e.reason));
+        pre.style.cssText = 'white-space:pre-wrap;color:#ffb0b0;background:#1b1b1b;padding:10px;border:1px solid #502;border-radius:8px;';
+        holder.appendChild(pre);
+      }catch(_){}
+    });
+  </script>
+</head>
+<body onload="brython()">
+  <div class="wrap">
+    <div id="left">
+      <div id="hud">
+        <div class="pill" id="pHUD">🧑 Player HP
+          <span class="bar"><i id="pHPbar" style="width:100%"></i></span>
+          <b id="pHPtxt">10/10</b>
+        </div>
+        <div class="pill" id="eHUD">🤖 Enemy HP
+          <span class="bar"><i id="eHPbar" style="width:100%"></i></span>
+          <b id="eHPtxt">10/10</b>
+        </div>
+        <div class="pill" id="status">—</div>
+      </div>
+
+      <div id="grid"></div>
+
+      <div id="actions">
+        <button id="btnMove">Move (≤2)</button>
+        <button id="btnSlash">Slash</button>
+        <button id="btnHeal">Heal (+3)</button>
+        <button id="btnEnd">End Turn ▶</button>
+        <button id="btnRestart" title="Restart match">⟲ Restart</button>
+        <button id="btnRunTests" title="Run built-in tests">🧪 Run Tests</button>
+      </div>
+
+      <details id="tests">
+        <summary>Test Results</summary>
+        <div id="testOut"></div>
+      </details>
+    </div>
+
+    <div id="log">
+      <h3>Combat Log</h3>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+
+  <!-- Context menu overlay -->
+  <div id="ctx"></div>
+
+  <script type="text/python">
+# Defensive bootstrap so load errors surface in-page instead of a generic "Script error".
+try:
+    from browser import document, html, window
+    import random, traceback
+
+    # --- Core data ----------------------------------------------------------
+    GRID_W = GRID_H = 8
+    MAX_HP = 10
+    CRIT_CHANCE = 0.15
+    HEAL_AMOUNT = 3
+    SLASH_MIN = 3
+    SLASH_MAX = 5
+
+    class Unit:
+        def __init__(self, name, x, y, team):
+            self.name = name
+            self.x = x
+            self.y = y
+            self.hp = MAX_HP
+            self.team = team  # 'P' or 'E'
+            self.moved = False
+            self.acted = False
+        def pos(self):
+            return (self.x, self.y)
+        def alive(self):
+            return self.hp > 0
+
+    class Game:
+        def __init__(self):
+            self.player = Unit('Player', 0, GRID_H//2, 'P')
+            self.enemy  = Unit('Enemy',  GRID_W-1, GRID_H//2, 'E')
+            self.turn = 'P'  # 'P' or 'E'
+            self.selected = None  # 'move' | 'slash' | 'heal' | None
+            self.hl = set()  # highlighted cells
+            self.log('New match started. Player begins.', 'note')
+        # --- Helpers ---
+        def other(self, u):
+            return self.enemy if u.team=='P' else self.player
+        def in_bounds(self, x, y):
+            return 0 <= x < GRID_W and 0 <= y < GRID_H
+        def manhattan(self, a, b):
+            return abs(a[0]-b[0]) + abs(a[1]-b[1])
+        def chebyshev(self, a, b):
+            return max(abs(a[0]-b[0]), abs(a[1]-b[1]))
+        def cell_id(self, x, y):
+            return f"c-{x}-{y}"
+        def unit_at(self, x, y):
+            if (self.player.x, self.player.y) == (x, y):
+                return self.player
+            if (self.enemy.x, self.enemy.y) == (x, y):
+                return self.enemy
+            return None
+        # --- UI ---
+        def set_status(self, msg):
+            document['status'].text = msg
+        def log(self, msg, cls=''):
+            e = html.DIV(msg, Class='entry '+cls if cls else 'entry')
+            document['logEntries'] <= e
+            e.scrollIntoView(False)
+        def clear_hl(self):
+            for (x,y) in list(self.hl):
+                cid = self.cell_id(x,y)
+                if cid in document:
+                    document[cid].classList.remove('hl')
+                    document[cid].classList.remove('target')
+            self.hl.clear()
+        # --- Drawing ---
+        def draw(self):
+            # units
+            for y in range(GRID_H):
+                for x in range(GRID_W):
+                    cell = document[self.cell_id(x,y)]
+                    cell.text = ''
+                    # keep the diamond child present
+                    cell <= html.SPAN('', Class='diamond')
+            if self.player.alive():
+                document[self.cell_id(self.player.x,self.player.y)] <= html.SPAN('P', Class='unit P')
+            if self.enemy.alive():
+                document[self.cell_id(self.enemy.x,self.enemy.y)] <= html.SPAN('E', Class='unit E')
+            # HUD bars
+            for who,bar,txt in ((self.player,'pHPbar','pHPtxt'), (self.enemy,'eHPbar','eHPtxt')):
+                pct = max(0, min(100, int(100*who.hp/MAX_HP)))
+                document[bar].style.width = f"{pct}%"
+                document[txt].text = f"{who.hp}/{MAX_HP}"
+            # Buttons enable/disable
+            if self.turn=='P':
+                document['btnMove'].disabled = self.player.moved or not self.player.alive()
+                document['btnSlash'].disabled = self.player.acted or not self.player.alive()
+                document['btnHeal'].disabled = self.player.acted or not self.player.alive() or self.player.hp>=MAX_HP
+                document['btnEnd'].disabled = False
+            else:
+                document['btnMove'].disabled = True
+                document['btnSlash'].disabled = True
+                document['btnHeal'].disabled = True
+                document['btnEnd'].disabled = True
+        # --- Mechanics ---
+        def legal_moves(self, u):
+            # up to 2 cells in any direction (Chebyshev <=2), cannot move onto other unit
+            res = []
+            for dx in range(-2,3):
+                for dy in range(-2,3):
+                    if dx==0 and dy==0: continue
+                    nx, ny = u.x+dx, u.y+dy
+                    if self.in_bounds(nx,ny) and self.chebyshev((u.x,u.y),(nx,ny))<=2:
+                        if self.unit_at(nx,ny) is None:
+                            res.append((nx,ny))
+            return res
+        def can_slash(self, attacker, target):
+            # orthogonal adjacent
+            if not attacker.alive() or not target.alive():
+                return False
+            ax, ay = attacker.pos(); tx, ty = target.pos()
+            return self.manhattan((ax,ay),(tx,ty))==1
+        def do_move(self, u, to_xy):
+            u.x, u.y = to_xy
+            u.moved = True
+            self.log(f"{u.name} moves to {to_xy}.", 'note')
+        def do_heal(self, u):
+            if u.acted: return False
+            before = u.hp
+            u.hp = min(MAX_HP, u.hp + HEAL_AMOUNT)
+            healed = u.hp - before
+            u.acted = True
+            self.log(f"{u.name} casts Heal and recovers +{healed} HP.", 'good')
+            return True
+        def do_slash(self, attacker, target):
+            if attacker.acted: return False
+            if not self.can_slash(attacker, target):
+                return False
+            dmg = random.randint(SLASH_MIN, SLASH_MAX)
+            crit = random.random() < CRIT_CHANCE
+            if crit: dmg *= 2
+            target.hp = max(0, target.hp - dmg)
+            attacker.acted = True
+            if crit:
+                self.log(f"{attacker.name} uses Slash — CRIT for {dmg} dmg!", 'bad')
+            else:
+                self.log(f"{attacker.name} uses Slash for {dmg} dmg.", 'bad')
+            if target.hp<=0:
+                self.log(f"{target.name} is defeated.")
+            return True
+        def check_end(self):
+            if not self.player.alive():
+                self.set_status('Defeat. ⟲ Restart to play again.')
+                self.turn='X'
+                return True
+            if not self.enemy.alive():
+                self.set_status('Victory! ⟲ Restart to play again.')
+                self.turn='X'
+                return True
+            return False
+        # --- Context menu model (pure) ---
+        def compute_menu(self, cx=None, cy=None):
+            """Return a list of action descriptors based on clicked cell (cx,cy)."""
+            if self.turn != 'P' or not self.player.alive():
+                return [('end','End Turn',False,'Enemy turn')]
+            items = []
+            # Heal availability
+            can_heal = (not self.player.acted) and (self.player.hp < MAX_HP)
+            # Slash availability (if clicking on enemy and adjacent)
+            can_sl = False
+            if cx is not None and cy is not None:
+                if (cx,cy) == (self.enemy.x, self.enemy.y) and self.can_slash(self.player, self.enemy) and (not self.player.acted):
+                    can_sl = True
+            # Move here if clicking on a legal tile
+            can_move_here = False
+            if cx is not None and cy is not None and (not self.player.moved):
+                can_move_here = (cx,cy) in set(self.legal_moves(self.player))
+            # General entries
+            if can_move_here:
+                items.append(('move_here', 'Move here', True, ''))
+            else:
+                items.append(('move_show', 'Show move range', (not self.player.moved), ''))
+            items.append(('slash', 'Slash target', can_sl, 'adjacent 4-dir'))
+            items.append(('heal', 'Heal (+3)', can_heal, ''))
+            items.append(('end', 'End Turn ▶', True, ''))
+            items.append(('cancel','Cancel', True, ''))
+            return items
+        # --- Turn flow ---
+        def start_player_turn(self):
+            self.turn='P'
+            self.player.moved = False
+            self.player.acted = False
+            self.selected = None
+            self.set_status('Your turn: Right‑click for actions. Act before/after move. End Turn when ready.')
+            self.clear_hl(); self.draw()
+        def end_player_turn(self, *_):
+            if self.turn!='P': return
+            self.hide_menu()
+            self.clear_hl()
+            self.draw()
+            if self.check_end(): return
+            self.cpu_turn()
+        def cpu_turn(self):
+            self.turn='E'
+            e = self.enemy; p = self.player
+            e.moved = False; e.acted = False
+            self.set_status("Enemy's turn…")
+            # If adjacent at start, usually attack first
+            acted = False
+            if self.can_slash(e, p):
+                self.do_slash(e, p); acted = True
+                if self.check_end():
+                    self.draw(); return
+            # Consider heal if low
+            if not acted and e.hp <= 4 and random.random() < 0.5:
+                self.do_heal(e); acted = True
+            # Move toward player if not moved
+            if not e.moved and e.alive() and p.alive():
+                dx = p.x - e.x; dy = p.y - e.y
+                step_x = 0 if dx==0 else (1 if dx>0 else -1)
+                step_y = 0 if dy==0 else (1 if dy>0 else -1)
+                mx = e.x + (2*step_x if abs(dx)>2 else dx)
+                my = e.y + (2*step_y if abs(dy)>2 else dy)
+                if (mx,my) == (p.x,p.y):
+                    if (e.x+step_x, e.y) != (p.x,p.y) and self.in_bounds(e.x+step_x, e.y):
+                        mx, my = e.x+step_x, e.y
+                    elif (e.x, e.y+step_y) != (p.x,p.y) and self.in_bounds(e.x, e.y+step_y):
+                        mx, my = e.x, e.y+step_y
+                    else:
+                        mx, my = e.x, e.y
+                mx = max(0, min(GRID_W-1, mx)); my = max(0, min(GRID_H-1, my))
+                if self.unit_at(mx,my) is None:
+                    self.do_move(e, (mx,my))
+            # If can attack after moving and haven't acted yet, do it
+            if not acted and self.can_slash(e, p):
+                self.do_slash(e, p)
+                if self.check_end():
+                    self.draw(); return
+            # Maybe heal after moving if still low and hasn't acted yet
+            if not e.acted and e.hp <= 4:
+                self.do_heal(e)
+            self.draw()
+            if self.check_end(): return
+            # Start next player turn
+            self.start_player_turn()
+        # --- Context menu view/controller ---
+        def show_menu(self, x_px, y_px, cx=None, cy=None):
+            self.hide_menu()
+            ctx = document['ctx']
+            ctx.text = ''
+            items = self.compute_menu(cx, cy)
+            for key, label, enabled, hint in items:
+                row = html.DIV(Class='item')
+                if not enabled:
+                    row.attrs['disabled'] = 'true'
+                lab = html.SPAN(label, Class='label')
+                row <= lab
+                if hint:
+                    row <= html.SPAN(hint, Class='hint')
+                def make_handler(action_key):
+                    def handler(ev):
+                        ev.stopPropagation(); self.hide_menu()
+                        self.handle_menu(action_key, cx, cy)
+                    return handler
+                row.bind('click', make_handler(key))
+                ctx <= row
+            # position
+            ctx.style.left = f"{x_px}px"; ctx.style.top = f"{y_px}px"; ctx.style.display = 'block'
+        def hide_menu(self, *_):
+            document['ctx'].style.display = 'none'
+        def handle_menu(self, key, cx, cy):
+            if key == 'cancel':
+                return
+            if key == 'end':
+                self.end_player_turn(); return
+            if key == 'heal':
+                if not self.player.acted and self.player.hp < MAX_HP:
+                    self.do_heal(self.player); self.draw(); self.check_end()
+                return
+            if key == 'move_show':
+                if not self.player.moved:
+                    self.selected = 'move'; self.clear_hl()
+                    for (mx,my) in self.legal_moves(self.player):
+                        self.hl.add((mx,my)); document[self.cell_id(mx,my)].classList.add('hl')
+                    self.set_status('Choose a destination (≤2 cells). Left‑click to move.')
+                return
+            if key == 'move_here':
+                if not self.player.moved and (cx,cy) in set(self.legal_moves(self.player)):
+                    self.do_move(self.player, (cx,cy)); self.clear_hl(); self.selected=None; self.draw(); self.check_end()
+                return
+            if key == 'slash':
+                if (cx,cy) == (self.enemy.x, self.enemy.y) and self.can_slash(self.player, self.enemy) and (not self.player.acted):
+                    self.do_slash(self.player, self.enemy); self.clear_hl(); self.selected=None; self.draw(); self.check_end()
+                return
+
+    # --- Build UI grid ------------------------------------------------------
+    G = Game()
+    grid = document['grid']
+    for y in range(GRID_H):
+        for x in range(GRID_W):
+            classes = 'cell alt' if ((x+y)&1) else 'cell'
+            cell = html.DIV(Class=classes, id=G.cell_id(x,y))
+            cell.attrs['data-x'] = str(x)
+            cell.attrs['data-y'] = str(y)
+            cell <= html.SPAN('', Class='diamond')
+            grid <= cell
+
+    # --- Interaction --------------------------------------------------------
+    def on_cell_click(ev):
+        if G.turn != 'P':
+            return
+        el = ev.currentTarget
+        x = int(el.attrs['data-x']); y = int(el.attrs['data-y'])
+        # Move selection via left click when in move mode
+        if G.selected == 'move' and not G.player.moved:
+            if (x,y) in G.hl:
+                G.do_move(G.player, (x,y))
+                G.clear_hl(); G.selected=None; G.draw(); G.check_end()
+            return
+
+    for y in range(GRID_H):
+        for x in range(GRID_W):
+            c = document[G.cell_id(x,y)]
+            c.bind('click', on_cell_click)
+            def make_ctx_handler(cx,cy):
+                def ctxmenu(ev):
+                    ev.preventDefault();
+                    G.show_menu(ev.clientX, ev.clientY, cx, cy)
+                return ctxmenu
+            c.bind('contextmenu', make_ctx_handler(x,y))
+
+    # Global context menu dismiss
+    def dismiss_any(ev):
+        if document['ctx'].style.display == 'block':
+            G.hide_menu()
+    document.bind('click', dismiss_any)
+    document.bind('keydown', lambda ev: G.hide_menu() if ev.key=='Escape' else None)
+
+    # Buttons (left in for convenience)
+    def click_move(ev):
+        if G.player.moved or G.turn!='P': return
+        G.selected = 'move'; G.clear_hl()
+        for (mx,my) in G.legal_moves(G.player):
+            G.hl.add((mx,my)); document[G.cell_id(mx,my)].classList.add('hl')
+        G.set_status('Choose a destination (≤2 cells). Left‑click to move, or right‑click for actions.')
+
+    def click_slash(ev):
+        if G.player.acted or G.turn!='P': return
+        if G.can_slash(G.player, G.enemy):
+            G.do_slash(G.player, G.enemy)
+            G.clear_hl(); G.selected=None; G.draw(); G.check_end()
+        else:
+            G.set_status('Enemy not adjacent (orthogonal). Move closer or Heal.')
+
+    def click_heal(ev):
+        if G.player.acted or G.turn!='P': return
+        if G.player.hp >= MAX_HP:
+            G.set_status('HP already full.')
+            return
+        G.do_heal(G.player)
+        G.draw(); G.check_end()
+
+    def click_end(ev):
+        G.selected=None
+        G.end_player_turn()
+
+    def click_restart(ev):
+        document['logEntries'].text = ''
+        globals()['G'] = Game()
+        G2 = globals()['G']
+        G2.draw(); G2.start_player_turn()
+
+    for bid, fn in (
+        ('btnMove', click_move),
+        ('btnSlash', click_slash),
+        ('btnHeal', click_heal),
+        ('btnEnd', click_end),
+        ('btnRestart', click_restart),
+    ):
+        document[bid].bind('click', fn)
+
+    # --- Minimal tests (kept) + new tests for menu model -------------------
+    def roll_slash_damage():
+        dmg = random.randint(SLASH_MIN, SLASH_MAX)
+        if random.random() < CRIT_CHANCE: dmg *= 2
+        return dmg
+
+    def run_tests(ev=None):
+        out = document['testOut']
+        out.text = ''
+        passed = 0; failed = 0
+        def expect(cond, msg):
+            nonlocal passed, failed
+            row_cls = 'good' if cond else 'err'
+            out <= html.DIV(('✔ ' if cond else '✖ ') + msg, Class=f'entry {row_cls}')
+            passed += 1 if cond else 0
+            failed += 0 if cond else 1
+        # Existing tests
+        t = Game()
+        legals = set(t.legal_moves(t.player))
+        expect((2,4) in legals, 'Move includes (2,4) from (0,4)')
+        expect((0,6) in legals, 'Move includes (0,6) from (0,4)')
+        expect((1,5) in legals, 'Move includes diagonal (1,5)')
+        expect((3,4) not in legals, 'Move excludes distance 3 (3,4)')
+        t.enemy.x, t.enemy.y = 1, 4
+        expect(t.can_slash(t.player, t.enemy), 'Slash valid when enemy orthogonally adjacent')
+        t.enemy.x, t.enemy.y = 1, 5
+        expect(not t.can_slash(t.player, t.enemy), 'Slash invalid for diagonal adjacency')
+        t.player.hp = 9
+        t.do_heal(t.player)
+        expect(t.player.hp == 10, 'Heal caps at MAX_HP')
+        expect(t.player.acted, 'Heal consumes action')
+        random.seed(1234)
+        vals = [roll_slash_damage() for _ in range(200)]
+        expect(min(vals) >= 3 and max(vals) <= 10, 'Slash damage stays within 3..10 including crits')
+        tt = Game(); tt.turn = 'E'; tt.cpu_turn()
+        expect(tt.enemy.x in (5,6) and tt.enemy.y == 4, 'CPU moves up to 2 cells toward player')
+        # Added tests (menu model)
+        m = Game()
+        menu0 = m.compute_menu()  # no cell
+        labels0 = [k for k,_,_,_ in menu0]
+        expect('end' in labels0 and 'heal' in labels0, 'Menu shows basic actions without cell context')
+        # Menu when clicking a legal move tile
+        m2 = Game()
+        lm = set(m2.legal_moves(m2.player))
+        any_move = next(iter(lm))
+        menu_move = m2.compute_menu(*any_move)
+        expect(any('move_here'==k and en for k,_,en,_ in menu_move), 'Menu includes Move here on a legal tile')
+        # Menu when adjacent to enemy
+        m3 = Game(); m3.enemy.x, m3.enemy.y = 1, 4
+        menu_sl = m3.compute_menu(1,4)
+        expect(any(k=='slash' and en for k,_,en,_ in menu_sl), 'Menu enables Slash when clicking adjacent enemy')
+        # Menu heal disabled at full HP
+        m4 = Game(); m4.player.hp = MAX_HP
+        menu_h = m4.compute_menu()
+        expect(any(k=='heal' and (not en) for k,_,en,_ in menu_h), 'Menu disables Heal at full HP')
+        out <= html.DIV(f"Passed: {passed}, Failed: {failed}", Class='entry note')
+
+    document['btnRunTests'].bind('click', run_tests)
+
+    # Initial draw
+    G.draw(); G.start_player_turn()
+
+except Exception as e:
+    # Show Python-side errors in the UI (avoids opaque browser "Script error").
+    try:
+        from browser import document, html
+        import traceback
+        pre = html.PRE("Brython error:\n" + traceback.format_exc())
+        pre.style = {"whiteSpace":"pre-wrap","color":"#ffb0b0","background":"#1b1b1b","padding":"10px","border":"1px solid #502","borderRadius":"8px"}
+        holder = document.get('logEntries') or document
+        holder <= pre
+    except Exception:
+        pass
+  </script>
+</body>
+</html>
